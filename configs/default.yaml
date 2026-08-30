@@ -1,0 +1,68 @@
+# CAR default experiment configuration.
+#
+# This file is hashed into every run manifest. If the hash of the config that
+# produced a calibration threshold differs from the one in the test run,
+# something was retuned between them -- which is how test leakage is caught.
+
+seed: 0
+
+backend:
+  kind: mock          # mock | hf
+  seed: 0
+  # mock-only knobs
+  signal_strength: 0.8    # 0.0 = uncertainty is pure noise (null hypothesis)
+  base_error_rate: 0.25
+  # hf-only knobs
+  # model_id: meta-llama/Llama-3.1-8B-Instruct
+  # dtype: bfloat16       # see README: do not casually quantise
+  # device: cuda
+
+cache:
+  enabled: true
+  dir: .cache/generations
+
+generation:
+  n_steps: 4
+  # Dominant compute cost: n_samples extra forward passes per step per
+  # question. Budget this explicitly before scaling the dataset.
+  n_samples: 5
+  temperature: 0.7
+
+uncertainty:
+  # Zero a weight to ablate that signal; the code path stays identical.
+  weights:
+    token_entropy: 1.0
+    max_surprisal: 0.5
+    mean_logprob: 0.0
+    semantic_divergence: 1.0
+    task_verifier_signal: 0.0
+  fit_weights: logistic   # logistic | uniform
+
+conformal:
+  kind: adaptive          # split | crc | adaptive
+  alpha: 0.1              # risk target -- NOT an accuracy target
+  # adaptive-only
+  gamma: 0.005
+  epsilon: 0.2            # forced exploration rate; 0.0 reproduces censoring
+  update_mode: ipw        # naive | exploration_only | ipw
+
+control:
+  influence: sqrt         # none | linear | sqrt | log ("none" = pure-uncertainty ablation)
+  influence_cap: 4.0
+  budget_per_question: 3
+  budget_policy: none     # none | linear
+  abstain_threshold: null
+
+verification:
+  kind: calculator        # calculator | retrieval | oracle | same_model_critic
+  retrieval_k: 3
+
+data:
+  dataset: mock           # mock | strategyqa | gsm8k
+  dev_frac: 0.3
+  cal_frac: 0.3
+  split_salt: car-v1
+
+output:
+  run_dir: runs
+  trace_file: trace.jsonl

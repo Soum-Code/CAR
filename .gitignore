@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Experiment outputs — never commit, they are regenerated from configs + seeds
+runs/
+outputs/
+*.jsonl
+!tests/fixtures/*.jsonl
+
+# Model + data caches
+.cache/
+data/raw/
+data/processed/
+*.safetensors
+*.bin
+
+# Notebooks
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
