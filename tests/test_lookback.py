@@ -105,3 +105,48 @@ def test_no_upstream_arithmetic_error_is_undetectable_at_any_window():
 def test_rejects_negative_window():
     with pytest.raises(ValueError):
         LookbackVerifier(k=-1)
+
+
+# ---- the GPU experiment's CPU-testable parts -------------------------
+
+
+def _gpu_module():
+    import importlib.util
+    from pathlib import Path
+
+    spec = importlib.util.spec_from_file_location(
+        "gpu_semantic_scope",
+        Path(__file__).resolve().parents[1] / "scripts" / "gpu_semantic_scope.py",
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+@pytest.mark.skipif(
+    not __import__("pathlib").Path("data/raw/mathshepherd/strided.jsonl").exists(),
+    reason="Math-Shepherd not downloaded",
+)
+def test_gpu_population_is_exactly_the_arithmetic_blind_set():
+    """The GPU experiment must target only what arithmetic provably cannot see,
+    otherwise it re-measures the 20% already covered."""
+    g = _gpu_module()
+    pos = g.build_population(limit=200)
+    assert pos
+    assert all(not r["global_ok"] for r in pos)
+    # Arithmetic-blind means no upstream arithmetic error, so distance is
+    # undefined for every member by construction.
+    assert all(r["distance"] is None for r in pos)
+
+
+@pytest.mark.skipif(
+    not __import__("pathlib").Path("data/raw/mathshepherd/strided.jsonl").exists(),
+    reason="Math-Shepherd not downloaded",
+)
+def test_gpu_control_group_exists():
+    """Without a control, detection rate is meaningless -- a verifier that
+    flags everything would score a perfect scope."""
+    g = _gpu_module()
+    neg = g.build_control(limit=200)
+    assert neg
+    assert all(r["global_ok"] for r in neg)
