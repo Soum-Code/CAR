@@ -54,14 +54,32 @@ control:
   abstain_threshold: null
 
 verification:
+  # Deterministic and independent of the generator, which is what makes it a
+  # real verifier rather than a same-model critic. Pairs naturally with GSM8K,
+  # where every step is an arithmetic transformation.
   kind: calculator        # calculator | retrieval | oracle | same_model_critic
   retrieval_k: 3
 
 data:
-  dataset: mock           # mock | strategyqa | gsm8k
+  # PRIMARY: GSM8K. Switched from StrategyQA on evidence, not preference --
+  # StrategyQA graphs are 72.9% one hop deep and only 11.2% of steps have any
+  # non-terminal descendant, so propagation barely occurs. GSM8K has 2.4x the
+  # headroom, depth reaching 8, and 5x as many questions at depth >= 3.
+  # StrategyQA is kept for calibration and evidence-grounded verification.
+  dataset: gsm8k          # mock | gsm8k | strategyqa
+  path: data/raw/gsm8k/train.jsonl
+  # Propagation and allocation claims need depth. Restricting to depth >= 3
+  # keeps 3030 GSM8K questions, where policy spread is 0.044-0.114 rather than
+  # the 0.016 seen on the shallow majority.
+  min_depth: 3
   dev_frac: 0.3
   cal_frac: 0.3
   split_salt: car-v1
+
+  secondary:
+    dataset: strategyqa
+    path: data/raw/strategyqa/strategyqa_train.json
+    role: calibration and evidence-grounded verification only
 
 output:
   run_dir: runs

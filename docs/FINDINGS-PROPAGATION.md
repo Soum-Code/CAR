@@ -393,6 +393,117 @@ Extracted graphs are cached at `data/processed/strategyqa_dags.json`.
 
 ---
 
+# Addendum 3: primary benchmark switched to GSM8K
+
+Acted on the recommendation above. `configs/default.yaml` now has
+`data.dataset: gsm8k`, with StrategyQA retained as secondary for calibration
+and evidence-grounded verification.
+
+## Deriving GSM8K dependency graphs
+
+GSM8K has no annotated decomposition, but its inline calculator markers make
+the graph derivable: line *i* depends on line *j* when an operand of *i* equals
+the result of *j*. Operands matching no earlier result are givens, i.e. roots.
+
+```
+He eats 32 ... because 2 x 16 = <<2*16=32>>      roots: 2, 16
+He eats 16 ... because 2 x 8  = <<2*8=16>>       roots: 2, 8
+He eats 48 ... because 32 + 16 = <<32+16=48>>    depends on BOTH earlier lines
+```
+
+That is a *converging* structure, which matters: GSM8K is not merely a deeper
+chain.
+
+Extraction quality on 7473 training solutions:
+
+| metric | value | reading |
+|---|---|---|
+| usable (≥2 calc steps) | 93.3% | 499 single-step solutions dropped |
+| operand link rate | 30.7% | rest are givens from the problem statement — expected |
+| **ambiguous links** | **9.6%** | operand matches an earlier result *and* a question number |
+| orphan steps | 27.7% | non-first steps recomputing from givens — parallel branches, not failures |
+
+The 9.6% ambiguity is the honest weak point. Linking to the earlier result is
+right far more often than not, but roughly one link in ten could go either way.
+
+## Structural comparison
+
+| property | StrategyQA | GSM8K |
+|---|---|---|
+| questions | 2272 | **6974** |
+| steps per item | 2.95 | 3.34 |
+| longest path (mean) | 2.30 | **2.54** |
+| max depth observed | 5 | **8** |
+| steps w/ non-terminal descendant | 11.2% | **26.6%** |
+| corr(position, influence) | −0.917 | **−0.771** |
+| questions at depth ≥ 3 | 615 | **3030** |
+
+Shapes:
+
+| | StrategyQA | GSM8K |
+|---|---|---|
+| chain | 39.1% | 38.9% |
+| converging | 59.5% | 25.7% |
+| branching | 1.5% | **12.4%** |
+| other | 0.0% | **22.9%** |
+
+**Correction to Addendum 2.** It claimed GSM8K has "~3× the propagation
+headroom", inferred from calculator-step counts. Measured on extracted graphs,
+mean *depth* improves only 2.30 → 2.54 (10%). The 2.4× gain is on the headroom
+metric specifically (11.2% → 26.6%), which is the right one but not what the
+earlier sentence said.
+
+## Policy choice matters more on GSM8K
+
+Budget 37.5%, global verifier:
+
+| policy | StrategyQA | GSM8K |
+|---|---|---|
+| uniform | 0.2418 | 0.2262 |
+| front | 0.2460 | 0.2350 |
+| back | 0.2353 | 0.2137 |
+| influence | 0.2461 | 0.2285 |
+| depth | **0.2335** | 0.2121 |
+| cut | 0.2384 | **0.2071** |
+| **spread** | **0.0126** | **0.0279** |
+
+Spread doubles. Note the best policy differs — `depth` on StrategyQA, `cut`
+(ancestors × descendants, i.e. bottlenecks) on GSM8K, which has 8× more
+branching for bottlenecks to exist in. **The best structural signal is
+benchmark-dependent**, so it should be selected on dev data rather than assumed.
+
+Broken down by depth, which is what the whole propagation argument needs:
+
+| depth | count | uniform | front | back | influence | depth | cut | spread |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 496 | 0.1516 | 0.1518 | 0.1514 | 0.1516 | 0.1516 | 0.1516 | **0.0003** |
+| 2 | 3418 | 0.1990 | 0.2010 | 0.1982 | 0.1942 | 0.2016 | **0.1856** | 0.0159 |
+| 3 | 2141 | 0.2561 | 0.2694 | 0.2344 | 0.2607 | 0.2292 | **0.2254** | 0.0440 |
+| 4 | 714 | 0.2890 | 0.3178 | 0.2495 | 0.3101 | **0.2387** | 0.2578 | 0.0791 |
+| 5 | 175 | 0.3199 | 0.3640 | 0.2595 | 0.3595 | **0.2504** | 0.2948 | **0.1136** |
+
+At depth ≥ 4 the gap between the best and worst policy reaches 0.08–0.11 —
+an order of magnitude larger than anything visible on StrategyQA. `front` and
+`influence` remain the two worst policies at every depth, which is now the
+fourth independent replication of that result.
+
+`configs/default.yaml` therefore also sets `data.min_depth: 3`, keeping the
+3030 questions where allocation is a real decision.
+
+## Remaining risks
+
+- **9.6% ambiguous links.** A dependency-labelling error rate that no amount of
+  simulation fixes. Worth hand-checking ~50 graphs before relying on it in the
+  thesis.
+- GSM8K is arithmetic only. The evidence-grounded verification story (retrieval,
+  prompt injection, verifier scope < 1) has no home there — that is what
+  StrategyQA is retained for, and the two claims now rest on different datasets.
+- `local_error_rate = 0.15` is still assumed, not measured. Measuring the real
+  per-step error rate of Llama 3.1 8B on GSM8K is the obvious next input, and it
+  also feeds the Kotte feasibility test (`mu > alpha` ⟹ minimum abstention).
+
+---
+
 ## Revised pitch
 
 > Conformal gating for LLMs certifies the quantity a verifier reports: whether
