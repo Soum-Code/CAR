@@ -149,9 +149,27 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-176 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+187 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
-Reproduce the headline results:
+### Get the data
+
+```bash
+python scripts/download_data.py
+```
+
+Fetches StrategyQA, GSM8K and a Math-Shepherd sample into `data/raw/`
+(gitignored, ~130 MB, idempotent). Check with `--verify`, refetch with
+`--force`, or name one dataset to fetch just that.
+
+> The Math-Shepherd fetch is strided across 48 range requests rather than being
+> a plain download, and asserts the resulting class balance afterwards. That
+> file is sorted into contiguous blocks by label, so any prefix read is
+> effectively single-class — the first 80 MB is 100% wrong-answer GSM8K, and
+> using it produces a plausible-looking table in which every error rate is
+> wrong. It cost two debugging rounds to find. The script fails loudly rather
+> than letting it recur.
+
+Then reproduce the headline results:
 
 ```bash
 python scripts/exp_measure_error_rate.py
