@@ -5,6 +5,15 @@ from typing import Protocol, runtime_checkable
 import numpy as np
 
 from car.conformal.adaptive import AdaptiveCalibrator, ThresholdTrace, UpdateMode
+from car.conformal.feasibility import (
+    MU_GLOBAL_GSM8K,
+    MU_LOCAL_GSM8K,
+    Feasibility,
+    alpha_report,
+    check_alpha,
+    feasible_alpha,
+    min_verification_rate,
+)
 from car.conformal.risk_control import (
     RiskControlCalibrator,
     crc_is_feasible,
@@ -42,16 +51,23 @@ def load_calibrator(kind: str, **kwargs):
 
 
 __all__ = [
+    "MU_GLOBAL_GSM8K",
+    "MU_LOCAL_GSM8K",
     "AdaptiveCalibrator",
     "Calibrator",
+    "Feasibility",
     "RiskControlCalibrator",
     "SplitConformalCalibrator",
     "ThresholdTrace",
     "UpdateMode",
+    "alpha_report",
+    "check_alpha",
     "conformal_quantile",
     "crc_is_feasible",
     "crc_lambda",
     "false_safe_loss",
+    "feasible_alpha",
     "load_calibrator",
     "min_calibration_size",
+    "min_verification_rate",
 ]

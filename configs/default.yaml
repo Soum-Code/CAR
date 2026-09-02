@@ -40,16 +40,69 @@ uncertainty:
 
 conformal:
   kind: adaptive          # split | crc | adaptive
-  alpha: 0.1              # risk target -- NOT an accuracy target
+
+  # ---- risk target -------------------------------------------------------
+  #
+  # alpha is a RISK target, not an accuracy target, and it is not free to
+  # choose. Kotte (arXiv:2606.29054) Prop. 3: when base risk mu > alpha, ANY
+  # distribution-free method must verify or abstain on at least
+  # (mu - alpha)/(1 - alpha) of steps. No score, calibrator or gate escapes it.
+  #
+  # Measured on GSM8K (Math-Shepherd, Mistral-7B-SFT, 93k steps):
+  #
+  #   mu_global ~ 0.3908   step does not lead to a correct answer
+  #   mu_local  ~ 0.1011   step's arithmetic is actually wrong
+  #
+  # Floors against mu_global:
+  #
+  #   alpha   0.05    0.10    0.20    0.30    0.40
+  #   floor  35.9%   32.3%   23.9%   13.0%   none
+  #
+  # This project previously used alpha: 0.1, which is NOT a modest target --
+  # against global risk it charges a 32% verification entry fee before any
+  # method is admissible. Changed to 0.30: a 13% floor is affordable against
+  # the 37.5% budget, and it sits inside the 0.30-0.40 band Kotte found
+  # workable for LLM tasks. alpha: 0.40 is the first floor-free value but is a
+  # weak guarantee; 0.10 is only defensible against LOCAL risk.
+  alpha: 0.30
+
+  # Which risk the gate actually calibrates. A verifier reports LOCAL validity,
+  # so that is what a conformal layer can control directly -- but ~70% of
+  # globally-wrong steps are locally valid, so controlling local risk bounds
+  # nothing about the answer. Stating the target explicitly stops the two being
+  # silently conflated in the results.
+  risk: global            # global | local
+  base_risk_mu: 0.3908    # measured; re-measure for a different generator
+
+  # The spec's own success criteria call for a trade-off curve, not a single
+  # number. Experiments sweep; `alpha` above is only the operating point.
+  alpha_sweep: [0.10, 0.20, 0.30, 0.40, 0.50]
+
+  # Fail at setup if the budget sits below the Kotte floor, rather than
+  # discovering it from a flat results table.
+  enforce_feasibility: true
+
   # adaptive-only
   gamma: 0.005
   epsilon: 0.2            # forced exploration rate; 0.0 reproduces censoring
   update_mode: ipw        # naive | exploration_only | ipw
 
 control:
-  influence: sqrt         # none | linear | sqrt | log ("none" = pure-uncertainty ablation)
+  # Structural allocation signal. NOT influence-weighting: descendant-count
+  # weighting was tested on chains, on five synthetic DAG families and on real
+  # extracted graphs, and lost to uniform every time. Ancestor count ("depth")
+  # won on StrategyQA shapes, bottleneck weight ("cut") on GSM8K, so the signal
+  # is benchmark-dependent and should be picked on DEV data, not assumed.
+  # See docs/FINDINGS-PROPAGATION.md.
+  allocation: cut         # uniform | front | back | influence | depth | cut
+  influence: none         # retained for the ablation; "sqrt" reproduces the old default
   influence_cap: 4.0
-  budget_per_question: 3
+
+  # Mean GSM8K solution is 3.59 steps, so 2 calls ~= 56% of steps. That clears
+  # the 13.0% Kotte floor for alpha=0.30 with room to spare, which is what
+  # makes the accuracy-vs-cost sweep meaningful rather than budget-starved.
+  budget_per_question: 2
+  budget_fraction: 0.56   # checked against the floor at setup
   budget_policy: none     # none | linear
   abstain_threshold: null
 
