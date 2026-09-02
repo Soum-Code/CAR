@@ -180,12 +180,102 @@ locally.
   and the ranking held, but the mechanism is still idealised.
 - `terminal` is generous to late verification; `conjunctive` makes everything
   flat. Reality is between them and neither endpoint favours front-loading.
-- Chains only. Diamond and tree topologies are not tested, and influence
-  weighting could plausibly do better where a step has many *immediate*
-  dependents rather than a linear tail.
 - Local error rate is i.i.d. across positions. If early steps were
-  intrinsically harder, front-loading would gain — that is worth measuring on
-  real StrategyQA traces before discarding §4.2 permanently.
+  intrinsically harder, front-loading would gain — worth measuring on real
+  StrategyQA traces.
+
+---
+
+# Addendum: the chain result could not see influence weighting
+
+Everything above ran on **linear chains**, and on a chain
+
+```
+influence_schedule(v)  ==  front_schedule(v)      exactly
+corr(position, influence) = -1.000
+```
+
+because descendant count is a strictly decreasing function of position. The
+test rejected influence weighting without ever evaluating it as a distinct
+policy. A chain also routes every error through the terminal node, handing a
+structural win to back-loading that is a property of chains, not of reasoning.
+
+Re-run on DAGs where the two signals decouple (`src/car/topology.py`,
+`scripts/exp_topology.py`, 22 tests in `tests/test_topology.py`).
+
+## Two artifacts found and fixed first
+
+Both would have invalidated the rerun:
+
+1. **Decay was inert.** Effective scope was computed from the distance to the
+   *nearest incorrect ancestor*. Once corruption spreads, every intermediate
+   node is itself incorrect, so that distance is always 1 and `decay**0 == 1`
+   always. Every observed age was 1, and the decay=1.0 and decay=0.377 result
+   tables were byte-identical. Now tracked as distance from the corruption
+   **origin**; observed distribution is {0: 3731, 1: 1851, 2: 637, 3: 169}.
+
+2. **The terminal node was verifiable.** Ancestor-weighted schedules put
+   `p = 1.0` on it, and with `scope = 1.0` that is a perfect oracle on the final
+   answer — driving measured error to exactly 0.0000 for three policies. A
+   verifier that can definitively check the answer makes the reasoning chain
+   unnecessary. The terminal is now excluded from the budget.
+
+## Result: influence weighting is distinguishable, better than front, still loses
+
+Final-answer error, matched budget 37.5% of nodes, global verifier:
+
+| topology | corr(pos,infl) | uniform | front | back | influence | depth | winner |
+|---|---|---|---|---|---|---|---|
+| chain(10) | −1.000 | 0.3055 | 0.4240 | 0.2007 | **0.4240** | 0.2007 | back |
+| parallel(3×3) | −0.533 | 0.4868 | 0.5310 | 0.4847 | 0.5333 | **0.3889** | depth |
+| converging(d=3) | −0.881 | 0.5300 | 0.6945 | 0.3217 | 0.6191 | **0.1487** | depth |
+| diamond(3×3) | −0.976 | 0.5333 | 0.6262 | 0.3755 | 0.6217 | **0.3459** | depth |
+| bushy(13,s=0) | −0.652 | 0.5971 | 0.6689 | **0.5451** | 0.6654 | 0.5624 | back |
+| bushy(13,s=3) | −0.776 | 0.5955 | 0.6714 | **0.5296** | 0.6610 | 0.5453 | back |
+
+Note the chain row: influence and front are identical to four decimals, which
+is the confound made visible.
+
+Off-chain the two policies do separate, and influence is the better of the two
+— by 0.075 on converging, 0.004–0.010 elsewhere, and it is marginally *worse*
+on parallel. So the separation is real but small and not consistent in sign.
+
+**Influence weighting still loses to plain uniform on every topology tested**
+(+0.047 to +0.119). The §4.2 rejection stands — but now for a tested reason
+rather than a confounded one. Holds under decay = 0.377 and under weak scope
+(0.3).
+
+## The replacement finding: ancestor count, not descendant count
+
+`depth` — allocate proportional to |ancestors(v)| — wins on 3/6 topologies at
+full scope and 4/6 at weak scope, and is never far off elsewhere. It beats
+`influence` on every non-chain topology tested, and beats raw `back`-loading on
+parallel(3×3) by 0.096, so it is more than position in disguise.
+
+The intuition is the reach story again, in structural form:
+
+> Verify where the most upstream reasoning **converges**, not where the most
+> downstream damage **could occur**. A node deep in the graph is downstream of
+> many premises, so one check there screens many potential errors at once. A
+> node with many descendants is only worth checking if the errors it causes are
+> not catchable later — and with a verifier that has reach, they are.
+
+Descendant count answers "how much damage could this cause?". Ancestor count
+answers "how much can I screen with one call?". Under a budget, the second is
+the question that matters — and it is the opposite of what the spec and §4.2
+proposed.
+
+## Caveats on the addendum
+
+- Margins are 0.05–0.15 absolute. Real, consistent, not dramatic.
+- `depth` wins on the structured topologies; `back` wins on both random bushy
+  graphs. The right structural signal is itself topology-dependent.
+- Six topologies, one error rate, one budget level in the main table. The
+  budget sweep covers 0.15–0.65 but omits `depth`, so it understates the
+  ranking — read the main table, not the sweep.
+- Real reasoning DAGs are not any of these shapes. Extracting actual dependency
+  graphs from StrategyQA traces is the obvious next step and would make this
+  argument empirical rather than synthetic.
 
 ---
 
