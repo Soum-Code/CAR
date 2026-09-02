@@ -275,7 +275,121 @@ proposed.
   ranking — read the main table, not the sweep.
 - Real reasoning DAGs are not any of these shapes. Extracting actual dependency
   graphs from StrategyQA traces is the obvious next step and would make this
-  argument empirical rather than synthetic.
+  argument empirical rather than synthetic. **Done below.**
+
+---
+
+# Addendum 2: real StrategyQA graphs — the benchmark is the problem
+
+StrategyQA ships human-annotated decompositions in BREAK style, where steps
+reference earlier steps by index:
+
+```
+[1] How many kids did Julius Caesar have?
+[2] How many kids did Genghis Khan have?
+[3] Is #2 greater than #1?
+```
+
+Those `#N` markers *are* a dependency graph, authored by annotators rather than
+inferred from generated text. Extracted all 2272 of them
+(`src/car/data/strategyqa.py`, `scripts/exp_strategyqa_topology.py`).
+
+## The graphs are tiny and almost flat
+
+| property | value |
+|---|---|
+| questions | 2272 |
+| steps per question | mean **2.95** (2: 626, 3: 1219, 4: 342, 5: 85) |
+| longest path (depth) | mean **2.30** (2: 1657, 3: 555, 4: 56, 5: 4) |
+| shapes | converging 1351 (59%), chain 888 (39%), branching 33 (1%) |
+| root premises | mean 1.63 |
+| dead-end steps | **0** across the whole corpus |
+| corr(position, influence) | **−0.917** |
+
+Six structures cover most of the corpus, and two cover 71%:
+
+```
+980  n=3   [1]<-root ; [2]<-root ; [3]<-[1,2]     "look up two facts, compare"
+626  n=2   [1]<-root ; [2]<-[1]
+230  n=3   [1]<-root ; [2]<-[1] ; [3]<-[2]
+136  n=4   [1]<-root ; [2]<-[1] ; [3]<-root ; [4]<-[2,3]
+```
+
+## Propagation has almost nowhere to happen
+
+- **72.9%** of questions have longest path exactly 2 — root → answer, one hop
+- only **2.6%** reach depth ≥ 4
+- **11.2%** of all steps have any descendant other than the terminal
+
+That last figure is the one that matters. A step can only corrupt *downstream
+reasoning* if downstream reasoning exists. For 88.8% of StrategyQA steps, the
+only thing below them is the answer itself. There is no chain to snowball down.
+
+## Policy differences replicate, but are negligible on this corpus
+
+Budget 37.5% of nodes, global verifier:
+
+| policy | final error | vs uniform |
+|---|---|---|
+| depth | **0.2338** | −0.0085 |
+| back | 0.2359 | −0.0064 |
+| cut | 0.2389 | −0.0034 |
+| uniform | 0.2423 | — |
+| influence | 0.2466 | +0.0043 |
+| front | 0.2469 | +0.0046 |
+
+The synthetic ordering **replicates exactly**: `depth` best, `influence` and
+`front` worst, `influence` ≈ `front` (they differ by 0.0003 here, because
+corr(pos, influence) = −0.917 on real graphs too). But total spread across all
+six policies is **0.0132** — about one percentage point.
+
+Broken down by graph size, the reason is obvious:
+
+| n steps | count | uniform | front | back | influence | depth | cut | spread |
+|---|---|---|---|---|---|---|---|---|
+| 2 | 626 | 0.1808 | 0.1808 | 0.1808 | 0.1808 | 0.1808 | 0.1808 | **0.0000** |
+| 3 | 1219 | 0.2512 | 0.2541 | 0.2471 | 0.2538 | **0.2466** | 0.2495 | 0.0075 |
+| 4 | 342 | 0.2954 | 0.3081 | 0.2756 | 0.3079 | **0.2703** | 0.2860 | 0.0377 |
+| 5 | 85 | 0.3375 | 0.3634 | 0.3032 | 0.3641 | **0.2863** | 0.3143 | 0.0778 |
+
+On 2-step graphs every policy is *identical* — with the terminal excluded there
+is exactly one verifiable node, so no allocation decision exists. The spread
+grows monotonically with size and reaches 0.078 at n=5, where `depth` beats
+`influence` by 0.078. The effect is real; the corpus is simply dominated by
+graphs too small for it to appear.
+
+## The actionable conclusion: StrategyQA is the wrong primary benchmark
+
+The spec makes StrategyQA the *primary* benchmark and the calibration source.
+On this evidence that is a mistake — it has essentially no propagation
+headroom, which is the phenomenon the entire project is about.
+
+GSM8K, for comparison (7473 training solutions):
+
+| | StrategyQA | GSM8K |
+|---|---|---|
+| steps per item | 2.95 | 3.58 lines / **3.17 calculator steps** |
+| depth | 2.30 | ~3.17 (solutions are chains, each line feeds the next) |
+| fraction ≥ 3 steps | 27.1% | **64.2%** |
+| fraction ≥ 4 steps | 2.6% | **35.6%** |
+| max observed | 5 | 9 |
+
+GSM8K has roughly **3× the propagation headroom** and a real tail. But it is a
+pure chain, so influence collapses back onto position and the allocation
+question degenerates to front-vs-back.
+
+Neither benchmark supports the full thesis on its own:
+
+- **StrategyQA** — topological variety (59% converging), no depth
+- **GSM8K** — genuine depth, no topological variety
+
+Recommended: promote GSM8K to primary for the propagation and early-vs-late
+claims, keep StrategyQA for the calibration and evidence-grounded verification
+claims, and be explicit that the allocation result needs either deeper
+multi-hop data (HotpotQA-style, or StrategyQA restricted to n ≥ 4) or
+synthetic depth extension.
+
+Extracted graphs are cached at `data/processed/strategyqa_dags.json`.
 
 ---
 
