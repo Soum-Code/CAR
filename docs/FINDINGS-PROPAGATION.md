@@ -685,28 +685,55 @@ everywhere above them, because the mistake is in the *setup* — wrong quantity,
 wrong operation, misread problem. No arithmetic verifier at any window size can
 see them.
 
-## Part 2 — a semantic verifier sees almost all of what arithmetic cannot
+## Part 2 — scope depends on the verifier, and only one kind works
 
-Run on exactly the 28,433-step arithmetic-blind population (1,500 sampled),
-scored by Math-Shepherd's own 7B PRM, against a 750-step control of
-locally-valid **and** globally-correct steps.
+Four verifiers on the arithmetic-blind population (locally valid, globally
+wrong — the steps arithmetic provably cannot see), each against a control of
+locally-valid **and** globally-correct steps. Scope is detection rate on the
+population, false alarm is detection rate on the control.
 
-| threshold | scope (TPR) | false alarm | **scope − FA** |
-|---|---|---|---|
-| 0.30 | 0.7567 | 0.0707 | 0.6860 |
-| 0.50 | 0.9033 | 0.0987 | **0.8047** |
-| 0.70 | 0.9527 | 0.1187 | 0.8340 |
+| verifier | independent of generator? | task-specialised? | validation sep | scope | false alarm | **scope − FA** |
+|---|---|---|---|---|---|---|
+| arithmetic, step-local (k=0) | yes | n/a | n/a | 0.0000 | — | 0.0000 |
+| arithmetic, unbounded lookback | yes | n/a | n/a | 0.1999 | — | 0.1999 |
+| **same-model critic** (mistral-7b-sft) | **no** | no | **0.0000** | **0.0000** | 0.0000 | 0.0000 |
+| independent judge (Qwen2.5-7B) | yes | no | 0.2133 | 0.2283 | 0.0200 | 0.2083 |
+| **task PRM** (math-shepherd-7b) | yes | **yes** | 0.5788 | **0.9033** | 0.0987 | **0.8047** |
 
-**Scope 0.90 at 9.9% false alarm.** Against an arithmetic ceiling of 0.1999.
+Read top to bottom, this is a cleaner result than "reach is semantic":
 
-This is the high-scope outcome, and it settles C3:
+**The same-model critic approves everything.** mistral-7b-sft *wrote* these
+solutions, and asked whether each step is sound it answers SOUND to all of them
+— including the steps carrying its own `-` label. Validation separation is
+exactly 0.0000 (mean goodness 1.00 on known-good, 1.00 on known-bad). It detects
+zero errors. This is Huang et al. (ICLR 2024) measured directly: the parameters
+that produced the error cannot catch it. Independence is not optional.
 
-> Reach is **semantic**, not structural. Widening an arithmetic verifier's
-> window buys 20% and then saturates. Changing the verifier *class* buys 80%.
-> The design variable is not how far back you look — it is what kind of
-> checking you do.
+**Independence alone barely beats arithmetic.** Qwen2.5-7B is a different model
+family, prompted zero-shot to check each step. It reaches scope 0.2283 — a
+hair above the 0.1999 arithmetic ceiling. Its validation separation is weak
+(0.21), so it is a poor step-checker in this format even on known labels. A
+general instruct model is not enough.
 
-Result data: `runs/semantic_scope_prm.json`.
+**Only the task-specialised, independent verifier achieves high scope.** The
+Math-Shepherd PRM — trained for exactly this judgement, and not the generator —
+reaches 0.9033 at 9.9% false alarm.
+
+So C3 sharpens to:
+
+> Reach is not about how far back you look. It requires a verifier that is
+> **both independent of the generator and specialised for the task**.
+> Independence alone (a general judge) buys almost nothing over arithmetic; the
+> generator judging itself buys literally nothing; only a task-matched,
+> independent verifier closes the gap.
+
+Result data: `runs/semantic_scope_prm.json`,
+`runs/semantic_scope_judge_independent.json`,
+`runs/semantic_scope_judge_same_model.json`.
+
+Populations: PRM arm n=1,500/750; judge arms n=600/300 (generation is slower
+than PRM scoring, so the judge arms use a smaller sample — scope precise to
+roughly ±3.5%).
 
 ## The harness gate, and why the first answer was wrong
 
@@ -741,18 +768,45 @@ as good as the evidence that the verifier works at all. Without the gate, this
 project would have published a confident negative result produced entirely by a
 tokenizer mismatch.
 
+### A second harness bug, in the judge arms
+
+The judge arms had their own version of the tokenizer trap. The first judge run
+used **right padding** for batched generation; for decoder-only models that
+inserts pad tokens between the prompt and the continuation, so the model
+generates from padding and the output is corrupt. It surfaced as a
+`right-padding was detected` warning and a Qwen scope of 0.1933 that could not
+be trusted. Fixed to left padding, the number moved to 0.2283 — same
+conclusion, but the point stands: batched-generation padding side is a silent
+correctness bug, not a warning to ignore.
+
+The same-model arm also needed a base-model path: mistral-7b-sft has no chat
+template, so `apply_chat_template` raised and the arm was lost on the first
+attempt. It now falls back to a plain `...\nAnswer:` completion.
+
+Both fixes are guarded going forward: staged Kaggle scripts are now
+syntax-checked before upload (a stale copy of a fixed file had already cost one
+failed run), and unparseable judge verdicts score NaN rather than a silent
+default.
+
 ## Limits
 
-- One verifier (Math-Shepherd PRM) on one generator's output (Mistral-7B-SFT).
-  The retrieval and same-model-critic arms are still unmeasured.
+- Two generators involved: the verified solutions come from Mistral-7B-SFT
+  (Math-Shepherd); one verifier arm (mistral-7b-sft) is that same generator,
+  which is the point, but the PRM and Qwen arms are independent of it.
 - The PRM was trained on Math-Shepherd labels and is evaluated against those
-  same labels. High scope is therefore partly *in-distribution* performance;
-  it is a ceiling on what a well-matched semantic verifier achieves, not
-  evidence that any LLM judge would.
+  same labels. Its 0.90 is therefore partly *in-distribution*: a ceiling on
+  what a well-matched semantic verifier achieves, not evidence that any LLM
+  judge would. The Qwen arm — a general judge, zero-shot — is the honest lower
+  bound for "independent but not task-specialised", and it lands near the
+  arithmetic ceiling.
 - Control steps come from correct solutions and the population from wrong ones,
-  so some of the separation may reflect problem difficulty rather than the
-  specific step. A within-solution control would be tighter.
-- n=1,500 / 750, so scope is precise to roughly ±1.5%.
+  so some separation may reflect problem difficulty rather than the specific
+  step. A within-solution control would be tighter.
+- PRM arm n=1,500/750 (±1.5%); judge arms n=600/300 (±3.5%).
+- No retrieval arm. GSM8K premises are the problem statement, not an external
+  corpus, so retrieval+entailment has no meaning here; it needs StrategyQA
+  evidence, where propagation barely occurs (Addendum 2). That arm is
+  genuinely not measurable on this benchmark.
 
 ---
 

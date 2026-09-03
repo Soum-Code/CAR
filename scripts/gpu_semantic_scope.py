@@ -51,7 +51,15 @@ DATA = Path("data/raw/mathshepherd/strided.jsonl")
 OUT = Path("runs")
 
 PRM_MODEL = "peiyi9979/math-shepherd-mistral-7b-prm"
-JUDGE_MODEL = "Qwen/Qwen2.5-7B-Instruct"
+JUDGE_MODEL = "Qwen/Qwen2.5-7B-Instruct"        # independent: different family
+SAME_MODEL = "peiyi9979/mistral-7b-sft"          # the model that WROTE these solutions
+
+# NOTE on the retrieval arm. There is no retrieval verifier for GSM8K: the
+# premises are the problem statement, not an external corpus. A genuine
+# retrieval+entailment arm needs StrategyQA's evidence paragraphs -- but
+# StrategyQA is 72.9% one hop deep, so the arithmetic-blind population barely
+# exists there. The two arms below test the spec's actual design rule instead:
+# that a verifier must be independent of the generator.
 
 JUDGE_PROMPT = """You are checking one step of a math solution.
 
@@ -137,7 +145,9 @@ def build_validation(limit=400):
 
 
 def validate_prm(scores, items, min_gap=0.15):
-    """Do PRM scores separate known + from known - steps?
+    """Do a verifier's scores separate known + from known - steps?
+
+    Applies to every arm, because all of them return goodness in [0,1].
 
     Returns (passed, mean_good, mean_bad). The PRM should score `+` steps
     clearly higher; a gap near zero means the harness is broken, not that the
@@ -285,6 +295,25 @@ def resolve_step_tag_id(tok) -> int:
     return tag_id
 
 
+def _release(model) -> None:
+    """Free a 7B model before the next arm loads.
+
+    Two arms run sequentially in one Kaggle session and a P100 has 15.9 GB --
+    no headroom to hold both. Without this the second load OOMs.
+    """
+    import gc
+
+    import torch
+
+    del model
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+        free, total = torch.cuda.mem_get_info()
+        print(f"  released; gpu free {free / 1e9:.1f} / {total / 1e9:.1f} GB",
+              flush=True)
+
+
 def prm_prompt(item) -> str:
     """Format one item the way Math-Shepherd's PRM was trained to read.
 
@@ -391,52 +420,99 @@ def run_prm(items, batch_size=2, load_4bit=False, max_length=512):
                 )
         if i % (batch_size * 40) == 0:
             print(f"  {i}/{len(items)}", flush=True)
+
+    _release(model)
     return scores
 
 
-def run_judge(items, batch_size=2, load_4bit=False, max_length=1024):
-    """A general instruct model asked directly whether the step is sound."""
+def run_judge(items, batch_size=2, load_4bit=False, max_length=1024,
+              model_id=None):
+    """An instruct model asked directly whether the step is sound.
+
+    `model_id` selects the arm: JUDGE_MODEL is an independent family,
+    SAME_MODEL is the generator itself -- the negative control Huang et al.
+    (ICLR 2024) predict should fail."""
+    model_id = model_id or JUDGE_MODEL
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(JUDGE_MODEL)
+    tok = AutoTokenizer.from_pretrained(model_id)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
+    # LEFT padding for batched decoder-only generation. Right padding puts pad
+    # tokens between the prompt and the continuation, so the model generates
+    # from padding and the output is corrupt -- the first judge run emitted a
+    # right-padding warning and its numbers cannot be trusted.
+    tok.padding_side = "left"
+
+    # bf16 is emulated on a P100 (sm_60), so gate on capability, not on
+    # is_bf16_supported() which returns True there.
     dtype = torch.float16
-    if torch.cuda.is_available() and torch.cuda.is_bf16_supported():
+    if torch.cuda.is_available() and torch.cuda.get_device_properties(0).major >= 8:
         dtype = torch.bfloat16
+    print(f"  dtype={dtype}", flush=True)
+
+    # A base SFT model has no chat template; only instruct models do. Detect it
+    # and fall back to a plain prompt, so the same-model-critic arm (the model
+    # that WROTE the solutions) can run at all.
+    has_chat = getattr(tok, "chat_template", None) is not None
+    print(f"  chat template: {'yes' if has_chat else 'no (plain prompt)'}", flush=True)
+
     extra = {"load_in_4bit": True} if load_4bit else {}
     try:
         model = AutoModelForCausalLM.from_pretrained(
-            JUDGE_MODEL, dtype=dtype, device_map="auto", **extra
+            model_id, dtype=dtype, device_map="auto", **extra
         ).eval()
     except TypeError:
         model = AutoModelForCausalLM.from_pretrained(
-            JUDGE_MODEL, torch_dtype=dtype, device_map="auto", **extra
+            model_id, torch_dtype=dtype, device_map="auto", **extra
         ).eval()
 
+    def render(c):
+        body = JUDGE_PROMPT.format(**c)
+        if has_chat:
+            return tok.apply_chat_template(
+                [{"role": "user", "content": body}],
+                tokenize=False, add_generation_prompt=True,
+            )
+        # Plain completion: end on "Answer:" so a base model continues with the
+        # verdict rather than more problem text.
+        return body + "\nAnswer:"
+
+    unparsed = 0
     scores = []
     for i in range(0, len(items), batch_size):
         chunk = items[i : i + batch_size]
-        prompts = [
-            tok.apply_chat_template(
-                [{"role": "user", "content": JUDGE_PROMPT.format(**c)}],
-                tokenize=False, add_generation_prompt=True,
-            )
-            for c in chunk
-        ]
+        prompts = [render(c) for c in chunk]
         enc = tok(prompts, return_tensors="pt", padding=True, truncation=True,
                   max_length=max_length).to(model.device)
         with torch.no_grad():
-            out = model.generate(**enc, max_new_tokens=4, do_sample=False,
+            out = model.generate(**enc, max_new_tokens=8, do_sample=False,
                                  pad_token_id=tok.pad_token_id)
         for j in range(len(chunk)):
-            txt = tok.decode(out[j][enc["input_ids"].shape[1]:], skip_special_tokens=True)
-            # 1.0 = flagged as unsound, so higher means "detected", matching
-            # the PRM orientation after inversion below.
-            scores.append(1.0 if "UNSOUND" in txt.upper() else 0.0)
+            txt = tok.decode(
+                out[j][enc["input_ids"].shape[1]:], skip_special_tokens=True
+            ).upper()
+            # Check UNSOUND before SOUND -- it contains "SOUND" as a substring.
+            if "UNSOUND" in txt:
+                scores.append(0.0)
+            elif "SOUND" in txt:
+                scores.append(1.0)
+            else:
+                # No parseable verdict. NaN, not a default, so an evasive model
+                # is not silently scored as "sound".
+                scores.append(float("nan"))
+                unparsed += 1
+        if i == 0:
+            got = sum(1 for x in scores if x == x)
+            print(f"  first batch: {got}/{len(scores)} parsed", flush=True)
         if i % (batch_size * 20) == 0:
             print(f"  {i}/{len(items)}", flush=True)
+
+    if unparsed:
+        print(f"  {unparsed}/{len(items)} produced no SOUND/UNSOUND verdict",
+              flush=True)
+    _release(model)
     return scores
 
 
@@ -458,8 +534,9 @@ def analyse(path):
         s = rec["score"]
         if s != s:
             return False
-        # PRM: low score = predicted bad. Judge: 1.0 = flagged unsound.
-        return s < thr if kind == "prm" else s >= 0.5
+        # Every arm returns GOODNESS, so "flagged as unsound" is score < thr
+        # uniformly. Judges are binary, so any threshold in (0, 1) is the same.
+        return s < thr
 
     print("=" * 80)
     print(f"Semantic verifier scope -- {kind}")
@@ -471,6 +548,8 @@ def analyse(path):
     print("0.0000 at k=0.\n")
 
     thresholds = [0.3, 0.5, 0.7] if kind == "prm" else [0.5]
+    if kind != "prm":
+        print("(binary judge: any threshold in (0,1) gives the same split)")
     print(f"{'threshold':<12}{'scope (TPR)':>14}{'false alarm':>14}{'scope - FA':>14}")
     print("-" * 80)
     for thr in thresholds:

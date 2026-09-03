@@ -13,9 +13,11 @@ htmlcov/
 # Note: runs/* not runs/ -- git cannot re-include a file inside an excluded
 # directory, and the GPU measurement below has to be kept.
 runs/*
-# ...except the GPU measurement, which cost a Kaggle session to produce and
+# ...except the GPU measurements, which cost Kaggle sessions to produce and
 # cannot be regenerated on CPU.
 !runs/semantic_scope_prm.json
+!runs/semantic_scope_judge_independent.json
+!runs/semantic_scope_judge_same_model.json
 outputs/
 *.jsonl
 !tests/fixtures/*.jsonl

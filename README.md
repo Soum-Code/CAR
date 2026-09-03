@@ -76,25 +76,27 @@ bad, and **0 of 25,971 solutions ever recovered**.
 
 ### C3 — Verifier reach is the controlling design variable, and it is SEMANTIC
 
-Measured, not simulated. Scope is not a property of a verifier *type* but of
-how much context it re-examines — so it is a dial with a cost:
+Measured across four verifiers on the arithmetic-blind population:
 
-| verifier | scope | false alarm |
-|---|---|---|
-| arithmetic, step-local (k=0) | **0.0000** | — |
-| arithmetic, unbounded lookback | **0.1999** | — |
-| semantic (7B PRM) | **0.9033** | 0.0987 |
+| verifier | independent? | task-trained? | scope | FA | net |
+|---|---|---|---|---|---|
+| arithmetic, step-local | yes | — | 0.0000 | — | 0.0000 |
+| arithmetic, unbounded lookback | yes | — | 0.1999 | — | 0.1999 |
+| same-model critic (the generator) | **no** | no | 0.0000 | 0.0000 | 0.0000 |
+| independent judge (Qwen2.5-7B) | yes | no | 0.2283 | 0.0200 | 0.2083 |
+| task PRM (Math-Shepherd-7B) | yes | **yes** | **0.9033** | 0.0987 | **0.8047** |
 
-Widening an arithmetic window buys 20% and saturates — 80% of inherited
-corruption has no upstream arithmetic error at all, because the mistake is in
-the *setup*, not the calculation. Changing the verifier **class** buys 80%.
+The generator judging its own work detects **zero** errors — it approves
+everything, Huang et al. (ICLR 2024) measured directly. A general independent
+judge barely beats arithmetic. Only a verifier that is *both* independent of the
+generator *and* task-specialised closes the gap.
 
-> The design variable is not how far back you look. It is what kind of checking
-> you do.
+> Reach is not how far back you look. It requires a verifier independent of the
+> generator and specialised for the task.
 
 The original spec lists calculator / retrieval / sandbox as interchangeable
-reliability mechanisms. They are not, and reach is absent from the spec
-entirely.
+reliability mechanisms. They are not — they span 0.00 to 0.90 scope, and that
+axis is absent from the spec entirely.
 
 ### C4 — "Verify early" is false
 
@@ -144,7 +146,7 @@ on the generator CAR actually uses.
 | 1 | Measure arithmetic verifier scope | **done** — 0.0000 at k=0, 0.1999 at k=∞ |
 | 2 | Measure semantic verifier scope | **done** — 0.9033 at 9.9% FA (Kaggle P100) |
 | 3 | Re-measure error rates on Llama 3.1 8B | numbers currently from Mistral-7B-SFT |
-| 4 | Retrieval and same-model-critic scope arms | not started |
+| 4 | Same-model + independent-judge scope arms | **done** — 0.0000 and 0.2283 |
 | 5 | Full gate pipeline end-to-end on GSM8K | scaffold ready, needs GPU generation |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | 9.6% of derived links are ambiguous |
 

@@ -63,7 +63,7 @@ the high-scope outcome: reach is semantic rather than structural.
 | C1 — 69.8% of wrong steps are locally valid | 93,129 steps, stratified | Math-Shepherd | measured |
 | C2 — corruption is near-absorbing | 95.9% persistence; 0/25,971 recovered | Math-Shepherd | measured |
 | C2b — local risk does not track final error | local pinned ~0.15, final 0.73→0.27 | simulation | simulated |
-| C3 — verifier reach controls the outcome | arith 0.1999 vs semantic 0.9033 @ 9.9% FA | Math-Shepherd + PRM | **measured** |
+| C3 — reach needs independence AND task-training | same-model 0.00, judge 0.23, PRM 0.90 | Math-Shepherd + 3 verifiers | **measured** |
 | C4 — "verify early" is false | chains, 5 DAG families, 2 real corpora | simulation + real graphs | measured |
 | C4b — later steps are harder | corr(pos, local err) = +0.950 | Math-Shepherd | measured |
 | C5 — α = 0.10 costs 32% of budget | μ = 0.3908 + Kotte Prop. 3 | measured + cited | measured |
@@ -83,7 +83,9 @@ not measurement, and the thesis must not blur the two.
 |---|---|---|---|
 | arithmetic, step-local (k=0) | 0.0000 | — | — |
 | arithmetic, unbounded lookback | 0.1999 | — | — |
-| semantic (Math-Shepherd 7B PRM) | **0.9033** | 0.0987 | **0.8047** |
+| same-model critic (the generator) | 0.0000 | 0.0000 | 0.0000 |
+| independent judge (Qwen2.5-7B) | 0.2283 | 0.0200 | 0.2083 |
+| task PRM (Math-Shepherd 7B) | **0.9033** | 0.0987 | **0.8047** |
 
 Widening an arithmetic window buys 20% and saturates, because 80% of inherited
 corruption has no upstream arithmetic error at all. Changing the verifier class
@@ -100,8 +102,11 @@ separation; it caught three successive broken configurations before the fourth
 passed at 0.5788. Without it the project would have published a confident
 negative result produced entirely by a tokenizer mismatch.
 
-Still unmeasured: retrieval + entailment, and the same-model critic. Those are
-the remaining arms of the comparison.
+The same-model critic detects zero errors (validation separation 0.0000 -- it
+approves its own known-bad steps), confirming Huang et al. A general
+independent judge barely beats arithmetic. Only the task-specialised,
+independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
+(no external corpus) and is genuinely not measurable here.
 
 ---
 
