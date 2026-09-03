@@ -45,14 +45,14 @@ reviewer who finds the scoop themselves will discount everything else.
 | 2 | Background — conformal prediction, risk control, PRMs, selective labels, propagation | references verified |
 | 3 | Framework — step schema, local vs global correctness, the Markov model, verifier reach | implemented + tested |
 | 4 | **Measuring the gap** — Math-Shepherd, 93k steps, stratification | **done** |
-| 5 | **Measuring verifier reach** — retrieval vs calculator scope | **NOT STARTED — the critical gap** |
+| 5 | **Measuring verifier reach** — arithmetic vs semantic scope | **DONE** — 0.1999 vs 0.9033 |
 | 6 | Allocation — what follows from reach; refutation of "verify early" | simulation done, needs real-model confirmation |
 | 7 | Feasibility — the Kotte floor with measured μ; what α is attainable | done |
 | 8 | Benchmark analysis — StrategyQA has no propagation headroom | done |
 | 9 | Limitations, negative results, conclusion | ongoing |
 
-Chapters 4, 7 and 8 are complete on measured data. Chapter 5 is the one that
-decides whether this is a good thesis or a merely adequate one.
+Chapters 4, 5, 7 and 8 are now complete on measured data. Chapter 5 returned
+the high-scope outcome: reach is semantic rather than structural.
 
 ---
 
@@ -63,7 +63,7 @@ decides whether this is a good thesis or a merely adequate one.
 | C1 — 69.8% of wrong steps are locally valid | 93,129 steps, stratified | Math-Shepherd | measured |
 | C2 — corruption is near-absorbing | 95.9% persistence; 0/25,971 recovered | Math-Shepherd | measured |
 | C2b — local risk does not track final error | local pinned ~0.15, final 0.73→0.27 | simulation | simulated |
-| C3 — verifier reach controls the outcome | ~2× error at fixed budget | simulation | **needs ch. 5** |
+| C3 — verifier reach controls the outcome | arith 0.1999 vs semantic 0.9033 @ 9.9% FA | Math-Shepherd + PRM | **measured** |
 | C4 — "verify early" is false | chains, 5 DAG families, 2 real corpora | simulation + real graphs | measured |
 | C4b — later steps are harder | corr(pos, local err) = +0.950 | Math-Shepherd | measured |
 | C5 — α = 0.10 costs 32% of budget | μ = 0.3908 + Kotte Prop. 3 | measured + cited | measured |
@@ -77,38 +77,31 @@ not measurement, and the thesis must not blur the two.
 
 ---
 
-## The one experiment that matters most
+## Chapter 5 result: reach is semantic, not structural
 
-**Measure verifier scope.**
+| verifier | scope | false alarm | net |
+|---|---|---|---|
+| arithmetic, step-local (k=0) | 0.0000 | — | — |
+| arithmetic, unbounded lookback | 0.1999 | — | — |
+| semantic (Math-Shepherd 7B PRM) | **0.9033** | 0.0987 | **0.8047** |
 
-Every allocation result treats `scope` — the probability that a verifier
-detects inherited corruption — as a free parameter. It is the variable C3 says
-controls everything, and no published work reports it.
+Widening an arithmetic window buys 20% and saturates, because 80% of inherited
+corruption has no upstream arithmetic error at all. Changing the verifier class
+buys 80%. Data: `runs/semantic_scope_prm.json`.
 
-Design:
+**A methodological point worth a paragraph in the thesis.** The first completed
+run reported the opposite — negative net scope — and it was an artifact: the
+PRM flagged 94.9% of the control group, which are steps carrying its own
+training labels. Root cause was that Kaggle's transformers tokenizes this
+SentencePiece model differently from how it was trained (`▁ки` 12902 became
+`ки` 1107), so the model was scored at positions it had never been trained on.
+A validation gate now scores 400 known-label steps first and aborts below 0.15
+separation; it caught three successive broken configurations before the fourth
+passed at 0.5788. Without it the project would have published a confident
+negative result produced entirely by a tokenizer mismatch.
 
-1. Take GSM8K solutions containing a known local error at step *k* (available
-   from Math-Shepherd, or injected deliberately).
-2. Present step *k+d* — locally valid, resting on the corrupted premise — to
-   each verifier in turn.
-3. Measure detection rate as a function of *d*.
-
-Verifiers to compare:
-
-| verifier | expected scope | why it matters |
-|---|---|---|
-| calculator | ~0 by construction | the control; confirms the model's assumption |
-| retrieval + entailment | unknown | the whole case for evidence-grounded verification |
-| same-model critic | unknown, likely low | negative control (Huang et al.) |
-| PRM | unknown | the baseline a reviewer will demand |
-
-Outputs: a scope estimate per verifier, and a decay curve in *d* directly
-comparable to Singh & Pawar's measured escape probabilities
-(24.6% / 48.3% / 89.3%).
-
-This is a genuinely novel measurement, it is cheap, and it converts the
-allocation rule from simulation into a calibrated design rule. **It should be
-the next thing built.**
+Still unmeasured: retrieval + entailment, and the same-model critic. Those are
+the remaining arms of the comparison.
 
 ---
 
@@ -116,7 +109,7 @@ the next thing built.**
 
 | # | task | cost | blocks |
 |---|---|---|---|
-| 1 | Measure verifier scope (ch. 5) | ~1 GPU-day | C3, ch. 6 |
+| 1 | ~~Measure verifier scope (ch. 5)~~ | done | — |
 | 2 | Re-measure error rates on Llama 3.1 8B | ~1 GPU-day | all numbers currently Mistral-7B-SFT |
 | 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready | ch. 6 confirmation |
 | 4 | Hand-validate ~50 GSM8K dependency graphs | ~2 hours | 9.6% ambiguous links |

@@ -105,6 +105,55 @@ def build_population(limit=None, only_arithmetic_blind=True):
     return pop
 
 
+def build_validation(limit=400):
+    """Steps with known Math-Shepherd labels, balanced + / -.
+
+    A harness sanity check, and it has to pass before any scope number is
+    believable: this PRM was TRAINED on these labels, so if it cannot separate
+    them the prompt format is wrong and every downstream measurement is noise.
+    That is exactly what happened on the first run.
+    """
+    from car.data.math_shepherd import load_solutions
+
+    sols = load_solutions(DATA)
+    good, bad = [], []
+    for sol in sols:
+        for s in sol.steps:
+            rec = {
+                "question": sol.question,
+                "prefix": "\n".join(
+                    f"Step {x.index + 1}: {x.text}"
+                    for x in sol.steps
+                    if x.index < s.index
+                ),
+                "step": s.text,
+                "step_index": s.index,
+                "label": s.global_ok,
+            }
+            (good if s.global_ok else bad).append(rec)
+        if len(good) >= limit // 2 and len(bad) >= limit // 2:
+            break
+    return good[: limit // 2] + bad[: limit // 2]
+
+
+def validate_prm(scores, items, min_gap=0.15):
+    """Do PRM scores separate known + from known - steps?
+
+    Returns (passed, mean_good, mean_bad). The PRM should score `+` steps
+    clearly higher; a gap near zero means the harness is broken, not that the
+    model is uninformative.
+    """
+    import numpy as np
+
+    good = [s for s, it in zip(scores, items, strict=True) if it["label"]]
+    bad = [s for s, it in zip(scores, items, strict=True) if not it["label"]]
+    good = [x for x in good if x == x]
+    bad = [x for x in bad if x == x]
+    mg = float(np.mean(good)) if good else float("nan")
+    mb = float(np.mean(bad)) if bad else float("nan")
+    return (mg - mb) >= min_gap, mg, mb
+
+
 def build_control(limit=None):
     """Locally valid AND globally correct steps.
 
@@ -141,8 +190,132 @@ def build_control(limit=None):
 
 # ---- verifiers -------------------------------------------------------
 
+STEP_TAG = "ки"  # the Cyrillic "ки" Math-Shepherd uses as its score marker
 
-def run_prm(items, batch_size=8, load_4bit=False):
+# Math-Shepherd's documented token ids, hardcoded on purpose.
+#
+# Deriving them with tok.encode("+") is NOT version-stable. Locally
+# (transformers 5.8) it yields 648 = "▁+", the token the PRM was trained on.
+# On Kaggle the same call yielded 28806 = "+" -- the same character WITHOUT the
+# SentencePiece word-boundary marker, a completely different embedding. Scoring
+# against it reads logits for the wrong tokens and the PRM separates its own
+# training labels by 0.0108, i.e. not at all.
+#
+# verify_token_ids below checks these decode to the expected pieces, so a
+# tokenizer change fails loudly instead of silently producing noise.
+GOOD_ID, BAD_ID, STEP_TAG_ID = 648, 387, 12902
+EXPECTED_PIECES = ["▁+", "▁-", "▁ки"]  # ▁+  ▁-  ▁ки
+
+
+def verify_token_ids(tok) -> None:
+    """Check the OUTPUT-side ids decode to the pieces the PRM was trained on."""
+    pieces = tok.convert_ids_to_tokens([GOOD_ID, BAD_ID, STEP_TAG_ID])
+    if list(pieces) != EXPECTED_PIECES:
+        raise RuntimeError(
+            f"tokenizer mismatch: ids {[GOOD_ID, BAD_ID, STEP_TAG_ID]} decode to "
+            f"{pieces}, expected {EXPECTED_PIECES}. Scoring would read the wrong "
+            f"logits."
+        )
+    print(f"  token ids verified: {pieces}", flush=True)
+
+
+def load_prm_tokenizer():
+    """Load the PRM tokenizer with training-time SentencePiece behaviour.
+
+    Newer transformers changed SentencePiece handling: the `▁` word-boundary
+    marker is no longer added the way it was when this PRM was trained. On
+    Kaggle that turned "▁ки" (12902) into "ки" (1107) at every scoring
+    position, so the model read a token it had never been trained to emit a
+    +/- decision at -- separation collapsed to 0.057 on its own labels.
+
+    `legacy=True` plus the slow tokenizer restores the original behaviour.
+    Tried in order, and the result is checked, so a silent regression is not
+    possible.
+    """
+    from transformers import AutoTokenizer
+
+    attempts = [
+        {"legacy": True, "use_fast": False},
+        {"legacy": True},
+        {},
+    ]
+    last = None
+    for kwargs in attempts:
+        try:
+            tok = AutoTokenizer.from_pretrained(PRM_MODEL, **kwargs)
+        except Exception as exc:  # noqa: BLE001
+            last = exc
+            continue
+        probe = tok.encode(f"dummy {STEP_TAG}")[-1]
+        print(f"  tokenizer {kwargs or 'default'}: step tag -> {probe} "
+              f"({tok.convert_ids_to_tokens([probe])[0]!r})", flush=True)
+        if probe == STEP_TAG_ID:
+            print("  using this tokenizer (matches training)", flush=True)
+            return tok
+        last = tok
+    raise RuntimeError(
+        f"no tokenizer configuration reproduces the training step tag id "
+        f"{STEP_TAG_ID}; last attempt gave a mismatch. Scoring positions would "
+        f"not match what the PRM was trained on."
+    )
+
+
+def resolve_step_tag_id(tok) -> int:
+    """Find the id this tokenizer actually produces for the step tag IN CONTEXT.
+
+    GOOD_ID/BAD_ID are output-side logit indices and must match training. The
+    step tag is different: it is an INPUT id, used to locate scoring positions,
+    so it has to match however this tokenizer encodes the prompt.
+
+    Hardcoding 12902 failed on Kaggle -- the same transformers-version quirk
+    that turned "▁+" into "+" also changed the tag's id, the position mask
+    matched nothing, and every score came back NaN.
+    """
+    probe = tok.encode(f"dummy {STEP_TAG}")
+    tag_id = probe[-1]
+    piece = tok.convert_ids_to_tokens([tag_id])[0]
+    if STEP_TAG not in piece:
+        raise RuntimeError(
+            f"could not resolve the step tag: encoding {STEP_TAG!r} in context "
+            f"gave id {tag_id} = {piece!r}"
+        )
+    if tag_id != STEP_TAG_ID:
+        print(f"  note: step tag id is {tag_id} ({piece!r}), not the reference "
+              f"{STEP_TAG_ID}; using the in-context value", flush=True)
+    return tag_id
+
+
+def prm_prompt(item) -> str:
+    """Format one item the way Math-Shepherd's PRM was trained to read.
+
+    The training format puts the question first, then every step on its own
+    line terminated by the step tag, separated by blank lines:
+
+        {question}
+
+        Step 1: ... ки
+
+        Step 2: ... ки
+
+    Getting this wrong is not a small degradation. A first version appended the
+    tag only to the final step and ran the prefix together without blank lines;
+    the PRM then flagged 94.9% of the CONTROL group -- steps carrying
+    Math-Shepherd's own `+` label, i.e. its training signal. A model that
+    cannot recognise its own labels is not measuring anything, which is why
+    `validate_prm` below exists.
+    """
+    lines = [item["question"].strip(), ""]
+    prefix = item.get("prefix", "").strip()
+    if prefix:
+        for line in prefix.splitlines():
+            if line.strip():
+                lines.append(f"{line.strip()} {STEP_TAG}")
+                lines.append("")
+    lines.append(f"Step {item['step_index'] + 1}: {item['step'].strip()} {STEP_TAG}")
+    return "\n".join(lines)
+
+
+def run_prm(items, batch_size=2, load_4bit=False, max_length=512):
     """Math-Shepherd's own PRM. The baseline a reviewer will ask for.
 
     Scores each step; a low score means "does not lead to a correct answer",
@@ -151,38 +324,77 @@ def run_prm(items, batch_size=8, load_4bit=False):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(PRM_MODEL)
-    kwargs = {"torch_dtype": torch.bfloat16, "device_map": "auto"}
-    if load_4bit:
-        kwargs |= {"load_in_4bit": True}
-    model = AutoModelForCausalLM.from_pretrained(PRM_MODEL, **kwargs).eval()
+    tok = load_prm_tokenizer()
+    # Mistral ships no pad token, and batching needs one. Right padding keeps
+    # the step-tag mask below aligned with the real sequence.
+    if tok.pad_token is None:
+        tok.pad_token = tok.eos_token
+    tok.padding_side = "right"
 
-    good_id = tok.encode("+")[-1]
-    bad_id = tok.encode("-")[-1]
-    step_tag_id = tok.encode("ки")[-1]
+    # Gate bf16 on compute capability, NOT on is_bf16_supported(): that returns
+    # True on a P100 (sm_60), where bf16 is emulated in software -- slower, and
+    # no memory saving over fp16.
+    dtype = torch.float16
+    if torch.cuda.is_available():
+        major = torch.cuda.get_device_properties(0).major
+        if major >= 8:
+            dtype = torch.bfloat16
+    print(f"  dtype={dtype}", flush=True)
+
+    # transformers renamed torch_dtype -> dtype in v5. The tokenizer fix above
+    # pins v4.44, so accept either rather than coupling the two choices.
+    extra = {"load_in_4bit": True} if load_4bit else {}
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            PRM_MODEL, dtype=dtype, device_map="auto", **extra
+        ).eval()
+    except TypeError:
+        model = AutoModelForCausalLM.from_pretrained(
+            PRM_MODEL, torch_dtype=dtype, device_map="auto", **extra
+        ).eval()
+
+    # A 7B model in fp16 is ~14 GB and a P100 has 15.9 GB, so activation memory
+    # is what decides whether this runs at all. Keep sequences short and let the
+    # caller shrink the batch.
+    if torch.cuda.is_available():
+        free, total = torch.cuda.mem_get_info()
+        print(f"  gpu free {free / 1e9:.1f} / {total / 1e9:.1f} GB after load",
+              flush=True)
+
+    verify_token_ids(tok)
+    good_id, bad_id = GOOD_ID, BAD_ID
+    step_tag_id = resolve_step_tag_id(tok)
 
     scores = []
     for i in range(0, len(items), batch_size):
         chunk = items[i : i + batch_size]
-        texts = [
-            f"{c['question']} {c['prefix']}\nStep {c['step_index'] + 1}: {c['step']} ки"
-            for c in chunk
-        ]
+        texts = [prm_prompt(c) for c in chunk]
         enc = tok(texts, return_tensors="pt", padding=True, truncation=True,
-                  max_length=1024).to(model.device)
+                  max_length=max_length).to(model.device)
         with torch.no_grad():
-            logits = model(**enc).logits[:, :, [bad_id, good_id]]
-        probs = logits.softmax(dim=-1)[:, :, 1]
+            logits = model(**enc).logits[:, :, [good_id, bad_id]]
+        # index 0 == good, matching the reference implementation's ordering
+        probs = logits.softmax(dim=-1)[:, :, 0]
         for j, c in enumerate(chunk):
             mask = enc["input_ids"][j] == step_tag_id
             s = probs[j][mask]
             scores.append(float(s[-1]) if len(s) else float("nan"))
-        if i % (batch_size * 20) == 0:
+        if i == 0:
+            # If the tag never appears, every score is NaN and the run is
+            # worthless. Catch it on the first batch, not after an hour.
+            got = sum(1 for x in scores if x == x)
+            print(f"  first batch: {got}/{len(scores)} scored", flush=True)
+            if got == 0:
+                raise RuntimeError(
+                    f"step tag id {step_tag_id} not found in any tokenized "
+                    f"prompt; scoring positions cannot be located"
+                )
+        if i % (batch_size * 40) == 0:
             print(f"  {i}/{len(items)}", flush=True)
     return scores
 
 
-def run_judge(items, batch_size=8, load_4bit=False):
+def run_judge(items, batch_size=2, load_4bit=False, max_length=1024):
     """A general instruct model asked directly whether the step is sound."""
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -190,10 +402,18 @@ def run_judge(items, batch_size=8, load_4bit=False):
     tok = AutoTokenizer.from_pretrained(JUDGE_MODEL)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
-    kwargs = {"torch_dtype": torch.bfloat16, "device_map": "auto"}
-    if load_4bit:
-        kwargs |= {"load_in_4bit": True}
-    model = AutoModelForCausalLM.from_pretrained(JUDGE_MODEL, **kwargs).eval()
+    dtype = torch.float16
+    if torch.cuda.is_available() and torch.cuda.is_bf16_supported():
+        dtype = torch.bfloat16
+    extra = {"load_in_4bit": True} if load_4bit else {}
+    try:
+        model = AutoModelForCausalLM.from_pretrained(
+            JUDGE_MODEL, dtype=dtype, device_map="auto", **extra
+        ).eval()
+    except TypeError:
+        model = AutoModelForCausalLM.from_pretrained(
+            JUDGE_MODEL, torch_dtype=dtype, device_map="auto", **extra
+        ).eval()
 
     scores = []
     for i in range(0, len(items), batch_size):
@@ -206,7 +426,7 @@ def run_judge(items, batch_size=8, load_4bit=False):
             for c in chunk
         ]
         enc = tok(prompts, return_tensors="pt", padding=True, truncation=True,
-                  max_length=2048).to(model.device)
+                  max_length=max_length).to(model.device)
         with torch.no_grad():
             out = model.generate(**enc, max_new_tokens=4, do_sample=False,
                                  pad_token_id=tok.pad_token_id)

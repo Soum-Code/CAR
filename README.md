@@ -74,12 +74,27 @@ Simulated: local risk stays pinned near 0.15 across budgets while final error
 spans 0.73 → 0.27. Measured: after the first bad step 95.9% of later steps stay
 bad, and **0 of 25,971 solutions ever recovered**.
 
-### C3 — Verifier *reach* is the controlling design variable
+### C3 — Verifier reach is the controlling design variable, and it is SEMANTIC
 
-Scope alone moves final error ~2× at fixed budget. The original spec lists
-calculator / retrieval / sandbox as interchangeable reliability mechanisms.
-They are not — they sit at different points on this axis, and it dominates
-policy choice. Reach is absent from the spec entirely.
+Measured, not simulated. Scope is not a property of a verifier *type* but of
+how much context it re-examines — so it is a dial with a cost:
+
+| verifier | scope | false alarm |
+|---|---|---|
+| arithmetic, step-local (k=0) | **0.0000** | — |
+| arithmetic, unbounded lookback | **0.1999** | — |
+| semantic (7B PRM) | **0.9033** | 0.0987 |
+
+Widening an arithmetic window buys 20% and saturates — 80% of inherited
+corruption has no upstream arithmetic error at all, because the mistake is in
+the *setup*, not the calculation. Changing the verifier **class** buys 80%.
+
+> The design variable is not how far back you look. It is what kind of checking
+> you do.
+
+The original spec lists calculator / retrieval / sandbox as interchangeable
+reliability mechanisms. They are not, and reach is absent from the spec
+entirely.
 
 ### C4 — "Verify early" is false
 
@@ -119,23 +134,19 @@ exists.
 
 ## What remains to be measured
 
-The centrepiece is **C3**, and it is the one number the whole design rests on
-that nobody has measured:
-
-> Given a step that is locally valid but rests on a corrupted premise, what
-> fraction can an *evidence-grounded* verifier actually detect?
-
-`scope` is a free parameter in every result above. Measuring it converts the
-allocation rule from a simulation into a calibrated design rule. Nothing in the
-literature reports it.
+C3 was the centrepiece and is now measured (Kaggle P100, 7B PRM, 1,500
+arithmetic-blind steps + 750 controls). What is left is breadth: the same
+measurement for retrieval and same-model-critic verifiers, and a re-measurement
+on the generator CAR actually uses.
 
 | # | experiment | status |
 |---|---|---|
-| 1 | Re-measure error rates on Llama 3.1 8B | numbers currently from Mistral-7B-SFT |
-| 2 | **Measure verifier scope for retrieval vs calculator** | **not started — the key gap** |
-| 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready, needs GPU generation |
-| 4 | Does the gap hold on StrategyQA with a retrieval verifier? | needs 2 |
-| 5 | Hand-validate ~50 GSM8K dependency graphs | 9.6% of derived links are ambiguous |
+| 1 | Measure arithmetic verifier scope | **done** — 0.0000 at k=0, 0.1999 at k=∞ |
+| 2 | Measure semantic verifier scope | **done** — 0.9033 at 9.9% FA (Kaggle P100) |
+| 3 | Re-measure error rates on Llama 3.1 8B | numbers currently from Mistral-7B-SFT |
+| 4 | Retrieval and same-model-critic scope arms | not started |
+| 5 | Full gate pipeline end-to-end on GSM8K | scaffold ready, needs GPU generation |
+| 6 | Hand-validate ~50 GSM8K dependency graphs | 9.6% of derived links are ambiguous |
 
 ---
 
@@ -149,7 +160,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-187 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+199 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 

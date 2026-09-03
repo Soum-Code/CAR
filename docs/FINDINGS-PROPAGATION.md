@@ -650,6 +650,112 @@ between allocation policies are unaffected.
 
 ---
 
+# Addendum 5: verifier scope, measured — reach is semantic, not structural
+
+Chapter 5's central experiment. Two parts: an arithmetic verifier measured on
+CPU, and a semantic verifier measured on a Kaggle P100.
+
+## Part 1 — arithmetic reach is a window, and it tops out at 20%
+
+Scope is not a property of a verifier *type*. It is a property of how much
+context the verifier **re-examines**. A calculator checking only step *t*
+cannot know its operands came from a wrong step *t−2*; the same calculator
+re-checking *t−k…t* can.
+
+Measured on 35,535 real inherited-corruption steps:
+
+| window k | scope | cost (steps/call) | scope per step |
+|---|---|---|---|
+| 0 | **0.0000** | 1.00 | 0.0000 |
+| 1 | 0.1197 | 1.85 | 0.0648 |
+| 2 | 0.1690 | 2.42 | **0.0699** |
+| 3 | 0.1880 | 2.73 | 0.0689 |
+| ∞ | **0.1999** | 3.01 | 0.0663 |
+
+The naive step-local verifier detects 1 case in 35,535 — literally zero reach,
+confirming by measurement what the propagation model assumed by construction.
+Detection is a clean step function in distance: window *k* catches corruption
+originating within *k* hops and nothing beyond.
+
+**Efficiency peaks at k=2**, so unbounded lookback is not the design point.
+
+**The ceiling:** 80.0% of inherited-corruption steps have no upstream
+arithmetic error at all. They are globally wrong with perfect arithmetic
+everywhere above them, because the mistake is in the *setup* — wrong quantity,
+wrong operation, misread problem. No arithmetic verifier at any window size can
+see them.
+
+## Part 2 — a semantic verifier sees almost all of what arithmetic cannot
+
+Run on exactly the 28,433-step arithmetic-blind population (1,500 sampled),
+scored by Math-Shepherd's own 7B PRM, against a 750-step control of
+locally-valid **and** globally-correct steps.
+
+| threshold | scope (TPR) | false alarm | **scope − FA** |
+|---|---|---|---|
+| 0.30 | 0.7567 | 0.0707 | 0.6860 |
+| 0.50 | 0.9033 | 0.0987 | **0.8047** |
+| 0.70 | 0.9527 | 0.1187 | 0.8340 |
+
+**Scope 0.90 at 9.9% false alarm.** Against an arithmetic ceiling of 0.1999.
+
+This is the high-scope outcome, and it settles C3:
+
+> Reach is **semantic**, not structural. Widening an arithmetic verifier's
+> window buys 20% and then saturates. Changing the verifier *class* buys 80%.
+> The design variable is not how far back you look — it is what kind of
+> checking you do.
+
+Result data: `runs/semantic_scope_prm.json`.
+
+## The harness gate, and why the first answer was wrong
+
+The first completed run reported the *opposite*: scope 0.9053 but false alarm
+0.9493, i.e. **negative** net scope. It would have supported "semantic
+verification cannot close the gap either" — the interesting negative result.
+
+It was wrong, and the tell was that the PRM flagged 94.9% of the control group:
+steps carrying Math-Shepherd's own `+` labels, the data this PRM was *trained*
+on. A model that cannot recognise its own training labels is not measuring
+anything.
+
+`validate_prm` now runs before every measurement, scoring 400 known-label steps
+and aborting if the good/bad separation is below 0.15. It caught three
+successive broken configurations:
+
+| run | separation | cause |
+|---|---|---|
+| v10 | — (not yet gated) | `ки` appended only to the final step, no blank lines |
+| v11 | 0.0108 | prompt fixed, but candidate token ids wrong |
+| v14 | 0.0570 | step tag resolved to 1107 `'ки'` instead of 12902 `'▁ки'` |
+| v17 | **0.5788** | tokenizer pinned; passes |
+
+Root cause of all three: **Kaggle's transformers tokenizes this SentencePiece
+model differently from how it was trained.** The `▁` word-boundary marker is
+not added, so `▁+` (648) became `+` (28806) and `▁ки` (12902) became `ки`
+(1107). Both `legacy=True` and `use_fast=False` failed to restore it; only
+pinning `transformers==4.44.2` did.
+
+The lesson is worth carrying into the thesis: a verifier-scope number is only
+as good as the evidence that the verifier works at all. Without the gate, this
+project would have published a confident negative result produced entirely by a
+tokenizer mismatch.
+
+## Limits
+
+- One verifier (Math-Shepherd PRM) on one generator's output (Mistral-7B-SFT).
+  The retrieval and same-model-critic arms are still unmeasured.
+- The PRM was trained on Math-Shepherd labels and is evaluated against those
+  same labels. High scope is therefore partly *in-distribution* performance;
+  it is a ceiling on what a well-matched semantic verifier achieves, not
+  evidence that any LLM judge would.
+- Control steps come from correct solutions and the population from wrong ones,
+  so some of the separation may reflect problem difficulty rather than the
+  specific step. A within-solution control would be tighter.
+- n=1,500 / 750, so scope is precise to roughly ±1.5%.
+
+---
+
 ## Revised pitch
 
 > Conformal gating for LLMs certifies the quantity a verifier reports: whether

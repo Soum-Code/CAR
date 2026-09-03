@@ -10,7 +10,12 @@ venv/
 htmlcov/
 
 # Experiment outputs — never commit, they are regenerated from configs + seeds
-runs/
+# Note: runs/* not runs/ -- git cannot re-include a file inside an excluded
+# directory, and the GPU measurement below has to be kept.
+runs/*
+# ...except the GPU measurement, which cost a Kaggle session to produce and
+# cannot be regenerated on CPU.
+!runs/semantic_scope_prm.json
 outputs/
 *.jsonl
 !tests/fixtures/*.jsonl
@@ -28,3 +33,6 @@ data/processed/
 # OS
 .DS_Store
 Thumbs.db
+
+# Kaggle upload staging: a duplicate of src/ + scripts/, rebuilt on demand
+.kaggle_stage/
