@@ -262,7 +262,7 @@ Dual-licensed under **MIT** ([LICENSE-MIT](LICENSE-MIT)) or **Apache 2.0**
 permissive terms, Apache 2.0 for its explicit patent grant.
 
 The datasets are *not* redistributed here; `scripts/download_data.py` fetches
-each from its own source, under its own terms. See [LICENSE](LICENSE).
+each from its own source, under its own terms. See [COPYRIGHT](COPYRIGHT).
 
 ---
 
