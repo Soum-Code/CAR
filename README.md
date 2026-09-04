@@ -255,6 +255,17 @@ that cache on CPU. Rent a GPU for hours, not months.
 
 ---
 
+## Licence
+
+Dual-licensed under **MIT** ([LICENSE-MIT](LICENSE-MIT)) or **Apache 2.0**
+([LICENSE-APACHE](LICENSE-APACHE)), at your option — MIT for the shortest
+permissive terms, Apache 2.0 for its explicit patent grant.
+
+The datasets are *not* redistributed here; `scripts/download_data.py` fetches
+each from its own source, under its own terms. See [LICENSE](LICENSE).
+
+---
+
 ## Key references
 
 - Angelopoulos, Bates, Fisch, Lei & Schuster. *Conformal Risk Control.* ICLR 2024 — [arXiv:2208.02814](https://arxiv.org/abs/2208.02814)

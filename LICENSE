@@ -1,0 +1,38 @@
+Copyright (c) 2026 P. Somnath Reddy
+
+This project is dual-licensed. You may use it under the terms of EITHER:
+
+  * the MIT License          -- see LICENSE-MIT,    or
+  * the Apache License 2.0   -- see LICENSE-APACHE
+
+at your option.
+
+You do not need to satisfy both. Pick whichever suits you: MIT if you want the
+shortest permissive terms, Apache 2.0 if you want its explicit patent grant.
+This is the same arrangement the Rust project uses, and it exists so that
+neither an individual researcher nor a company with a patent policy is shut
+out.
+
+Unless you state otherwise, any contribution you intentionally submit for
+inclusion in this work is dual-licensed on these same terms, with no
+additional conditions.
+
+--------------------------------------------------------------------------
+
+A note on what is and is not covered.
+
+The licences above cover the code, documentation, and measurement results in
+this repository.
+
+They do NOT cover the third-party datasets this project measures. None of them
+are redistributed here -- scripts/download_data.py fetches each at run time
+from its own source -- and each is governed by whatever terms that source
+carries, which you should check there rather than assume from this file:
+
+  GSM8K           Cobbe et al., 2021          github.com/openai/grade-school-math
+  StrategyQA      Geva et al., TACL 2021      allenai.org/data/strategyqa
+  Math-Shepherd   Wang et al., ACL 2024       huggingface.co/datasets/peiyi9979/Math-Shepherd
+
+The same applies to model weights named in the GPU scripts. At least one of
+them (Llama 3.1) is gated and requires accepting the publisher's terms before
+access is granted at all.

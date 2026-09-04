@@ -7,6 +7,8 @@ name = "car"
 version = "0.1.0"
 description = "CAR - Conformalized Agentic Reasoning: calibrated selective verification for multi-step LLM reasoning"
 requires-python = ">=3.11"
+license = "MIT OR Apache-2.0"
+license-files = ["LICENSE", "LICENSE-MIT", "LICENSE-APACHE"]
 dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
