@@ -36,6 +36,13 @@ GSM8K_URL = (
     "https://raw.githubusercontent.com/openai/grade-school-math/"
     "master/grade_school_math/data/train.jsonl"
 )
+# The test split is only needed by the generation experiments, but it has to be
+# a separate file: train supplies the few-shot exemplars, so measuring on train
+# would score the model on problems it was just shown.
+GSM8K_TEST_URL = (
+    "https://raw.githubusercontent.com/openai/grade-school-math/"
+    "master/grade_school_math/data/test.jsonl"
+)
 MATH_SHEPHERD_URL = (
     "https://huggingface.co/datasets/peiyi9979/Math-Shepherd/"
     "resolve/main/math-shepherd.jsonl"
@@ -100,29 +107,37 @@ def verify_strategyqa() -> bool:
 
 def fetch_gsm8k(force: bool = False) -> Path:
     out = RAW / "gsm8k"
-    target = out / "train.jsonl"
-    if target.exists() and not force:
-        print(f"  gsm8k           already present ({target})")
-        return target
-
-    print("  gsm8k           downloading...")
     out.mkdir(parents=True, exist_ok=True)
-    target.write_bytes(_get(GSM8K_URL))
-    n = sum(1 for line in target.read_text(encoding="utf-8").splitlines() if line.strip())
-    print(f"  gsm8k           OK  {n:,} problems")
-    return target
+    for name, url in (("train.jsonl", GSM8K_URL), ("test.jsonl", GSM8K_TEST_URL)):
+        target = out / name
+        if target.exists() and not force:
+            print(f"  gsm8k           already present ({target})")
+            continue
+        print(f"  gsm8k           downloading {name}...")
+        target.write_bytes(_get(url))
+        n = sum(
+            1 for line in target.read_text(encoding="utf-8").splitlines() if line.strip()
+        )
+        print(f"  gsm8k           OK  {name} {n:,} problems")
+    return out / "train.jsonl"
 
 
 def verify_gsm8k() -> bool:
-    p = RAW / "gsm8k" / "train.jsonl"
-    if not p.exists():
-        print("  gsm8k           MISSING")
-        return False
-    rows = [json.loads(x) for x in p.read_text(encoding="utf-8").splitlines() if x.strip()]
-    with_calc = sum(1 for r in rows if "<<" in r.get("answer", ""))
-    ok = len(rows) > 7000 and with_calc > 6000
-    print(f"  gsm8k           {'OK ' if ok else 'BAD'} {len(rows):,} problems, "
-          f"{with_calc:,} with calculator annotations")
+    ok = True
+    for name, floor in (("train.jsonl", 7000), ("test.jsonl", 1300)):
+        p = RAW / "gsm8k" / name
+        if not p.exists():
+            print(f"  gsm8k           MISSING {name}")
+            ok = False
+            continue
+        rows = [
+            json.loads(x) for x in p.read_text(encoding="utf-8").splitlines() if x.strip()
+        ]
+        with_calc = sum(1 for r in rows if "<<" in r.get("answer", ""))
+        good = len(rows) >= floor and with_calc > 0.8 * len(rows)
+        ok = ok and good
+        print(f"  gsm8k           {'OK ' if good else 'BAD'} {name} {len(rows):,} "
+              f"problems, {with_calc:,} with calculator annotations")
     return ok
 
 
