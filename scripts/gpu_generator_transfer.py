@@ -4,8 +4,16 @@ Every rate in this project comes from Math-Shepherd, i.e. from Mistral-7B-SFT:
 local error 0.1011, global 0.3908, 69.8% of wrong steps locally valid. The
 obvious objection is that those are properties of one weak 2023 model rather
 than of multi-step reasoning, and a stronger generator would close the gap by
-itself. Llama 3.1 8B Instruct reports 84.5% on GSM8K against Mistral-7B-SFT's
-~45%, so it is the right model to put that objection to.
+itself. Putting that objection to the test needs a materially stronger model
+solving the same benchmark.
+
+The generator is a parameter, not a constant. The thesis names Llama 3.1 8B;
+the run that actually produced numbers used Qwen2.5-7B-Instruct, because Llama
+3.1 is licence-gated on Kaggle and the consent did not come through. Both are
+instruction-tuned ~7-8B models reporting GSM8K far above Mistral-7B-SFT's ~45%,
+which is the property the argument depends on -- so the substitution costs the
+exact model name and nothing else. Whichever is used is recorded in the run
+metadata rather than assumed from this docstring.
 
 WHAT IS MEASURED
 
@@ -39,12 +47,13 @@ RUNNING THIS
 
     pip install -e ".[model]"
     python scripts/download_data.py gsm8k
-    python scripts/gpu_llama_error_rate.py --n 400 --rollouts 4
+    python scripts/gpu_generator_transfer.py --n 500 --rollouts 4
 
 Writes runs/generated_<tag>.jsonl (Math-Shepherd format) and
 runs/generated_<tag>_meta.json. Analyse on CPU with:
 
-    python scripts/exp_measure_error_rate.py --data runs/generated_llama31_8b.jsonl
+    python scripts/exp_measure_error_rate.py --data runs/generated_qwen25_7b.jsonl \
+        --accuracy measured --name "Qwen2.5-7B-Instruct"
 """
 
 from __future__ import annotations
@@ -76,12 +85,12 @@ TRAIN = Path("data/raw/gsm8k/train.jsonl")
 TEST = Path("data/raw/gsm8k/test.jsonl")
 OUT = Path("runs")
 
-MODEL = "meta-llama/Llama-3.1-8B-Instruct"
+MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
-# Llama 3.1 8B Instruct reports 84.5% on GSM8K (8-shot CoT, maj@1). We sample at
-# temperature rather than greedily and use 4 exemplars, both of which cost a few
-# points, so the gate is wide. It exists to catch a broken prompt -- which shows
-# up as 0.2, not as 0.78.
+# Wide on purpose. Reported GSM8K figures for models in this class are greedy or
+# maj@1 with 8 exemplars; we sample at temperature with 4, and both cost points.
+# The gate is not trying to reproduce a leaderboard number -- it is trying to
+# catch a prompt the model is not following, which reads as 0.2, not as 0.78.
 ACCURACY_BAND = (0.55, 0.95)
 MIN_ANNOTATION_RATE = 0.60
 
@@ -362,7 +371,7 @@ def load_rows(path, n, seed=0):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--model", default=MODEL)
-    ap.add_argument("--tag", default="llama31_8b")
+    ap.add_argument("--tag", default="qwen25_7b")
     ap.add_argument("--n", type=int, default=400, help="test problems")
     ap.add_argument("--rollouts", type=int, default=4, help="K per step")
     ap.add_argument("--temperature", type=float, default=0.7)
