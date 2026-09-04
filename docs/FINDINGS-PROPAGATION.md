@@ -432,26 +432,31 @@ right far more often than not, but roughly one link in ten could go either way.
 |---|---|---|
 | questions | 2272 | **6974** |
 | steps per item | 2.95 | 3.34 |
-| longest path (mean) | 2.30 | **2.54** |
+| longest path (mean) | 2.30 | **2.79** |
 | max depth observed | 5 | **8** |
-| steps w/ non-terminal descendant | 11.2% | **26.6%** |
-| corr(position, influence) | −0.917 | **−0.771** |
-| questions at depth ≥ 3 | 615 | **3030** |
+| steps w/ non-terminal descendant | 11.2% | **29.9%** |
+| corr(position, influence) | −0.917 | −0.893 |
+| questions at depth ≥ 3 | 615 | **3815** |
 
 Shapes:
 
 | | StrategyQA | GSM8K |
 |---|---|---|
-| chain | 39.1% | 38.9% |
-| converging | 59.5% | 25.7% |
-| branching | 1.5% | **12.4%** |
-| other | 0.0% | **22.9%** |
+| chain | 39.1% | 48.1% |
+| converging | 59.5% | 31.4% |
+| branching | 1.5% | **14.6%** |
+| other | 0.0% | 5.9% |
 
 **Correction to Addendum 2.** It claimed GSM8K has "~3× the propagation
 headroom", inferred from calculator-step counts. Measured on extracted graphs,
-mean *depth* improves only 2.30 → 2.54 (10%). The 2.4× gain is on the headroom
-metric specifically (11.2% → 26.6%), which is the right one but not what the
-earlier sentence said.
+mean *depth* improves 2.30 → 2.79 (21%) and headroom 11.2% → 29.9% (2.7×).
+The headroom metric is the right one; the step-count framing was not.
+
+> **These figures are the CORRECTED ones.** The first version of this addendum
+> reported depth 2.54 and headroom 26.6%, computed with an operand extractor
+> that silently dropped every subtraction edge. Hand-validation found the bug;
+> see [FINDINGS-DEPGRAPH.md](FINDINGS-DEPGRAPH.md). The fix moves every GSM8K
+> number in the same direction, strengthening the benchmark switch.
 
 ## Policy choice matters more on GSM8K
 
@@ -459,28 +464,32 @@ Budget 37.5%, global verifier:
 
 | policy | StrategyQA | GSM8K |
 |---|---|---|
-| uniform | 0.2418 | 0.2262 |
-| front | 0.2460 | 0.2350 |
-| back | 0.2353 | 0.2137 |
-| influence | 0.2461 | 0.2285 |
-| depth | **0.2335** | 0.2121 |
-| cut | 0.2384 | **0.2071** |
-| **spread** | **0.0126** | **0.0279** |
+| uniform | 0.2418 | 0.2447 |
+| front | 0.2460 | 0.2556 |
+| back | 0.2353 | 0.2264 |
+| influence | 0.2461 | 0.2530 |
+| depth | **0.2335** | **0.2219** |
+| cut | 0.2384 | 0.2318 |
+| **spread** | **0.0126** | **0.0338** |
 
-Spread doubles. Note the best policy differs — `depth` on StrategyQA, `cut`
-(ancestors × descendants, i.e. bottlenecks) on GSM8K, which has 8× more
-branching for bottlenecks to exist in. **The best structural signal is
-benchmark-dependent**, so it should be selected on dev data rather than assumed.
+Spread nearly triples. **`depth` (ancestor count) wins on both benchmarks.**
+
+> An earlier version of this section reported `cut` winning on GSM8K and
+> concluded the best structural signal is benchmark-dependent. That was an
+> artifact of the dropped-subtraction bug; with corrected graphs the result is
+> simpler, and the "select it on dev data" hedge is not needed on this
+> evidence. See [FINDINGS-DEPGRAPH.md](FINDINGS-DEPGRAPH.md).
 
 Broken down by depth, which is what the whole propagation argument needs:
 
 | depth | count | uniform | front | back | influence | depth | cut | spread |
 |---|---|---|---|---|---|---|---|---|
-| 1 | 496 | 0.1516 | 0.1518 | 0.1514 | 0.1516 | 0.1516 | 0.1516 | **0.0003** |
-| 2 | 3418 | 0.1990 | 0.2010 | 0.1982 | 0.1942 | 0.2016 | **0.1856** | 0.0159 |
-| 3 | 2141 | 0.2561 | 0.2694 | 0.2344 | 0.2607 | 0.2292 | **0.2254** | 0.0440 |
-| 4 | 714 | 0.2890 | 0.3178 | 0.2495 | 0.3101 | **0.2387** | 0.2578 | 0.0791 |
-| 5 | 175 | 0.3199 | 0.3640 | 0.2595 | 0.3595 | **0.2504** | 0.2948 | **0.1136** |
+| 1 | 171 | 0.1518 | 0.1503 | 0.1495 | 0.1518 | 0.1518 | 0.1518 | **0.0023** |
+| 2 | 2988 | 0.2049 | 0.2049 | 0.2042 | 0.2033 | 0.2048 | **0.2016** | 0.0033 |
+| 3 | 2431 | 0.2632 | 0.2777 | 0.2382 | 0.2744 | **0.2290** | 0.2423 | 0.0488 |
+| 4 | 1010 | 0.2992 | 0.3269 | 0.2577 | 0.3241 | **0.2455** | 0.2746 | 0.0814 |
+| 5 | 308 | 0.3221 | 0.3618 | 0.2632 | 0.3600 | **0.2533** | 0.2983 | 0.1084 |
+| 6 | 52 | 0.3578 | 0.4059 | 0.2872 | 0.4013 | **0.2779** | 0.3373 | **0.1279** |
 
 At depth ≥ 4 the gap between the best and worst policy reaches 0.08–0.11 —
 an order of magnitude larger than anything visible on StrategyQA. `front` and
@@ -492,9 +501,9 @@ fourth independent replication of that result.
 
 ## Remaining risks
 
-- **9.6% ambiguous links.** A dependency-labelling error rate that no amount of
-  simulation fixes. Worth hand-checking ~50 graphs before relying on it in the
-  thesis.
+- ~~9.6% ambiguous links.~~ **Hand-validated.** The measured edge error rate is
+  **5.6%**, and the ambiguity flag turned out to be a poor proxy for it in both
+  directions. See [FINDINGS-DEPGRAPH.md](FINDINGS-DEPGRAPH.md).
 - GSM8K is arithmetic only. The evidence-grounded verification story (retrieval,
   prompt injection, verifier scope < 1) has no home there — that is what
   StrategyQA is retained for, and the two claims now rest on different datasets.

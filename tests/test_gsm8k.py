@@ -161,3 +161,49 @@ def test_examples_load_with_step_decomposition():
     assert len(exs) > 7000
     assert all(e.gold_answer for e in exs)
     assert any(len(e.decomposition) >= 4 for e in exs)
+
+
+# ---- operand extraction (regression) ---------------------------------
+
+
+def test_subtraction_operator_is_not_read_as_a_sign():
+    r"""THE bug hand-validation found.
+
+    The old regex `-?\d+` captured the subtraction operator as part of the
+    operand, so "110-80" yielded [110, -80]. The -80 matched no earlier
+    result, and every subtraction silently lost its dependency edge.
+    """
+    from car.data.gsm8k import expression_operands
+
+    assert expression_operands("110-80") == [110.0, 80.0]
+    assert expression_operands("10-9") == [10.0, 9.0]
+    assert sorted(expression_operands("30-10-15")) == [10.0, 15.0, 30.0]
+
+
+def test_leading_dot_decimals_survive():
+    """The same regex dropped the leading dot, turning .8 into 8."""
+    from car.data.gsm8k import expression_operands
+
+    assert expression_operands("100*.8") == [100.0, 0.8]
+
+
+def test_subtraction_edge_is_actually_derived():
+    """End-to-end: the edge the old extractor lost must now exist."""
+    q = "Natalia had 110 clips."
+    a = "50+30 = <<50+30=80>>80\n110-80 = <<110-80=30>>30\n#### 30"
+    dag, _ = solution_to_dag(q, a)
+    assert dag.parents[1] == (0,), "L2 consumes L1's result via subtraction"
+
+
+@needs_data
+def test_fix_increases_link_rate_and_depth():
+    """Corpus-level effect of the fix, so a regression is visible.
+
+    Before: link rate 0.307, orphan steps 0.277, mean longest path 2.54.
+    """
+    from car.data.strategyqa import corpus_summary
+
+    st = extraction_stats(DATA)
+    assert st["link_rate"] > 0.33
+    assert st["orphan_step_rate"] < 0.23
+    assert corpus_summary(load_dags(DATA))["longest_path"]["mean"] > 2.7

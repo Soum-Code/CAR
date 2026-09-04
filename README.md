@@ -109,8 +109,13 @@ measurement: **corr(position, local error) = +0.950**. Error rate *doubles*
 from 11% at step 1 to 22% at step 8. Later steps are harder, which favours
 back-loading further.
 
-The best structural signal is benchmark-dependent (`depth` on StrategyQA, `cut`
-on GSM8K), so it must be selected on dev data rather than assumed.
+The best structural signal is **ancestor count** (`depth`) on both benchmarks —
+verify where the most upstream reasoning converges, not where the most
+downstream damage could occur.
+
+> An earlier version reported this as benchmark-dependent. That was an artifact
+> of a dependency-extraction bug found by hand-validation; see
+> [docs/FINDINGS-DEPGRAPH.md](docs/FINDINGS-DEPGRAPH.md).
 
 ### C5 — The risk target is constrained before any method is chosen
 
@@ -148,7 +153,7 @@ on the generator CAR actually uses.
 | 3 | Re-measure error rates on Llama 3.1 8B | numbers currently from Mistral-7B-SFT |
 | 4 | Same-model + independent-judge scope arms | **done** — 0.0000 and 0.2283 |
 | 5 | Full gate pipeline end-to-end on GSM8K | scaffold ready, needs GPU generation |
-| 6 | Hand-validate ~50 GSM8K dependency graphs | 9.6% of derived links are ambiguous |
+| 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
 
 ---
 
@@ -162,7 +167,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-199 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+203 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 

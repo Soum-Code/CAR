@@ -67,7 +67,8 @@ the high-scope outcome: reach is semantic rather than structural.
 | C4 — "verify early" is false | chains, 5 DAG families, 2 real corpora | simulation + real graphs | measured |
 | C4b — later steps are harder | corr(pos, local err) = +0.950 | Math-Shepherd | measured |
 | C5 — α = 0.10 costs 32% of budget | μ = 0.3908 + Kotte Prop. 3 | measured + cited | measured |
-| C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% intermediate | 2272 annotated graphs | measured |
+| C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
+| C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
 
 Everything marked *simulated* rests on the propagation model in
@@ -139,16 +140,22 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 | # | task | cost | blocks |
 |---|---|---|---|
 | 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
-| 2 | Hand-validate ~50 GSM8K dependency graphs | ~2 hours, **no GPU** | removes the 9.6% ambiguous-link caveat |
+| 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.6% |
 | 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready, ~1 GPU-day | ch. 6 confirmation |
 | 4 | Re-measure error rates on Llama 3.1 8B | ~1 GPU-day | all numbers currently Mistral-7B-SFT |
 | 5 | Cross-domain check on StrategyQA + retrieval | ~1 GPU-day | generality; limited by C6 |
 
-**Item 2 is the highest value per hour by a wide margin.** It needs no GPU, takes
-an afternoon, and removes the single largest unaddressed caveat: every GSM8K
-dependency graph in the thesis is *derived* by operand matching, and 9.6% of the
-links are ambiguous. Nothing else on this list changes a headline number; that
-one changes how much a reader trusts all of them.
+**Item 2 is done, and it paid for itself.** It was queued to quantify the
+ambiguous-link caveat; instead it exposed a systematic bug — the operand regex
+was reading each subtraction operator as a minus sign, so every subtraction lost
+its dependency edge. Fixing it moved mean depth 2.54 → 2.79, headroom 26.6% →
+29.9%, and collapsed the unclassifiable `other` shape category from 22.9% to
+5.9%. It also overturned one published conclusion (see below). The corrected
+edge error rate is **5.6%**, measured rather than proxied.
+
+The general lesson, worth a line in the thesis: the caveat that gets quantified
+is rarely the one that matters. Auditing the derivation found a bug an order of
+magnitude more consequential than the ambiguity it was meant to measure.
 
 Item 5 is worth doing but is capped by C6 — StrategyQA has almost no propagation
 headroom, so a retrieval arm there tests generality of the *verifier* finding on
@@ -168,7 +175,11 @@ a benchmark that cannot exhibit the *propagation* finding.
   deliberate class mix, so no unconditional rate can be read off it. Every
   number is stratified and post-stratified to reported accuracy.
 - **Derived graphs.** GSM8K dependencies are inferred from calculator operand
-  matching; 9.6% of links are ambiguous.
+  matching. Hand-validated on 50 stratified graphs: **5.6% of edges are wrong**
+  (16.5% in graphs containing an ambiguous link, 4.2% elsewhere). That is a
+  lower bound — dependencies routed through unannotated solution lines are
+  invisible to any operand-matching scheme. Adjudication was by LLM, not blind
+  human annotation. See docs/FINDINGS-DEPGRAPH.md.
 - **Uncheckable steps.** 12.3% of steps carry no arithmetic and are reported
   separately rather than assumed correct.
 - **Modelling vs measurement.** C2b, C3 and C4 rest partly on the propagation

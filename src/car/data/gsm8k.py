@@ -30,6 +30,7 @@ rate is visible rather than assumed.
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 from pathlib import Path
@@ -39,6 +40,11 @@ from car.types import Example
 
 _CALC = re.compile(r"<<([^>]*?)=([^>]*?)>>")
 _NUM = re.compile(r"-?\d+(?:\.\d+)?")
+# Operand extraction must NOT use _NUM: `-?` swallows a subtraction operator as
+# a sign, so "110-80" yields [110, -80] and the -80 never matches the earlier
+# line that produced 80. Every subtraction silently lost its dependency edge.
+# Hand-validation caught this; see docs/FINDINGS-DEPGRAPH.md.
+_BARE_NUM = re.compile(r"\d*\.?\d+")
 
 
 def _to_float(s: str) -> float | None:
@@ -56,6 +62,35 @@ def parse_calc_steps(answer: str) -> list[tuple[str, float]]:
         if val is not None:
             steps.append((expr.strip(), val))
     return steps
+
+
+def expression_operands(expr: str) -> list[float]:
+    """Numeric literals in an arithmetic expression, operators excluded.
+
+    Parses with `ast` and collects the constants, so operator characters can
+    never be absorbed into an operand. Two failure modes this exists to avoid,
+    both found by hand-validating derived graphs:
+
+        "110-80"   regex gives [110, -80]  -> -80 matches no earlier result,
+                   so the edge from the line producing 80 is LOST
+        "100*.8"   regex gives [100, 8]    -> wrong value, may match the wrong
+                   line or none at all
+
+    Falls back to a sign-free regex when the expression will not parse, which
+    is still strictly better than the signed one.
+    """
+    try:
+        tree = ast.parse(expr.strip(), mode="eval")
+    except (SyntaxError, ValueError):
+        return [
+            v for v in (_to_float(m) for m in _BARE_NUM.findall(expr)) if v is not None
+        ]
+
+    out: list[float] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, int | float):
+            out.append(float(node.value))
+    return out
 
 
 def question_numbers(question: str) -> set[float]:
@@ -82,8 +117,7 @@ def solution_to_dag(
     parents: list[tuple[int, ...]] = []
 
     for i, (expr, _) in enumerate(steps):
-        operands = [_to_float(m) for m in _NUM.findall(expr)]
-        operands = [o for o in operands if o is not None]
+        operands = expression_operands(expr)
         deps: set[int] = set()
         for o in operands:
             stats["n_operands"] += 1
