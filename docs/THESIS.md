@@ -94,13 +94,37 @@ buys 80%. Data: `runs/semantic_scope_prm.json`.
 **A methodological point worth a paragraph in the thesis.** The first completed
 run reported the opposite — negative net scope — and it was an artifact: the
 PRM flagged 94.9% of the control group, which are steps carrying its own
-training labels. Root cause was that Kaggle's transformers tokenizes this
-SentencePiece model differently from how it was trained (`▁ки` 12902 became
-`ки` 1107), so the model was scored at positions it had never been trained on.
-A validation gate now scores 400 known-label steps first and aborts below 0.15
-separation; it caught three successive broken configurations before the fourth
-passed at 0.5788. Without it the project would have published a confident
-negative result produced entirely by a tokenizer mismatch.
+training labels. A model that cannot recognise its own training signal is not
+measuring anything.
+
+Two distinct tokenizer faults produced it, both from the same cause — Kaggle's
+transformers tokenizes this SentencePiece model differently from how it was
+trained:
+
+1. **Wrong output logits.** The `+`/`-` candidates were derived with
+   `tok.encode`, which locally yields `▁+`=648 / `▁-`=387 (the trained tokens)
+   but on Kaggle yielded `+`=28806 / `-`=28733 — the same characters without
+   the word-boundary marker, i.e. entirely different embeddings. The PRM was
+   read at vocabulary indices it had never been trained to use, and separated
+   its own labels by 0.0108. These ids are now hardcoded and verified by
+   decoding.
+2. **Wrong input positions.** The `ки` step-tag id, hardcoded to the reference
+   12902, is an *input* id used to locate scoring positions. Kaggle encoded it
+   differently, the position mask matched nothing, and every score came back
+   NaN. It is now resolved in context from the live tokenizer.
+
+A validation gate scores 400 known-label steps before the real measurement and
+aborts below 0.15 separation. It caught three successive broken configurations
+before the fourth passed at 0.5788. Without it the project would have published
+a confident negative result produced entirely by tokenizer mismatch.
+
+The judge arms had their own instance of the same class of bug: **right padding
+for batched decoder-only generation**, which inserts pad tokens between prompt
+and continuation so the model generates from padding. It surfaced only as a
+warning, and moved the Qwen result from an untrustworthy 0.1933 to 0.2283.
+The general lesson for the thesis: on a borrowed model, the harness must prove
+it can reproduce that model's known behaviour before any novel number from it
+is believed.
 
 The same-model critic detects zero errors (validation separation 0.0000 -- it
 approves its own known-bad steps), confirming Huang et al. A general
@@ -114,14 +138,21 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 
 | # | task | cost | blocks |
 |---|---|---|---|
-| 1 | ~~Measure verifier scope (ch. 5)~~ | done | — |
-| 2 | Re-measure error rates on Llama 3.1 8B | ~1 GPU-day | all numbers currently Mistral-7B-SFT |
-| 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready | ch. 6 confirmation |
-| 4 | Hand-validate ~50 GSM8K dependency graphs | ~2 hours | 9.6% ambiguous links |
-| 5 | Cross-domain check on StrategyQA + retrieval | needs 1 | generality |
+| 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
+| 2 | Hand-validate ~50 GSM8K dependency graphs | ~2 hours, **no GPU** | removes the 9.6% ambiguous-link caveat |
+| 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready, ~1 GPU-day | ch. 6 confirmation |
+| 4 | Re-measure error rates on Llama 3.1 8B | ~1 GPU-day | all numbers currently Mistral-7B-SFT |
+| 5 | Cross-domain check on StrategyQA + retrieval | ~1 GPU-day | generality; limited by C6 |
 
-Items 1 and 4 are the highest value per hour. Item 4 needs no GPU at all and
-removes the biggest labelling caveat in the thesis.
+**Item 2 is the highest value per hour by a wide margin.** It needs no GPU, takes
+an afternoon, and removes the single largest unaddressed caveat: every GSM8K
+dependency graph in the thesis is *derived* by operand matching, and 9.6% of the
+links are ambiguous. Nothing else on this list changes a headline number; that
+one changes how much a reader trusts all of them.
+
+Item 5 is worth doing but is capped by C6 — StrategyQA has almost no propagation
+headroom, so a retrieval arm there tests generality of the *verifier* finding on
+a benchmark that cannot exhibit the *propagation* finding.
 
 ---
 
