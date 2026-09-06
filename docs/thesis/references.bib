@@ -1,0 +1,298 @@
+% CAR — bibliography
+%
+% Two groups, separated deliberately.
+%
+% VERIFIED below means the entry's authors, title, venue and year are recorded
+% from the source itself. UNVERIFIED means this project has the arXiv ID and
+% the title as noted during the literature review, but not a confirmed author
+% list — those entries carry a `note` field saying so, and MUST be checked
+% against the arXiv listing before submission. An invented author list is
+% worse than a missing one, so none are guessed here.
+%
+% scripts/check_citations.py asserts that every arXiv ID appearing in the
+% thesis has an entry in this file.
+
+% =====================================================================
+% Conformal prediction and risk control
+% =====================================================================
+
+@inproceedings{angelopoulos2024crc,
+  title     = {Conformal Risk Control},
+  author    = {Angelopoulos, Anastasios N. and Bates, Stephen and
+               Fisch, Adam and Lei, Lihua and Schuster, Tal},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  eprint    = {2208.02814},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url       = {https://arxiv.org/abs/2208.02814},
+}
+
+@book{vovk2005alrw,
+  title     = {Algorithmic Learning in a Random World},
+  author    = {Vovk, Vladimir and Gammerman, Alexander and Shafer, Glenn},
+  publisher = {Springer},
+  year      = {2005},
+  note      = {The split-conformal construction and its exchangeability
+               assumption},
+}
+
+@article{gibbs2021aci,
+  title   = {Adaptive Conformal Inference Under Distribution Shift},
+  author  = {Gibbs, Isaac and Cand{\`e}s, Emmanuel},
+  journal = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year    = {2021},
+  eprint  = {2106.00170},
+  archivePrefix = {arXiv},
+  url     = {https://arxiv.org/abs/2106.00170},
+  note    = {The online threshold update this project's adaptive calibrator
+             is built on},
+}
+
+@article{barber2023beyond,
+  title   = {Conformal Prediction Beyond Exchangeability},
+  author  = {Barber, Rina Foygel and Cand{\`e}s, Emmanuel J. and
+             Ramdas, Aaditya and Tibshirani, Ryan J.},
+  journal = {The Annals of Statistics},
+  volume  = {51},
+  number  = {2},
+  year    = {2023},
+  note    = {The formal route for risk control under the gate-induced
+             dependence this thesis characterises empirically; see ch. 9
+             future work},
+}
+
+@misc{khosravi2026csa,
+  title  = {Conformal Selective Acting: Anytime-Valid Risk Control for
+            RLVR-Trained LLMs},
+  author = {Khosravi and Huo},
+  year   = {2026},
+  month  = {May},
+  eprint = {2605.20270},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2605.20270},
+  note   = {UNVERIFIED author initials. Theorem E.1 is the sparse-verifier
+            result that supersedes this project's censored-feedback claim},
+}
+
+@misc{kotte2026certify,
+  title  = {When Can Conformal Risk Control Certify LLM Outputs?},
+  author = {Kotte},
+  year   = {2026},
+  month  = {June},
+  eprint = {2606.29054},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2606.29054},
+  note   = {UNVERIFIED author initials. Proposition 3 is the impossibility
+            bound used throughout as a feasibility instrument},
+}
+
+% =====================================================================
+% Benchmarks and step-labelled data
+% =====================================================================
+
+@misc{cobbe2021gsm8k,
+  title  = {Training Verifiers to Solve Math Word Problems},
+  author = {Cobbe, Karl and Kosaraju, Vineet and Bavarian, Mohammad and
+            Chen, Mark and Jun, Heewoo and Kaiser, Lukasz and
+            Plappert, Matthias and Tworek, Jerry and Hilton, Jacob and
+            Nakano, Reiichiro and Hesse, Christopher and Schulman, John},
+  year   = {2021},
+  eprint = {2110.14168},
+  archivePrefix = {arXiv},
+  primaryClass  = {cs.LG},
+  url    = {https://arxiv.org/abs/2110.14168},
+  note   = {GSM8K. The inline calculator annotations are what make the local
+            validity check deterministic},
+}
+
+@article{geva2021strategyqa,
+  title   = {Did Aristotle Use a Laptop? A Question Answering Benchmark with
+             Implicit Reasoning Strategies},
+  author  = {Geva, Mor and Khashabi, Daniel and Segal, Elad and
+             Khot, Tushar and Roth, Dan and Berant, Jonathan},
+  journal = {Transactions of the Association for Computational Linguistics},
+  volume  = {9},
+  year    = {2021},
+  url     = {https://allenai.org/data/strategyqa},
+  note    = {Ch. 8 shows its annotated decompositions are too shallow to
+             exhibit propagation},
+}
+
+@inproceedings{wang2024mathshepherd,
+  title     = {Math-Shepherd: Verify and Reinforce LLMs Step-by-step without
+               Human Annotations},
+  author    = {Wang, Peiyi and Li, Lei and Shao, Zhihong and Xu, Runxin and
+               Dai, Damai and Li, Yifei and Chen, Deli and Wu, Yu and
+               Sui, Zhifang},
+  booktitle = {Proceedings of the 62nd Annual Meeting of the Association for
+               Computational Linguistics (ACL)},
+  year      = {2024},
+  eprint    = {2312.08935},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2312.08935},
+  note      = {The 93,129 labelled steps this thesis measures on. Labels are
+               Monte-Carlo hard estimation, not human annotation},
+}
+
+% =====================================================================
+% Process supervision and step-level scoring
+% =====================================================================
+
+@misc{lightman2023verify,
+  title  = {Let's Verify Step by Step},
+  author = {Lightman, Hunter and Kosaraju, Vineet and Burda, Yura and
+            Edwards, Harri and Baker, Bowen and Lee, Teddy and
+            Leike, Jan and Schulman, John and Sutskever, Ilya and
+            Cobbe, Karl},
+  year   = {2023},
+  eprint = {2305.20050},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2305.20050},
+  note   = {Process supervision beats outcome supervision on mathematical
+            reasoning},
+}
+
+@misc{uheads2025,
+  title  = {Uncertainty Heads},
+  year   = {2025},
+  eprint = {2511.06209},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/html/2511.06209v2},
+  note   = {UNVERIFIED authors and exact title. A trained head under 10M
+            parameters matching PRMs 750--810x larger; the efficiency result
+            any "better step score" proposal must beat},
+}
+
+@misc{stepuncertainty2026,
+  title  = {On the Limits of Sampling-Based Uncertainty at Intermediate
+            Reasoning Steps},
+  year   = {2026},
+  eprint = {2602.02427},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/html/2602.02427},
+  note   = {UNVERIFIED authors and exact title. Reports that
+            sampling-agreement methods struggle to pinpoint intermediate
+            uncertainty; ch. 7 replicates this on GSM8K},
+}
+
+@article{farquhar2024semantic,
+  title   = {Detecting Hallucinations in Large Language Models Using Semantic
+             Entropy},
+  author  = {Farquhar, Sebastian and Kossen, Jannik and Kuhn, Lorenz and
+             Gal, Yarin},
+  journal = {Nature},
+  volume  = {630},
+  year    = {2024},
+  note    = {Whole-answer semantic entropy via bidirectional entailment
+             clustering; ch. 7 applies the principle to one step and finds it
+             does not carry},
+}
+
+% =====================================================================
+% Verification, self-correction and propagation
+% =====================================================================
+
+@inproceedings{huang2024selfcorrect,
+  title     = {Large Language Models Cannot Self-Correct Reasoning Yet},
+  author    = {Huang, Jie and Chen, Xinyun and Mishra, Swaroop and
+               Zheng, Huaixiu Steven and Yu, Adams Wei and Song, Xinying and
+               Zhou, Denny},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2024},
+  eprint    = {2310.01798},
+  archivePrefix = {arXiv},
+  url       = {https://arxiv.org/abs/2310.01798},
+  note      = {The prediction ch. 5's same-model critic arm confirms at step
+               level: scope 0.0000},
+}
+
+@misc{singh2026snowball,
+  title  = {The Hallucination Snowball},
+  author = {Singh and Pawar},
+  year   = {2026},
+  eprint = {2608.14588},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2608.14588},
+  note   = {UNVERIFIED author initials. Escape probabilities 24.6/48.3/89.3\%
+            across successive boundaries; the source of this project's decay
+            constant 0.377},
+}
+
+@misc{sherlock2025,
+  title  = {Sherlock: Verifier Placement for Agentic Workflows},
+  year   = {2025},
+  eprint = {2511.00330},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/pdf/2511.00330},
+  note   = {UNVERIFIED authors and exact title. Closest prior work to ch. 6:
+            verifier placement on a known DAG by fan-in, offline},
+}
+
+@misc{ares2025,
+  title  = {ARES: Probabilistic Soundness of Reasoning Steps Given Verified
+            Premises},
+  year   = {2025},
+  eprint = {2507.12948},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2507.12948},
+  note   = {UNVERIFIED authors and exact title. Overlaps the local/global
+            framing directly},
+}
+
+% =====================================================================
+% Selective labels
+% =====================================================================
+
+@inproceedings{lakkaraju2017selective,
+  title     = {The Selective Labels Problem: Evaluating Algorithmic Predictions
+               in the Presence of Unobservables},
+  author    = {Lakkaraju, Himabindu and Kleinberg, Jon and Leskovec, Jure and
+               Ludwig, Jens and Mullainathan, Sendhil},
+  booktitle = {Proceedings of the 23rd ACM SIGKDD International Conference on
+               Knowledge Discovery and Data Mining (KDD)},
+  year      = {2017},
+  url       = {https://cs.stanford.edu/~jure/pubs/contraction-kdd17.pdf},
+  note      = {Why labels observed only where a policy acted cannot be used
+               naively; the reason forced exploration is in the loop},
+}
+
+% =====================================================================
+% Models used in the measurements
+% =====================================================================
+
+@misc{jiang2023mistral,
+  title  = {Mistral 7B},
+  author = {Jiang, Albert Q. and Sablayrolles, Alexandre and
+            Mensch, Arthur and Bamford, Chris and Chaplot, Devendra Singh and
+            de las Casas, Diego and Bressand, Florian and Lengyel, Gianna and
+            Lample, Guillaume and Saulnier, Lucile and others},
+  year   = {2023},
+  eprint = {2310.06825},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2310.06825},
+  note   = {The base of Mistral-7B-SFT, the generator behind Math-Shepherd's
+            GSM8K solutions},
+}
+
+@misc{qwen2024qwen25,
+  title  = {Qwen2.5 Technical Report},
+  author = {{Qwen Team}},
+  year   = {2024},
+  eprint = {2412.15115},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2412.15115},
+  note   = {Qwen2.5-7B-Instruct is the second generator (ch. 4) and the
+            independent judge (ch. 5)},
+}
+
+@misc{dubey2024llama3,
+  title  = {The Llama 3 Herd of Models},
+  author = {{Llama Team, AI @ Meta}},
+  year   = {2024},
+  eprint = {2407.21783},
+  archivePrefix = {arXiv},
+  url    = {https://arxiv.org/abs/2407.21783},
+  note   = {The generator this thesis names but could not run: licence-gated
+            on the available compute platform, see ch. 4 limits},
+}

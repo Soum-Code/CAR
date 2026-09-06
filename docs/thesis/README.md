@@ -14,6 +14,7 @@ Full draft, 2026-09-06. Nine chapters plus front matter.
 | 7 | [The assembled gate](07-the-assembled-gate.md) | `exp_gate_pipeline.py` |
 | 8 | [Feasibility and benchmarks](08-feasibility-and-benchmarks.md) | `exp_strategyqa_topology.py`, `exp_benchmark_compare.py` |
 | 9 | [Limitations and conclusion](09-conclusion.md) | — |
+| — | [References](10-references.md) | `check_citations.py --markdown` |
 
 ## Relationship to the findings documents
 
@@ -62,6 +63,23 @@ with the palette validator rather than by eye (worst adjacent CVD ΔE 9.1,
 normal-vision ΔE 22.9). Two of those slots sit below 3:1 contrast on this
 surface, so every chart that uses them carries visible direct labels.
 
+## Bibliography
+
+[`references.bib`](references.bib), 21 entries.
+[10-references.md](10-references.md) is generated from it — never edited by
+hand, so the two cannot disagree.
+
+```bash
+python scripts/check_citations.py --all        # every cited arXiv id has an entry
+python scripts/check_citations.py --markdown   # regenerate the readable list
+```
+
+Seven entries are marked **UNVERIFIED**: this project has their arXiv id and
+title from the literature review but no author list confirmed against the
+source. They carry the marker rather than a guessed author list, because a
+missing author is recoverable and an invented one is not. The checker lists
+them on every run.
+
 ## Status
 
 **Complete as a draft.** Every chapter is written, every number in it is
@@ -74,9 +92,7 @@ Known gaps, in the order they would matter to an examiner:
    description in places; §2.7–2.8 should be tightened after a full read.
 2. **No related-work chapter separate from background.** For a paper
    submission these would split.
-3. **Citations are inline links, not a bibliography.** Needs converting to
-   BibTeX for submission.
-4. **A third generator** would settle which of the per-generator quantities
+3. **A third generator** would settle which of the per-generator quantities
    (μ, absorption) are monotone in model strength and which are idiosyncratic.
 
 ## Venue
