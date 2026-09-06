@@ -87,15 +87,12 @@ measured and reproducible, and every refuted claim has a regression test.
 
 Known gaps, in the order they would matter to an examiner:
 
-1. **Chapter 2 still needs full reads, not just verified metadata.** Ro et al.
-   (Sherlock), You et al., Ni et al. and Barber et al. are described from their
-   titles and abstracts; §2.7–2.8 should be tightened after reading them
-   properly. Their bibliographic details are now correct, which is a different
-   thing from having read them.
-2. **No related-work chapter separate from background.** For a paper
+1. **No related-work chapter separate from background.** For a paper
    submission these would split.
-3. **A third generator** would settle which of the per-generator quantities
+2. **A third generator** would settle which of the per-generator quantities
    (μ, absorption) are monotone in model strength and which are idiosyncratic.
+3. **ARES-style conditioning under a budget** is now the clearest scientific
+   gap rather than a writing gap — see ch. 9 future work.
 
 ## Venue
 

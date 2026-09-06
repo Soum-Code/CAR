@@ -14,8 +14,8 @@ must be checked before submission.
   <br>The split-conformal construction and its exchangeability assumption
 - `gibbs2021aci` — **Adaptive Conformal Inference Under Distribution Shift** · Gibbs, Isaac and Candès, Emmanuel, Advances in Neural Information Processing Systems (NeurIPS), 2021 · [2106.00170](https://arxiv.org/abs/2106.00170)
   <br>The online threshold update this project's adaptive calibrator is built on
-- `barber2023beyond` — **Conformal Prediction Beyond Exchangeability** · Barber, Rina Foygel and Candès, Emmanuel J. and Ramdas, Aaditya and Tibshirani, Ryan J., The Annals of Statistics, 2023
-  <br>The formal route for risk control under the gate-induced dependence this thesis characterises empirically; see ch. 9 future work
+- `barber2023beyond` — **Conformal Prediction Beyond Exchangeability** · Barber, Rina Foygel and Candès, Emmanuel J. and Ramdas, Aaditya and Tibshirani, Ryan J., The Annals of Statistics, 2023 · [2202.13415](https://arxiv.org/abs/2202.13415)
+  <br>Weighted quantiles for distribution drift plus a randomization technique for nonsymmetric fitting algorithms. Handles EXOGENOUS violations of exchangeability; the one in this thesis is endogenous, so this is the closest starting point rather than a solution. See ch. 2.1 and ch. 9
 - `khosravi2026csa` — **Conformal Selective Acting: Anytime-Valid Risk Control for RLVR-Trained LLMs** · Khosravi, Hamed and Huo, Xiaoming, 2026 · [2605.20270](https://arxiv.org/abs/2605.20270)
   <br>Theorem E.1 is the sparse-verifier result that supersedes this project's censored-feedback claim
 - `kotte2026certify` — **When Can Conformal Risk Control Certify LLM Outputs? Bounds, Impossibility, and Adaptation for Structured Generation** · Kotte, Varun, 2026 · [2606.29054](https://arxiv.org/abs/2606.29054)

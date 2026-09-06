@@ -101,9 +101,18 @@ Math-Shepherd PRM reaches 0.9033 at a 9.87% false-alarm rate.
 > independence and scores zero; the general judge has independence without
 > specialisation and scores 0.23.
 
-The original specification listed calculator, retrieval and sandbox as
-interchangeable reliability mechanisms. They are not. They span 0.00 to 0.90
-scope, and that axis is absent from the specification entirely.
+The original specification for this project listed calculator, retrieval and
+sandbox as interchangeable reliability mechanisms. They are not — they span 0.00
+to 0.90 scope, and that axis is absent from the specification entirely.
+
+It is *not* absent from the literature, and an earlier draft of this chapter
+implied otherwise. Sherlock (Ro et al., §2.7) builds a learned per-node verifier
+selector on exactly the observation that verifier accuracy and cost are not
+monotonically related. What this chapter contributes is not the observation that
+verifiers differ, but the decomposition: measured on the population deterministic
+checking provably cannot see, reach requires generator-independence **and** task
+specialisation, and neither alone is sufficient — a distinction a cost-versus-
+accuracy selector cannot make, because both properties are invisible to it.
 
 ## 5.3 Why there is no retrieval arm
 

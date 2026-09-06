@@ -104,17 +104,27 @@ ancestor count.
 
 ## 9.4 Future work
 
-**A better step-level signal is the bottleneck.** Everything downstream is
-gated on AUROC 0.56, and the two most promising candidates were both left
-untested. Probes on frozen internal states (Ni et al., ReProbe) are cheap and
-reportedly match far larger PRMs. Embedding perturbation is the signal Wen et
-al. argue reflects intermediate-step uncertainty better than the sampling-based
-family — and this thesis measured only the family they argue against, so their
-alternative is untouched by the negative result here.
+**A better step-level signal is the bottleneck**, and two candidates were left
+untested — both with a concrete, checkable prediction attached.
+
+*Probes on frozen internal states.* ReProbe (Ni et al.) trains a sub-10M-
+parameter probe that beats PRMs 150x larger. But its margin is largest **out of
+domain**, and the strongest PRMs reach parity with it on GSM8K. The prediction
+for this setup is therefore specific: a probe should land near the ch. 5 PRM's
+0.9033, not above it — which would make the signal good enough to calibrate on
+while leaving §7.4's false-alarm problem entirely intact. Ni et al. also find
+probe and PRM combine better than either alone, so the productive object may be
+a hybrid rather than a replacement.
+
+*Embedding perturbation.* Wen et al. argue this reflects intermediate-step
+uncertainty better than sampling-based agreement does. This thesis measured only
+the family they argue against, so their alternative is untouched by the negative
+result here — it is the cheapest remaining test of whether the AUROC 0.56 result
+is about *these* signals or about step-level uncertainty generally.
 
 A signal reaching even 0.75 would make the rest of this pipeline worth
-rebuilding. Chapter 7 is a result about *token-level and sampling-based*
-signals, not about all possible signals.
+rebuilding. Chapter 7 is a result about token-level and sampling-based signals,
+not about all possible signals.
 
 **Bidirectional entailment clustering.** Semantic divergence was measured under
 one equivalence relation. The raw K = 5 samples are committed, so a
@@ -126,11 +136,28 @@ productive direction is not a higher-scope verifier but a *better-calibrated*
 one: at 90% detection, halving the false-alarm rate is worth more than any
 further detection gain.
 
-**Risk control under gate-induced dependence.** The genuinely open theoretical
-problem identified in the literature review remains open. No existing
-guarantee covers a sequence where the gate's own accept decision changes the
-data-generating process for later elements. This thesis characterises the
-phenomenon empirically; it does not solve it.
+**Verify against verified premises, under a budget.** ARES (You et al., §2.7)
+detects propagated errors at 90.3% F1 by scoring each step solely against
+*previously-verified* premises. That is the structural change C1 implies is
+necessary, and it works. It also assumes something a budgeted gate cannot
+supply: a verified prefix. Every verifier measured in Chapter 5 reads the
+generator's uncorrected context, which is why they top out where they do.
+
+What happens to ARES-style entailment scoring when only a fraction of the prefix
+has been verified — and how the gate should choose *which* fraction to make the
+conditioning set as useful as possible — is the most promising open question
+this thesis can hand on. It also reframes Chapter 6: allocation would no longer
+be about catching errors, but about building a trustworthy prefix to condition
+later checks on, and ancestor count is a much more natural signal for that
+objective than it is for the one tested here.
+
+**Risk control under gate-induced dependence.** The theoretical problem remains
+open. Barber et al. (§2.1) relax exchangeability for *exogenous* drift and for
+asymmetric fitting algorithms; the violation here is endogenous — the gate's own
+accept decision changes the data-generating process for later elements. Their
+weighted-quantile machinery is the closest available starting point, not a
+solution. This thesis characterises the phenomenon empirically and does not
+solve it.
 
 **Cross-domain replication.** The mechanism should not be arithmetic-specific.
 Testing it on code or multi-hop retrieval is the clearest way to find out.
