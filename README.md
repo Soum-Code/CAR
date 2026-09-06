@@ -161,17 +161,24 @@ real conformal calibration, real budget. See
 [docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
 
 **The signal does not rank the risk.** Token entropy, surprisal and log-prob
-combined give **AUROC 0.5589** for detecting a globally-wrong step. The same
-pipeline scores 0.8668 on synthetic features with real separation and 0.4828 on
-noise, so the machinery works; the signal is not there.
+combined give **AUROC 0.5589** for detecting a globally-wrong step. Semantic
+divergence — the signal the spec weighted most heavily, resampled at K=5 over
+all 2,573 steps — gives **0.5740**, and combining them gives **0.5742**. The
+same pipeline scores 0.8668 on synthetic features with real separation and
+0.4828 on noise, so the machinery works; the signal is not there.
+
+> Measured under string-equality clustering the same samples give AUROC 0.4904,
+> *below* chance, because Qwen writes one computation three ways. The
+> equivalence relation is part of the measurement, not an implementation
+> detail — see [docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
 
 **So calibration certifies nothing useful.** Base risk is 0.1578, meaning any
 α ≥ 0.20 is met by verifying nothing. At the α values that actually bind:
 
 | α | 0.05 | 0.10 | 0.15 |
 |---|---|---|---|
-| measured selective risk | **0.1468** | **0.1511** | **0.1501** |
-| verification rate | 5.4% | 9.5% | 13.2% |
+| measured selective risk | **0.1491** | **0.1494** | **0.1516** |
+| verification rate | 4.6% | 9.2% | 14.1% |
 
 Risk misses the target by 3× at α = 0.05 and barely moves across the sweep,
 while verification climbs. Split conformal holds its *coverage* guarantee

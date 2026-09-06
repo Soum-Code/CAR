@@ -79,16 +79,18 @@ from car.uncertainty.composite import CompositeScorer  # noqa: E402
 from car.verification.scoped import MEASURED_SCOPE, ScopedVerifier  # noqa: E402
 
 CORPUS = Path("runs/generated_qwen25_7b.jsonl")
-FEATURES = Path("runs/uncertainty_qwen25_7b.jsonl")
+FEATURES = Path("runs/uncertainty_qwen25_7b_sem.jsonl")
 
-# semantic_divergence is not recoverable by teacher-forcing (it needs
-# independently sampled continuations), so its weight is zero here. A feature
-# pinned to a constant with a non-zero weight is worse than an absent one.
+# semantic_divergence is now measured (scripts/gpu_semantic_divergence.py, K=5
+# resampled continuations clustered by numeric equivalence), so it carries a
+# weight. Zero it to reproduce the token-only condition; the two signals are
+# nearly redundant (r = +0.44) and combining them moves test AUROC from 0.5740
+# to 0.5742.
 WEIGHTS = {
     "token_entropy": 1.0,
     "max_surprisal": 0.5,
     "mean_logprob": 1.0,
-    "semantic_divergence": 0.0,
+    "semantic_divergence": 1.0,
     "task_verifier_signal": 0.0,
 }
 

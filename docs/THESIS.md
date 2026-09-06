@@ -78,7 +78,8 @@ generator improves.
 | C5b — the floor is generator-dependent | μ 0.3908 -> 0.1221; no floor at α=0.20 | Qwen2.5-7B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
-| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 (0.8668 on synthetic signal, 0.4828 on noise) | 940 test steps | **measured** |
+| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 940 test steps | **measured** |
+| C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining buys 0.0002 | 12,865 generations | **measured** |
 | C8b — the gate misses every binding alpha | risk 0.147 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
 | C8c — the highest-scope verifier is net-negative | 0.7637 vs 0.8022 baseline; 0.9231 with FA=0 | end-to-end run | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
@@ -226,10 +227,12 @@ reach loses more to false alarms than it recovers.
 The resulting claim is about the design space rather than one system:
 
 > Selective verification of LLM reasoning fails at three independent points.
-> The signal does not rank the risk (AUROC 0.56); the calibration certifies a
-> quantity that is not the risk (coverage holds, selective risk misses alpha by
-> 3x); and the only verifier with reach costs more in false alarms than it
-> recovers on a realistic base rate. Fixing any one of them is not sufficient.
+> The signal does not rank the risk -- neither token-level uncertainty (AUROC
+> 0.5589) nor sampling-based semantic divergence (0.5740), and combining them
+> buys 0.0002; the calibration certifies a quantity that is not the risk
+> (coverage holds, selective risk misses alpha by 3x); and the only verifier
+> with reach costs more in false alarms than it recovers on a realistic base
+> rate. Fixing any one of them is not sufficient.
 
 That is a stronger contribution than a working gate, and it is falsifiable:
 each of the three has a measured number and a regression test.

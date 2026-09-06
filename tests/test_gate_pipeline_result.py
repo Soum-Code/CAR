@@ -28,14 +28,15 @@ from car.uncertainty.composite import CompositeScorer
 from car.verification.scoped import ScopedVerifier
 
 CORPUS = Path("runs/generated_qwen25_7b.jsonl")
-FEATURES = Path("runs/uncertainty_qwen25_7b.jsonl")
+FEATURES = Path("runs/uncertainty_qwen25_7b_sem.jsonl")
 
 needs_run = pytest.mark.skipif(
     not (CORPUS.exists() and FEATURES.exists()),
     reason="generated corpus / uncertainty features not present",
 )
 
-WEIGHTS = {"token_entropy": 1.0, "max_surprisal": 0.5, "mean_logprob": 1.0}
+WEIGHTS = {"token_entropy": 1.0, "max_surprisal": 0.5, "mean_logprob": 1.0,
+           "semantic_divergence": 1.0}
 
 
 @pytest.fixture(scope="module")
@@ -61,7 +62,12 @@ def prepared():
 
 @needs_run
 def test_generator_uncertainty_does_not_rank_global_step_error(prepared):
-    """AUROC 0.5589. If this ever rises above 0.65 the finding has changed."""
+    """AUROC 0.5742 with every signal the spec asked for, semantic included.
+
+    Token-level alone is 0.5589 and semantic alone 0.5740; they correlate at
+    r = +0.44, so combining buys 0.0002. If this ever rises above 0.65 the
+    finding has changed.
+    """
     _, splits, _, sl = prepared
     test_s, test_y = sl(splits.test)
     auroc = step_detection_auroc(test_s, test_y)

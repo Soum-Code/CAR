@@ -22,6 +22,11 @@ runs/*
 !runs/generated_qwen25_7b.jsonl
 !runs/generated_qwen25_7b_meta.json
 !runs/uncertainty_qwen25_7b.jsonl
+# ~4h of T4x2 resampling. semantic_samples.jsonl is the raw K=5 continuations,
+# kept so a future equivalence relation can be tried without a GPU at all.
+!runs/uncertainty_qwen25_7b_sem.jsonl
+!runs/uncertainty_qwen25_7b_exactmatch.jsonl
+!runs/semantic_samples.jsonl
 outputs/
 *.jsonl
 !tests/fixtures/*.jsonl
@@ -29,6 +34,9 @@ outputs/
 # matching pattern, so a negation placed only above it has no effect.
 !runs/generated_qwen25_7b.jsonl
 !runs/uncertainty_qwen25_7b.jsonl
+!runs/uncertainty_qwen25_7b_sem.jsonl
+!runs/uncertainty_qwen25_7b_exactmatch.jsonl
+!runs/semantic_samples.jsonl
 
 # Model + data caches
 .cache/

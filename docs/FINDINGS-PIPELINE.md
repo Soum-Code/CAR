@@ -12,7 +12,9 @@ python scripts/exp_gate_pipeline.py --synthetic-signal 0.0   # null control
 500 Qwen2.5-7B-Instruct solutions on GSM8K test, 2,573 steps, split
 175 dev / 143 calibration / 182 test by hash of example id. Uncertainty
 recovered by teacher-forcing (`scripts/gpu_score_uncertainty.py`, Kaggle T4×2,
-~10 min). Corpus and features are committed.
+~10 min) plus resampled semantic divergence
+(`scripts/gpu_semantic_divergence.py`, ~4h). Corpus, features and the raw
+samples are committed.
 
 **The result is negative, and it is the most useful thing this project has
 measured.** The proposal CAR started from — calibrate a threshold on generator
@@ -24,7 +26,8 @@ to, and the reason is measurable at three separate points in the chain.
 ## 1. Generator uncertainty barely predicts global step error
 
 ```
-score AUROC for detecting a globally-wrong step   0.5589
+score AUROC for detecting a globally-wrong step   0.5589   token-level only
+                                                 0.5742   with semantic divergence
 ```
 
 Token entropy, max surprisal and mean log-probability, combined and
@@ -35,10 +38,53 @@ This is not a harness failure. The same pipeline on synthetic features with a
 one-standard-deviation separation gives AUROC **0.8668**, and on pure noise
 **0.4828**. The machinery detects signal when there is signal.
 
-`semantic_divergence` is absent — it requires independently sampled
-continuations and cannot be recovered by teacher-forcing, so its weight is
-zeroed. The literature already calls it [contested at step
-level](https://arxiv.org/html/2602.02427), but this result does not test it.
+### Semantic divergence does not rescue it
+
+`semantic_divergence` is the signal the original spec weighted most heavily,
+and it could not be recovered by teacher-forcing — it is defined over
+independently sampled continuations. So it was resampled: K=5 continuations of
+the next step for all 2,573 steps, clustered by numeric equivalence
+(`scripts/gpu_semantic_divergence.py`, Kaggle T4×2, ~4h, 12,865 generations).
+
+| feature set | AUROC (test) | AUROC (all steps) |
+|---|---|---|
+| token-level only | 0.5589 | 0.5277 |
+| **semantic divergence only** | **0.5740** | **0.5488** |
+| both | 0.5742 | 0.5427 |
+
+Divergence is 0.4115 on globally-correct steps and 0.4809 on wrong ones — the
+right direction, and worth 0.07 on a [0,1] scale. Semantic divergence is
+marginally the better of the two signals and **combining them adds nothing**
+(0.5740 → 0.5742); the two scores correlate at **r = +0.44**, so they are
+largely the same information.
+
+Re-running the whole pipeline with it weighted in moves the α = 0.05 selective
+risk from 0.1468 to 0.1491. **Nothing about risk control changes.**
+
+This is a direct replication, on a second benchmark, of
+[arXiv:2602.02427](https://arxiv.org/html/2602.02427)'s claim that
+sampling-agreement methods are weaker at *intermediate step* level than at
+whole-answer level.
+
+### The equivalence relation was load-bearing
+
+The same samples, re-clustered by string equality instead of numeric value:
+
+| clustering | mean divergence | unanimous steps | AUROC |
+|---|---|---|---|
+| numeric equivalence | 0.4239 | 1006 / 2573 | **0.5488** |
+| exact string match | 0.6468 | 524 / 2573 | **0.4904** |
+
+Exact match inflates divergence by half and drives AUROC *below chance*. Qwen
+writes one computation as `<<48/2=24>>`, `\( 48 / 2 = 24 \)` and `48 / 2 = 24`;
+string equality calls those three meanings, so measured "disagreement" tracks
+notational variety, which is a property of verbosity rather than of doubt.
+
+Had the default equivalence been used, this experiment would have reported that
+semantic divergence is anti-predictive — a different conclusion, and a wrong
+one. The ablation is free because it re-clusters the stored samples rather than
+resampling, which is also the sounder comparison: it isolates the relation
+instead of confounding it with a fresh draw.
 
 ---
 
@@ -47,17 +93,23 @@ level](https://arxiv.org/html/2602.02427), but this result does not test it.
 Base risk on test steps is **0.1578**. Any α above that is satisfied by
 verifying nothing, so only α < 0.1578 tests anything at all.
 
+With the full score (token-level + semantic divergence):
+
 | α | Kotte floor | binds? | split conformal risk | verify % | CAR risk | verify % |
 |---|---|---|---|---|---|---|
-| 0.05 | 11.4% | **yes** | **0.1468** | 5.4% | **0.1557** | 18.5% |
-| 0.10 | 6.4% | **yes** | **0.1511** | 9.5% | **0.1589** | 20.1% |
-| 0.15 | 0.9% | **yes** | **0.1501** | 13.2% | **0.1575** | 22.2% |
-| 0.20 | 0.0% | no | 0.1507 | 16.5% | 0.1597 | 24.0% |
-| 0.30 | 0.0% | no | 0.1570 | 22.6% | 0.1610 | 26.6% |
+| 0.05 | 11.4% | **yes** | **0.1491** | 4.6% | **0.1555** | 18.4% |
+| 0.10 | 6.4% | **yes** | **0.1494** | 9.2% | **0.1567** | 19.7% |
+| 0.15 | 0.9% | **yes** | **0.1516** | 14.1% | **0.1582** | 22.5% |
+| 0.20 | 0.0% | no | 0.1502 | 17.0% | 0.1552 | 23.9% |
+| 0.30 | 0.0% | no | 0.1538 | 21.8% | 0.1587 | 26.9% |
 
 At α = 0.05 the measured selective risk is **three times the target**. The risk
-hardly moves across the entire sweep — 0.1468 to 0.1610 — while verification
-climbs from 5.4% to 26.6%. The gate spends budget and buys nothing.
+hardly moves across the entire sweep — 0.1491 to 0.1587 — while verification
+climbs from 4.6% to 26.9%. The gate spends budget and buys nothing.
+
+Token-level features alone give the same picture (0.1468 at α = 0.05, 0.1570 at
+α = 0.30), which is the point: adding the spec's favoured signal changed the
+score by 0.015 AUROC and changed risk control by nothing.
 
 ### Why conformal calibration does not save it
 
@@ -145,10 +197,11 @@ is a claim about the *design space* rather than about one system.
   the sampled text, not from the sampling pass. That measures how surprising
   the model finds the step, which is what the gate consumes, but it is not
   identical to the generation-time distribution.
-- **No semantic divergence.** The one uncertainty signal this project's own
-  spec weighted most heavily is absent. AUROC 0.56 is a result about
-  token-level signals only, and a semantic signal could do better — that is the
-  clearest thing left to test, and it costs a full resampling run.
+- **Semantic divergence is measured but only under one equivalence relation.**
+  Numeric equivalence fits arithmetic steps; bidirectional entailment might
+  cluster differently on the prose steps, which are 59% of the corpus. The raw
+  samples are committed (`runs/semantic_samples.jsonl`) so another relation can
+  be tried with no GPU at all.
 - **182 test questions, 940 test steps.** Small. The α-sweep gap (0.147 vs a
   0.05 target) is far too large to be sampling noise, but the finer
   between-condition differences are not resolvable.
