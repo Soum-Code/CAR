@@ -333,6 +333,21 @@ that cache on CPU. Rent a GPU for hours, not months.
 
 ---
 
+## The thesis
+
+The full draft is in [docs/thesis/](docs/thesis/README.md) — nine chapters,
+every number reproducible from the scripts named at the head of each one.
+
+| ch | | ch | |
+|---|---|---|---|
+| 1 | [Introduction](docs/thesis/01-introduction.md) | 6 | [Allocation](docs/thesis/06-allocation.md) |
+| 2 | [Background](docs/thesis/02-background.md) | 7 | [The assembled gate](docs/thesis/07-the-assembled-gate.md) |
+| 3 | [Framework](docs/thesis/03-framework.md) | 8 | [Feasibility and benchmarks](docs/thesis/08-feasibility-and-benchmarks.md) |
+| 4 | [Measuring the gap](docs/thesis/04-measuring-the-gap.md) | 9 | [Limitations and conclusion](docs/thesis/09-conclusion.md) |
+| 5 | [Verifier reach](docs/thesis/05-verifier-reach.md) | | |
+
+---
+
 ## Licence
 
 Dual-licensed under **MIT** ([LICENSE-MIT](LICENSE-MIT)) or **Apache 2.0**

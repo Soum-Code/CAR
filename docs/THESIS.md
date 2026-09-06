@@ -1,5 +1,10 @@
 # CAR — thesis plan (measurement framing)
 
+> **The full draft is written: [docs/thesis/](thesis/README.md), nine chapters.**
+> This file remains the working plan and the claim-to-evidence map — what is
+> measured, what is modelled, and what is still open. The draft is the argument;
+> this is the ledger.
+
 Supersedes the framing in `CAR_Project_Deep_Dive_Upgraded.pdf`. The original
 document proposed a method; the evidence supports a measurement study instead.
 This is the working structure, the claim-to-evidence map, and the remaining
