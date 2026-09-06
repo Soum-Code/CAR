@@ -119,11 +119,11 @@ def load_model(model_id: str):
 
     try:
         model = AutoModelForCausalLM.from_pretrained(
-            model_id, dtype=dtype, device_map="auto"
+            model_id, dtype=dtype, device_map="auto", **auth
         ).eval()
     except TypeError:
         model = AutoModelForCausalLM.from_pretrained(
-            model_id, torch_dtype=dtype, device_map="auto"
+            model_id, torch_dtype=dtype, device_map="auto", **auth
         ).eval()
 
     if torch.cuda.is_available():
@@ -134,42 +134,106 @@ def load_model(model_id: str):
     return model, tok
 
 
+def load_checkpoint(path, tag) -> dict:
+    """Completions already produced, keyed by prompt index within `tag`."""
+    if path is None or not Path(path).exists():
+        return {}
+    done = {}
+    with Path(path).open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue  # torn final line after a hard kill
+            if row.get("tag") == tag:
+                done[int(row["i"])] = row["text"]
+    return done
+
+
 def generate(model, tok, prompts, *, max_new_tokens=256, temperature=0.7,
-             batch_size=24, max_length=1536, label=""):
+             batch_size=24, max_length=1536, label="", checkpoint=None):
     """Batched completion, returned in the caller's order.
 
     Prompts are sorted by length before batching. With left padding a batch
     costs the length of its longest member for every member, so mixing a
     2-step prefix with a 7-step one wastes most of the batch.
+
+    Two hard-won details:
+
+    * **Checkpointing.** Completions are appended as they are produced and
+      reloaded on restart. The Qwen run took 7h40m with no resume; a heavier
+      model sits close enough to the session limit that losing it is a real
+      risk, and a previous run of the semantic-divergence script lost two hours
+      to exactly that.
+    * **OOM retry.** Sorting by length puts the largest allocation LAST, so an
+      out-of-memory error arrives after all the easy work is done. Halve and
+      retry rather than losing the run.
     """
     import torch
 
-    order = sorted(range(len(prompts)), key=lambda i: len(prompts[i]))
-    out: list[str] = [""] * len(prompts)
-    t0 = time.time()
+    done = load_checkpoint(checkpoint, label)
+    if done:
+        print(f"  {label}: resuming, {len(done)}/{len(prompts)} already done",
+              flush=True)
+    order = [i for i in sorted(range(len(prompts)), key=lambda i: len(prompts[i]))
+             if i not in done]
+    out: list[str] = [done.get(i, "") for i in range(len(prompts))]
+    t0, n_done, n_oom = time.time(), 0, 0
 
-    for b, start in enumerate(range(0, len(order), batch_size)):
-        idx = order[start : start + batch_size]
-        enc = tok([prompts[i] for i in idx], return_tensors="pt", padding=True,
-                  truncation=True, max_length=max_length).to(model.device)
-        with torch.no_grad():
-            gen = model.generate(
-                **enc,
-                max_new_tokens=max_new_tokens,
-                do_sample=temperature > 0,
-                temperature=temperature if temperature > 0 else None,
-                top_p=0.95 if temperature > 0 else None,
-                pad_token_id=tok.pad_token_id,
-            )
-        cut = enc["input_ids"].shape[1]
-        for j, i in enumerate(idx):
-            out[i] = truncate_completion(
-                tok.decode(gen[j][cut:], skip_special_tokens=True)
-            )
-        if b % 10 == 0:
-            done = start + len(idx)
-            rate = done / max(1e-9, time.time() - t0)
-            print(f"  {label} {done}/{len(prompts)}  {rate:.1f}/s", flush=True)
+    fh = Path(checkpoint).open("a", encoding="utf-8") if checkpoint else None
+    try:
+        pos = 0
+        while pos < len(order):
+            idx = order[pos : pos + batch_size]
+            while True:
+                try:
+                    enc = tok([prompts[i] for i in idx], return_tensors="pt",
+                              padding=True, truncation=True,
+                              max_length=max_length).to(model.device)
+                    with torch.no_grad():
+                        gen = model.generate(
+                            **enc,
+                            max_new_tokens=max_new_tokens,
+                            do_sample=temperature > 0,
+                            temperature=temperature if temperature > 0 else None,
+                            top_p=0.95 if temperature > 0 else None,
+                            pad_token_id=tok.pad_token_id,
+                        )
+                    break
+                except torch.OutOfMemoryError:
+                    n_oom += 1
+                    torch.cuda.empty_cache()
+                    if len(idx) == 1:
+                        raise
+                    idx = idx[: max(1, len(idx) // 2)]
+                    print(f"  OOM -> retrying at batch {len(idx)}", flush=True)
+
+            cut = enc["input_ids"].shape[1]
+            for j, i in enumerate(idx):
+                out[i] = truncate_completion(
+                    tok.decode(gen[j][cut:], skip_special_tokens=True)
+                )
+                if fh is not None:
+                    fh.write(json.dumps({"tag": label, "i": i, "text": out[i]}) + "\n")
+            if fh is not None:
+                fh.flush()
+
+            pos += len(idx)
+            n_done += len(idx)
+            if n_done % (batch_size * 10) < len(idx):
+                rate = n_done / max(1e-9, time.time() - t0)
+                eta = (len(order) - n_done) / max(1e-9, rate) / 60
+                print(f"  {label} {n_done}/{len(order)}  {rate:.1f}/s  "
+                      f"eta {eta:.0f}m", flush=True)
+    finally:
+        if fh is not None:
+            fh.close()
+
+    if n_oom:
+        print(f"  recovered from {n_oom} OOM(s) by shrinking the batch", flush=True)
     return out
 
 
@@ -376,6 +440,13 @@ def main():
     ap.add_argument("--rollouts", type=int, default=4, help="K per step")
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--batch-size", type=int, default=24)
+    ap.add_argument("--checkpoint", type=Path, default=None,
+                    help="append completions here and resume from them; a "
+                         "multi-hour run without this loses everything on a "
+                         "timeout")
+    ap.add_argument("--hf-token", default=None,
+                    help="passed to from_pretrained for gated models. Prefer "
+                         "supplying it from a secret store, never inline")
     ap.add_argument("--shots", type=int, default=4)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--no-gate", action="store_true",
@@ -404,11 +475,12 @@ def main():
         gen_fn = StubGenerator(rows, corrupt_p=args.corrupt_p, seed=args.seed)
     else:
         print(f"loading {args.model}...", flush=True)
-        model, tok = load_model(args.model)
+        model, tok = load_model(args.model, token=args.hf_token)
 
         def gen_fn(prompts, label=""):
             return generate(model, tok, prompts, temperature=args.temperature,
-                            batch_size=args.batch_size, label=label)
+                            batch_size=args.batch_size, label=label,
+                            checkpoint=args.checkpoint)
 
     print("\nsampling solutions...", flush=True)
     sols = sample_solutions(gen_fn, fewshot, rows)
