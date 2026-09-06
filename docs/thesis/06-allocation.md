@@ -61,6 +61,11 @@ This is also why the aggregate comparison on StrategyQA is uninformative:
 Chapter 8 shows 72.9% of its graphs are one hop deep, which is the regime where
 every policy is within 0.003 of every other.
 
+
+![Allocation policies by reasoning-graph depth. The choice is irrelevant on shallow graphs and worth 12.8 points at depth 6.](figures/fig4-allocation-by-depth.png)
+
+**Figure 6.1.** Allocation policies by reasoning-graph depth. The choice is irrelevant on shallow graphs and worth 12.8 points at depth 6.
+
 ### Why the intuition misleads
 
 Front-loading is optimal only if early steps are where the errors are. The
@@ -83,6 +88,11 @@ would restore the case for front-loading. **Measurement closes it.**
 | 6 | 2,186 | 0.2031 | 0.8569 |
 | 7 | 990 | 0.1939 | 0.8730 |
 | 8 | 417 | **0.2182** | 0.9124 |
+
+
+![Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.](figures/fig5-position-gradient.png)
+
+**Figure 6.2.** Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.
 
 `corr(position, local error rate) = +0.950` on Math-Shepherd, and **+0.866** on
 the independently generated Qwen corpus. The local error rate **doubles** from

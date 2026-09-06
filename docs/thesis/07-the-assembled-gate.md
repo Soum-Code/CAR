@@ -48,6 +48,11 @@ steps −0.3323. The direction is right and the separation is negligible.
 a one-standard-deviation separation gives AUROC **0.8668**, and on pure noise
 **0.4828**. The machinery detects signal when there is signal.
 
+
+![ROC for detecting a globally-wrong step. All three real signals hug the diagonal; the dashed control shows what the same harness does when a signal exists.](figures/fig6-roc.png)
+
+**Figure 7.1.** ROC for detecting a globally-wrong step. All three real signals hug the diagonal; the dashed control shows what the same harness does when a signal exists.
+
 ### Semantic divergence does not rescue it
 
 Semantic divergence is the signal the original specification weighted most
@@ -128,6 +133,11 @@ Token-level features alone give the same picture (0.1468 at α = 0.05), which is
 the point: adding the specification's favoured signal changed AUROC by 0.015
 and changed risk control by nothing.
 
+
+![Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.](figures/fig7-alpha-sweep.png)
+
+**Figure 7.2.** Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.
+
 ### Why conformal calibration does not save it
 
 Split conformal fits the threshold so the acceptance region *covers* 1 − α of
@@ -143,6 +153,11 @@ and the quantity of interest is untouched.
 This is the sentence "coverage is not accuracy," which this project's
 documentation carried from the start, finally measured.
 
+
+![The accuracy–cost trade-off against Kotte's impossibility floor. Verification climbs from 4.6% to 21.8% and risk moves by 0.005.](figures/fig8-pareto-with-floor.png)
+
+**Figure 7.3.** The accuracy–cost trade-off against Kotte's impossibility floor. Verification climbs from 4.6% to 21.8% and risk moves by 0.005.
+
 ## 7.4 The best verifier available is net-negative
 
 Projected final-answer accuracy against a no-gate baseline of **0.8022**:
@@ -157,6 +172,11 @@ Projected final-answer accuracy against a no-gate baseline of **0.8022**:
 The highest-scope verifier available **loses 4 points of accuracy** at its
 measured operating point, and more verification makes it worse. Zero out its
 false-alarm rate and the same verifier gains **12 points**.
+
+
+![Projected accuracy by verifier. The FA = 0 ablation isolates the false-alarm rate as the whole of the difference. MODELLED, not measured.](figures/fig9-verifier-value.png)
+
+**Figure 7.4.** Projected accuracy by verifier. The FA = 0 ablation isolates the false-alarm rate as the whole of the difference. MODELLED, not measured.
 
 The entire difference is a base-rate effect. Chapter 5 reported
 `net = scope − false alarm = 0.8047`, measured on a population *conditioned on

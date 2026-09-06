@@ -28,6 +28,9 @@ runs/*
 !runs/uncertainty_qwen25_7b_exactmatch.jsonl
 !runs/semantic_samples.jsonl
 outputs/
+# Thesis figures are build products, but they are the paper's figures --
+# committed so the draft renders on GitHub without a build step.
+!docs/thesis/figures/*
 *.jsonl
 !tests/fixtures/*.jsonl
 # Repeated below the blanket *.jsonl rule on purpose: git applies the LAST

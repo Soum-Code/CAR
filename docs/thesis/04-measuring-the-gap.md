@@ -140,6 +140,11 @@ One definition applied to both corpora, within wrong-answer solutions:
 | n globally-wrong checkable steps | 46,555 | 125 |
 | 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.840, 0.944] |
 
+
+![Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.](figures/fig1-the-gap.png)
+
+**Figure 4.1.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
+
 The intervals do not overlap. **The gap does not close on a stronger
 generator — it widens.**
 

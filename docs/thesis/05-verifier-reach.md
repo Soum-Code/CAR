@@ -50,9 +50,14 @@ So the window is not really buying reach; it is buying coverage of a
 short-tailed distance distribution, and the tail is not where the missing 80%
 lives.
 
+
+![Arithmetic reach saturates at 0.1999 however wide the window, because 80% of inherited corruption has no upstream arithmetic error to find.](figures/fig3-lookback-saturation.png)
+
+**Figure 5.1.** Arithmetic reach saturates at 0.1999 however wide the window, because 80% of inherited corruption has no upstream arithmetic error to find.
+
 That defines the remaining question precisely:
 
-> On the 28,433 steps arithmetic provably cannot see, what scope does a
+> On the 28,434 steps arithmetic provably cannot see, what scope does a
 > *semantic* verifier achieve?
 
 ## 5.2 The four arms
@@ -71,6 +76,11 @@ everything scores TPR 1.0 and is useless.
 | same-model critic (`peiyi9979/mistral-7b-sft`) | **no** | no | 0.0000 | 0.0000 | 0.0000 |
 | independent judge (Qwen2.5-7B-Instruct) | yes | no | 0.2283 | 0.0200 | 0.2083 |
 | task PRM (Math-Shepherd-7B) | yes | **yes** | **0.9033** | 0.0987 | **0.8047** |
+
+
+![Scope and false-alarm rate across four verifier classes. Only the verifier that is both independent of the generator and task-trained closes the gap.](figures/fig2-verifier-reach.png)
+
+**Figure 5.2.** Scope and false-alarm rate across four verifier classes. Only the verifier that is both independent of the generator and task-trained closes the gap.
 
 **The same-model critic detects zero errors.** It is the model that wrote these
 solutions, asked whether they are sound, and it approves everything — its
