@@ -99,6 +99,11 @@ class StepRecord(BaseModel):
     # read this field.
     label: bool | None = None
 
+    # True when the gate fired but the budget was spent. A distinct event from
+    # a confident CONTINUE, and conflating them would flatter any budget-starved
+    # condition in the results table.
+    budget_blocked: bool = False
+
     budget_remaining: int = 0
     latency_s: float = 0.0
 

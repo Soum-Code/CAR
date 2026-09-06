@@ -91,7 +91,7 @@ class SplitConformalCalibrator:
         self._threshold = conformal_quantile(s, self.alpha)
         return self
 
-    def update(self, observed_error: int, was_exploration: bool = False) -> None:
+    def update(self, observed_error: int, **kwargs) -> None:
         """No-op. Static calibration by definition does not adapt.
 
         Present so the agent loop can call `update()` unconditionally and the

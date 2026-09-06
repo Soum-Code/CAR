@@ -123,6 +123,54 @@ def final_accuracy(trajectories: list[Trajectory]) -> float:
     return float(np.mean([t.correct for t in scored]))
 
 
+def project_correct_after_repair(traj: Trajectory) -> bool | None:
+    """MODELLED final-answer correctness after repair. NOT a measurement.
+
+    Needed for replayed corpora, where the text is fixed and `traj.correct` is
+    therefore identical under every gating policy -- reporting that as accuracy
+    would say the gate does nothing, which is an artifact of replay rather than
+    a result. This applies the propagation model's assumption explicitly:
+
+      * a wrong answer is rescued iff the FIRST globally-bad step was detected
+        and repaired, because everything downstream inherits the corruption;
+      * a right answer is lost if a false alarm "repaired" a correct step.
+
+    Both directions are modelled, because a verifier with high scope and a high
+    false-alarm rate can lose more than it saves -- exactly the trade-off the
+    measured scope numbers exist to inform.
+
+    An answer that was already correct stays correct even when the trajectory
+    contains a `-` step: Math-Shepherd's labels are optimistic Monte-Carlo
+    estimates of "leads to a correct answer", so a solution can carry a bad
+    step and still land on the right number. With scope 0 and no false alarms
+    this reduces exactly to the observed accuracy, which is the check that it
+    is not fabricating movement.
+    """
+    if traj.correct is None:
+        return None
+    labelled = [r for r in traj.steps if r.label is not None]
+    if not labelled:
+        return traj.correct
+
+    false_repair = any(r.label is True and r.revised for r in labelled)
+    if traj.correct:
+        return not false_repair
+
+    first_bad = next((r for r in labelled if r.label is False), None)
+    if first_bad is None:
+        return False
+    return bool(first_bad.revised) and not false_repair
+
+
+def projected_accuracy(trajectories: list[Trajectory]) -> float:
+    """Mean of `project_correct_after_repair`. Label it MODELLED when reporting."""
+    vals = [p for p in (project_correct_after_repair(t) for t in trajectories)
+            if p is not None]
+    if not vals:
+        return float("nan")
+    return float(np.mean(vals))
+
+
 def cost_per_question(trajectories: list[Trajectory]) -> float:
     if not trajectories:
         return float("nan")

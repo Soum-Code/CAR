@@ -45,6 +45,8 @@ class CARAgent:
         budget_per_question: int = 3,
         max_steps: int = 8,
         trace: TraceWriter | None = None,
+        finalise=None,
+        score_answer=None,
     ) -> None:
         self.generator = generator
         self.scorer = scorer
@@ -54,6 +56,12 @@ class CARAgent:
         self.budget_per_question = budget_per_question
         self.max_steps = max_steps
         self.trace = trace
+        # Injected so a real dataset can supply exact-match scoring without the
+        # loop learning about any particular benchmark's answer format. None
+        # keeps the simulation behaviour, so existing callers are unaffected.
+        # See car.generation.replay for the GSM8K pair.
+        self.finalise = finalise
+        self.score_answer = score_answer
 
     def run(self, example: Example) -> Trajectory:
         budget = Budget(self.budget_per_question)
@@ -125,6 +133,7 @@ class CARAgent:
                 gate_value=outcome.gate_value,
                 decision=outcome.decision,
                 forced_exploration=outcome.forced_exploration,
+                budget_blocked=outcome.budget_blocked,
                 verdict=verdict,
                 revised=revised,
                 label=gen.true_label,
@@ -147,8 +156,15 @@ class CARAgent:
                 break
             accepted.append(gen.step)
 
-        traj.final_answer = self._finalise(accepted)
-        traj.correct = self._score_answer(traj, example)
+        if self.finalise is not None:
+            traj.final_answer = self.finalise(example, accepted)
+        else:
+            traj.final_answer = self._finalise(accepted)
+
+        if self.score_answer is not None:
+            traj.correct = self.score_answer(traj.final_answer, example.gold_answer)
+        else:
+            traj.correct = self._score_answer(traj, example)
 
         if self.trace is not None:
             self.trace.write(traj)

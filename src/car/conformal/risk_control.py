@@ -142,6 +142,6 @@ class RiskControlCalibrator:
         self._threshold = -lam
         return self
 
-    def update(self, observed_error: int, was_exploration: bool = False) -> None:
+    def update(self, observed_error: int, **kwargs) -> None:
         """No-op: CRC is a static procedure. See `adaptive.py` for the online case."""
         return None
