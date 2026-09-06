@@ -109,41 +109,104 @@ def load_model(model_id):
 
 
 def sample_batches(model, tok, prompts, *, k, temperature, max_new_tokens,
-                   batch_size, max_length=1536):
-    """K samples for each prompt, returned as a list of K-length lists."""
+                   token_budget=30_000, max_length=1536, checkpoint=None,
+                   done=None):
+    """K samples for each prompt, returned as a list of K-length lists.
+
+    Batched by TOKEN BUDGET, not by a fixed count. `num_return_sequences=k`
+    multiplies the batch, so a nominal batch of 8 with k=5 is 40 sequences in
+    one prefill; at ~900 prompt tokens each that is 36k tokens through the MLP
+    at once, and a first version OOMed on it. Because prompts are sorted by
+    length for padding efficiency, the longest ones come LAST -- so the failure
+    arrived two hours in, after all the easy work was done and thrown away.
+
+    Hence both fixes here: the batch shrinks as prompts get longer, and results
+    are checkpointed as they are produced so a crash costs minutes, not a
+    session.
+    """
     import torch
 
-    order = sorted(range(len(prompts)), key=lambda i: len(prompts[i]))
-    out: list[list[str]] = [[] for _ in prompts]
-    t0 = time.time()
+    lengths = [len(tok(p, add_special_tokens=True)["input_ids"]) for p in prompts]
+    order = sorted(range(len(prompts)), key=lambda i: lengths[i])
+    done = done or {}
+    order = [i for i in order if i not in done]
+    out: list[list[str]] = [done.get(i, []) for i in range(len(prompts))]
+    t0, n_done, n_oom = time.time(), 0, 0
 
-    for b, start in enumerate(range(0, len(order), batch_size)):
-        idx = order[start : start + batch_size]
-        enc = tok([prompts[i] for i in idx], return_tensors="pt", padding=True,
-                  truncation=True, max_length=max_length).to(model.device)
-        with torch.no_grad():
-            gen = model.generate(
-                **enc,
-                max_new_tokens=max_new_tokens,
-                do_sample=True,
-                temperature=temperature,
-                top_p=0.95,
-                num_return_sequences=k,
-                pad_token_id=tok.pad_token_id,
-            )
-        cut = enc["input_ids"].shape[1]
-        for j, i in enumerate(idx):
-            rows = gen[j * k : (j + 1) * k]
-            out[i] = [
-                first_line(tok.decode(r[cut:], skip_special_tokens=True)) for r in rows
-            ]
-        if b % 20 == 0:
-            done = start + len(idx)
-            rate = done / max(1e-9, time.time() - t0)
-            eta = (len(prompts) - done) / max(1e-9, rate) / 60
-            print(f"  {done}/{len(prompts)}  {rate:.2f} prompts/s  eta {eta:.0f}m",
-                  flush=True)
+    fh = checkpoint.open("a", encoding="utf-8") if checkpoint else None
+    try:
+        pos = 0
+        while pos < len(order):
+            span = min(lengths[order[pos]] + 32, max_length)
+            size = max(1, token_budget // max(1, k * span))
+            idx = order[pos : pos + size]
+
+            while True:
+                try:
+                    enc = tok([prompts[i] for i in idx], return_tensors="pt",
+                              padding=True, truncation=True,
+                              max_length=max_length).to(model.device)
+                    with torch.no_grad():
+                        gen = model.generate(
+                            **enc, max_new_tokens=max_new_tokens, do_sample=True,
+                            temperature=temperature, top_p=0.95,
+                            num_return_sequences=k, pad_token_id=tok.pad_token_id,
+                        )
+                    break
+                except torch.OutOfMemoryError:
+                    # Halve and retry rather than losing the run. Recorded so a
+                    # log that is full of these says the budget is set wrong.
+                    n_oom += 1
+                    torch.cuda.empty_cache()
+                    if len(idx) == 1:
+                        raise
+                    idx = idx[: max(1, len(idx) // 2)]
+                    print(f"  OOM -> retrying at batch {len(idx)}", flush=True)
+
+            cut = enc["input_ids"].shape[1]
+            for j, i in enumerate(idx):
+                rows = gen[j * k : (j + 1) * k]
+                out[i] = [
+                    first_line(tok.decode(r[cut:], skip_special_tokens=True))
+                    for r in rows
+                ]
+                if fh is not None:
+                    fh.write(json.dumps({"i": i, "samples": out[i]}) + "\n")
+            if fh is not None:
+                fh.flush()
+
+            pos += len(idx)
+            n_done += len(idx)
+            if n_done % 200 < len(idx):
+                rate = n_done / max(1e-9, time.time() - t0)
+                eta = (len(order) - n_done) / max(1e-9, rate) / 60
+                print(f"  {n_done}/{len(order)}  batch {len(idx)}  "
+                      f"{rate:.2f} prompts/s  eta {eta:.0f}m", flush=True)
+    finally:
+        if fh is not None:
+            fh.close()
+
+    if n_oom:
+        print(f"  recovered from {n_oom} OOM(s) by shrinking the batch", flush=True)
     return out
+
+
+def load_checkpoint(path) -> dict:
+    """Resume: prompt index -> samples already produced."""
+    if path is None or not Path(path).exists():
+        return {}
+    done = {}
+    with Path(path).open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue  # a torn final line after a hard kill
+            done[int(row["i"])] = row["samples"]
+    return done
 
 
 def main():
@@ -157,11 +220,20 @@ def main():
     ap.add_argument("--k", type=int, default=5)
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--max-new-tokens", type=int, default=48)
-    ap.add_argument("--batch-size", type=int, default=8)
+    ap.add_argument("--token-budget", type=int, default=30_000,
+                    help="prompt tokens x k per forward pass; the batch size "
+                         "is derived from it so long prompts get small batches")
+    ap.add_argument("--checkpoint", type=Path, default=None,
+                    help="append samples here as they are produced, and resume "
+                         "from it on restart")
     ap.add_argument("--equivalence", choices=list(EQUIVALENCE), default="numeric")
     ap.add_argument("--shots", type=int, default=4)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--cluster-only", action="store_true",
+                    help="re-cluster samples already in --checkpoint and skip "
+                         "the model entirely; how the equivalence ablation runs "
+                         "for free over the whole corpus instead of a subset")
     args = ap.parse_args()
 
     for p in (args.corpus, args.features, TRAIN):
@@ -194,11 +266,25 @@ def main():
     print(f"{len(sols)} solutions, {len(prompts)} steps, k={args.k} "
           f"-> {len(prompts) * args.k:,} generations", flush=True)
 
-    model, tok = load_model(args.model)
-    samples = sample_batches(
-        model, tok, prompts, k=args.k, temperature=args.temperature,
-        max_new_tokens=args.max_new_tokens, batch_size=args.batch_size,
-    )
+    ckpt = args.checkpoint
+    already = load_checkpoint(ckpt)
+    if already:
+        print(f"{len(already)}/{len(prompts)} prompts already in the checkpoint",
+              flush=True)
+
+    if args.cluster_only:
+        missing = len(prompts) - len(already)
+        if missing:
+            print(f"cluster-only, but {missing} prompts have no samples")
+            return 1
+        samples = [already[i] for i in range(len(prompts))]
+    else:
+        model, tok = load_model(args.model)
+        samples = sample_batches(
+            model, tok, prompts, k=args.k, temperature=args.temperature,
+            max_new_tokens=args.max_new_tokens, token_budget=args.token_budget,
+            checkpoint=ckpt, done=already,
+        )
 
     eq = EQUIVALENCE[args.equivalence]
     n_singleton = n_unanimous = 0
