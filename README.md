@@ -61,6 +61,21 @@ first. Measured on GSM8K within wrong-answer solutions:
 **69.8% of bad steps are arithmetically perfect.** Controlling local selective
 risk at level α bounds nothing about the answer.
 
+**And it is not an artifact of a weak generator — it gets worse.** Re-measured
+on Qwen2.5-7B-Instruct (80% on GSM8K against Mistral-7B-SFT's ~45%), on 500
+freshly generated test solutions:
+
+| within wrong-answer solutions | Mistral-7B-SFT | Qwen2.5-7B |
+|---|---|---|
+| local error | 0.1708 | **0.0813** |
+| globally-wrong steps that are locally valid | 0.7848 | **0.9040** |
+
+The stronger model halves its arithmetic slips without halving its inherited
+corruption, so more of what remains is invisible to a calculator. Wilson
+intervals do not overlap. See [docs/FINDINGS-GENERATOR.md](docs/FINDINGS-GENERATOR.md).
+
+> A deterministic verifier gets *less* useful as the generator improves.
+
 ### C2 — The gap does not close with more of the same verification
 
 Entering corruption does not depend on the verifier's reach; escaping it does:
@@ -73,6 +88,10 @@ CORRUPT_k -> CLEAN       v_t * scope * decay^(k-1)
 Simulated: local risk stays pinned near 0.15 across budgets while final error
 spans 0.73 → 0.27. Measured: after the first bad step 95.9% of later steps stay
 bad, and **0 of 25,971 solutions ever recovered**.
+
+On Qwen2.5-7B the same measurement gives 66.4% persistence and 6 recoveries in
+500 — still strongly absorbing, but *near*-absorbing was a Mistral property and
+does not transfer unqualified.
 
 ### C3 — Verifier reach is the controlling design variable, and it is SEMANTIC
 
@@ -130,6 +149,10 @@ With measured μ = 0.3908:
 α = 0.10 — the spec's value — charges a third of the budget as an entry fee.
 `configs/default.yaml` now uses 0.30 and **enforces the floor at setup**.
 
+The floor is a property of the generator, not of the task: on Qwen2.5-7B
+μ = 0.1221 and α = 0.20 carries **no floor at all**. Any statement about
+attainable α has to name the model it was measured on.
+
 ### C6 — StrategyQA cannot exercise the phenomenon it is used for
 
 Extracted all 2272 annotated dependency graphs: mean depth 2.30, **72.9% exactly
@@ -142,15 +165,15 @@ exists.
 ## What remains to be measured
 
 C3 was the centrepiece and is now measured (Kaggle P100, 7B PRM, 1,500
-arithmetic-blind steps + 750 controls). What is left is breadth: the same
-measurement for retrieval and same-model-critic verifiers, and a re-measurement
-on the generator CAR actually uses.
+arithmetic-blind steps + 750 controls), and C1 has been reproduced on a second,
+stronger generator. What is left is the end-to-end pipeline and cross-domain
+breadth.
 
 | # | experiment | status |
 |---|---|---|
 | 1 | Measure arithmetic verifier scope | **done** — 0.0000 at k=0, 0.1999 at k=∞ |
 | 2 | Measure semantic verifier scope | **done** — 0.9033 at 9.9% FA (Kaggle P100) |
-| 3 | Re-measure error rates on Llama 3.1 8B | numbers currently from Mistral-7B-SFT |
+| 3 | Re-measure error rates on a second generator | **done** — Qwen2.5-7B, C1 rises 0.78 → 0.90 |
 | 4 | Same-model + independent-judge scope arms | **done** — 0.0000 and 0.2283 |
 | 5 | Full gate pipeline end-to-end on GSM8K | scaffold ready, needs GPU generation |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
@@ -167,7 +190,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-203 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+236 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 
@@ -197,6 +220,10 @@ python scripts/exp_measure_error_rate.py
 python scripts/exp_propagation.py
 ```
 
+```bash
+python scripts/exp_generator_transfer.py
+```
+
 ---
 
 ## Layout
@@ -213,6 +240,7 @@ src/car/
   control/            budget, structural allocation, the gate
   verification/       calculator, retrieval, oracle, simulated, same-model critic
   data/               GSM8K (primary), StrategyQA, Math-Shepherd, splits
+                      generated.py: corpora from other generators
   eval/               AUROC, ECE, selective risk, coverage, false-safe
   agent/loop.py       the control loop
 ```

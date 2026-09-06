@@ -45,14 +45,20 @@ reviewer who finds the scoop themselves will discount everything else.
 | 2 | Background — conformal prediction, risk control, PRMs, selective labels, propagation | references verified |
 | 3 | Framework — step schema, local vs global correctness, the Markov model, verifier reach | implemented + tested |
 | 4 | **Measuring the gap** — Math-Shepherd, 93k steps, stratification | **done** |
+| 4b | **Generator transfer** — does C1 survive a stronger model? | **DONE** — it widens |
 | 5 | **Measuring verifier reach** — arithmetic vs semantic scope | **DONE** — 0.1999 vs 0.9033 |
 | 6 | Allocation — what follows from reach; refutation of "verify early" | simulation done, needs real-model confirmation |
 | 7 | Feasibility — the Kotte floor with measured μ; what α is attainable | done |
 | 8 | Benchmark analysis — StrategyQA has no propagation headroom | done |
 | 9 | Limitations, negative results, conclusion | ongoing |
 
-Chapters 4, 5, 7 and 8 are now complete on measured data. Chapter 5 returned
-the high-scope outcome: reach is semantic rather than structural.
+Chapters 4, 4b, 5, 7 and 8 are now complete on measured data. Chapter 5 returned
+the high-scope outcome: reach is semantic rather than structural. Chapter 4b
+answers the most obvious reviewer objection to chapter 4 and answers it in the
+direction that helps: on a generator at 80% GSM8K rather than 45%, the fraction
+of globally-wrong steps that are arithmetically perfect rises from 0.78 to 0.90.
+The practical statement is that a deterministic verifier gets LESS useful as the
+generator improves.
 
 ---
 
@@ -61,12 +67,14 @@ the high-scope outcome: reach is semantic rather than structural.
 | claim | evidence | source | status |
 |---|---|---|---|
 | C1 — 69.8% of wrong steps are locally valid | 93,129 steps, stratified | Math-Shepherd | measured |
+| C1b — C1 STRENGTHENS on a better generator | 0.7848 -> 0.9040, CIs disjoint | Qwen2.5-7B, 500 solutions | **measured** |
 | C2 — corruption is near-absorbing | 95.9% persistence; 0/25,971 recovered | Math-Shepherd | measured |
 | C2b — local risk does not track final error | local pinned ~0.15, final 0.73→0.27 | simulation | simulated |
 | C3 — reach needs independence AND task-training | same-model 0.00, judge 0.23, PRM 0.90 | Math-Shepherd + 3 verifiers | **measured** |
 | C4 — "verify early" is false | chains, 5 DAG families, 2 real corpora | simulation + real graphs | measured |
 | C4b — later steps are harder | corr(pos, local err) = +0.950 | Math-Shepherd | measured |
 | C5 — α = 0.10 costs 32% of budget | μ = 0.3908 + Kotte Prop. 3 | measured + cited | measured |
+| C5b — the floor is generator-dependent | μ 0.3908 -> 0.1221; no floor at α=0.20 | Qwen2.5-7B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
@@ -142,7 +150,7 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 | 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
 | 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.6% |
 | 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready, ~1 GPU-day | ch. 6 confirmation |
-| 4 | Re-measure error rates on Llama 3.1 8B | ~1 GPU-day | all numbers currently Mistral-7B-SFT |
+| 4 | ~~Re-measure error rates on a second generator~~ | done | Qwen2.5-7B; Llama 3.1 is licence-gated on Kaggle |
 | 5 | Cross-domain check on StrategyQA + retrieval | ~1 GPU-day | generality; limited by C6 |
 
 **Item 2 is done, and it paid for itself.** It was queued to quantify the
@@ -165,9 +173,19 @@ a benchmark that cannot exhibit the *propagation* finding.
 
 ## Threats to validity, stated up front
 
-- **Generator mismatch.** All measured rates come from Mistral-7B-SFT via
-  Math-Shepherd, not the model CAR runs. The method transfers; the numbers may
-  not. Item 2 fixes this.
+- **Generator mismatch, now partly addressed.** The headline rates come from
+  Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on Qwen2.5-7B-Instruct
+  (80% GSM8K) and comes out *higher*, 0.7848 -> 0.9040 with disjoint Wilson
+  intervals, so the gap is not an artifact of a weak generator. Two numbers do
+  NOT transfer and are now labelled per-generator: μ (0.3908 -> 0.1221, which
+  removes the α=0.20 floor entirely) and corruption persistence (95.9% ->
+  66.4%). See docs/FINDINGS-GENERATOR.md.
+
+- **A "step" is not model-invariant.** Math-Shepherd's step is one calculator
+  operation; Qwen writes 5.15 steps per solution of which 59% are narration
+  carrying no arithmetic at all. Per-step rates across generators are rates over
+  different units. This is a limitation of the unit of analysis, not of the
+  measurement, and the thesis should say so explicitly.
 - **Label semantics.** Math-Shepherd's `+`/`-` are automatic Monte-Carlo
   estimates of "leads to a correct answer", not proofs. A lucky wrong step can
   be labelled `+`.

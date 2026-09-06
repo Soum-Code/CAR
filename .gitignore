@@ -18,9 +18,15 @@ runs/*
 !runs/semantic_scope_prm.json
 !runs/semantic_scope_judge_independent.json
 !runs/semantic_scope_judge_same_model.json
+# 7h40m of Kaggle T4x2. Same rationale: cannot be regenerated on CPU.
+!runs/generated_qwen25_7b.jsonl
+!runs/generated_qwen25_7b_meta.json
 outputs/
 *.jsonl
 !tests/fixtures/*.jsonl
+# Repeated below the blanket *.jsonl rule on purpose: git applies the LAST
+# matching pattern, so a negation placed only above it has no effect.
+!runs/generated_qwen25_7b.jsonl
 
 # Model + data caches
 .cache/

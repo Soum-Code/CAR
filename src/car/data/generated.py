@@ -38,16 +38,29 @@ import re
 from dataclasses import dataclass
 
 from car.data.math_shepherd import check_arithmetic
-from car.verification.calculator import safe_eval
 
 _CALC = re.compile(r"<<([^>]*?)=([^>]*?)>>")
 _FINAL = re.compile(r"####\s*([-$\d.,]+)")
-# Fallback for steps that carry arithmetic in prose but no `<<>>` marker. Needs
-# at least one operator, so "x = 5" and "Step 3 = done" do not match.
-_PROSE_EQ = re.compile(
-    r"(\d[\d,.]*(?:\s*[-+*/x]\s*\d[\d,.]*)+)\s*=\s*\$?(\d[\d,.]*)"
-)
 _NUM = re.compile(r"-?\d[\d,]*\.?\d*")
+
+# An arithmetic claim in normalised text: an expression with at least one
+# operator, then `=`, then a number. The operator requirement is what keeps
+# "x = 5" and "Step 3 = done" out -- a definition is not a claim a calculator
+# can refute.
+_EQ = re.compile(
+    r"(?<![\d.])((?:\(?-?\d+\.?\d*\)?)(?:\s*[-+*/]\s*\(?-?\d+\.?\d*\)?)+)"
+    r"\s*=\s*(-?\d+\.?\d*)(?![\d.])"
+)
+
+_BS = "\\"
+_LATEX_OPS = [
+    (_BS + "times", "*"), (_BS + "cdot", "*"), (_BS + "div", "/"),
+    ("×", "*"), ("÷", "/"),
+]
+_FRAC = re.compile(re.escape(_BS + "frac") + r"\{([^{}]*)\}\{([^{}]*)\}")
+_LABEL = re.compile(re.escape(_BS) + r"(?:text|mathrm|boxed|mathbf)\{[^{}]*\}")
+_DELIM = re.compile(re.escape(_BS) + r"[\[\]()]")
+_COMMAND = re.compile(re.escape(_BS) + r"[a-zA-Z]+")
 
 ANSWER_PREFIX = "The answer is:"
 
@@ -168,32 +181,65 @@ def answers_match(a: str | None, b: str | None) -> bool:
 # ---- local validity --------------------------------------------------
 
 
-def local_validity(step: str, allow_prose: bool = False) -> bool | None:
+def normalise_notation(text: str) -> str:
+    """Rewrite LaTeX and unicode maths as plain ASCII arithmetic.
+
+    Exists because a model's notation is not a property of its reasoning.
+    Qwen2.5-7B-Instruct solves GSM8K at 80% and writes almost none of it in
+    GSM8K's format:
+
+        \\[ \\text{Miles Micah ran} = 3.5 \\times 8 = 28 \\]
+
+    Only 14.5% of its steps carry a `<<>>` marker, against 87.8% for
+    Mistral-7B-SFT, which was fine-tuned on GSM8K itself. Reading only markers
+    would measure Qwen's local error on a biased seventh of its steps.
+    """
+    t = text
+    for a, b in _LATEX_OPS:
+        t = t.replace(a, b)
+    t = _FRAC.sub(r"(\1)/(\2)", t)
+    # \text{...} and \boxed{...} are labels, not operands. Drop them entirely
+    # rather than unwrapping, or "Miles Micah ran = 28" becomes a claim.
+    t = _LABEL.sub(" ~ ", t)
+    t = _DELIM.sub(" ", t)
+    t = _COMMAND.sub(" ", t)
+    return t.replace("$", " ").replace(",", "")
+
+
+def arithmetic_claims(step: str, notation: str = "marker") -> tuple[list, str]:
+    """The (expression, result) pairs this step asserts, and where they came from.
+
+    `notation="marker"` reads only `<<expr=result>>`, which is Math-Shepherd's
+    definition byte for byte. `notation="any"` falls back to normalised
+    LaTeX/prose when no marker is present.
+
+    Returns (pairs, source) with source in {"marker", "derived", "none"}, so a
+    caller can report how much of a corpus each path accounts for instead of
+    blending them silently.
+    """
+    marked = [(e.strip(), r.strip()) for e, r in _CALC.findall(step)]
+    if marked:
+        return marked, "marker"
+    if notation != "any":
+        return [], "none"
+    found = [(e.strip(), r.strip()) for e, r in _EQ.findall(normalise_notation(step))]
+    return found, ("derived" if found else "none")
+
+
+def local_validity(step: str, notation: str = "marker") -> bool | None:
     """Does this step's own arithmetic hold? None when there is none to check.
 
-    The `<<>>` path is byte-for-byte the check Math-Shepherd steps get, which
-    is what keeps the two generators' local rates comparable. `allow_prose`
-    adds a looser regex for unannotated steps; it is off by default and
-    reported as a sensitivity, because switching it on for one generator and
-    not the other would change the measurement rather than extend it.
+    Default `notation="marker"` is Math-Shepherd's own check, which is what
+    keeps published rates stable. `notation="any"` extends coverage to models
+    that do not write GSM8K's format -- and must then be applied to BOTH
+    corpora, or the comparison is between two definitions rather than two
+    generators. On Math-Shepherd the extension is nearly inert (87.8% -> 90.6%
+    checkable, local error 0.1607 -> 0.1678), which is the evidence that it
+    extends the measurement rather than redefining it.
     """
-    marked = _CALC.findall(step)
-    if marked:
-        checks = [check_arithmetic(e, r) for e, r in marked]
-        checks = [c for c in checks if c is not None]
-        return all(checks) if checks else None
-
-    if not allow_prose:
-        return None
-
-    checks = []
-    for lhs, rhs in _PROSE_EQ.findall(step):
-        try:
-            got = safe_eval(lhs.replace(",", "").replace("x", "*"))
-            want = float(rhs.replace(",", ""))
-        except (ValueError, SyntaxError, ZeroDivisionError, TypeError, RecursionError):
-            continue
-        checks.append(abs(got - want) < 1e-6)
+    pairs, _ = arithmetic_claims(step, notation)
+    checks = [check_arithmetic(e, r) for e, r in pairs]
+    checks = [c for c in checks if c is not None]
     return all(checks) if checks else None
 
 
@@ -202,12 +248,31 @@ def annotation_rate(solutions: list[GeneratedSolution]) -> float:
 
     If this collapses, the local rate is being measured on a biased subset of
     steps and the comparison to Math-Shepherd is not sound. Worth printing
-    before any headline number.
+    before any headline number -- it is the gate that caught Qwen writing
+    LaTeX, and without it that run would have reported a local error rate of
+    0.0027 computed on a seventh of its steps.
     """
     steps = [s for sol in solutions for s in sol.steps]
     if not steps:
         return 0.0
     return sum(1 for s in steps if _CALC.search(s)) / len(steps)
+
+
+def notation_breakdown(step_texts, notation: str = "any") -> dict:
+    """How many steps are checkable, and via which path.
+
+    Reported alongside every cross-generator rate. A local error rate computed
+    on 41% of steps and one computed on 91% are not the same measurement, and
+    the difference has to be visible rather than buried.
+    """
+    counts = {"marker": 0, "derived": 0, "none": 0}
+    for text in step_texts:
+        _, source = arithmetic_claims(text, notation)
+        counts[source] += 1
+    total = max(1, sum(counts.values()))
+    counts["n"] = sum(counts.values())
+    counts["checkable_rate"] = (counts["marker"] + counts["derived"]) / total
+    return counts
 
 
 # ---- serialisation back into Math-Shepherd format --------------------

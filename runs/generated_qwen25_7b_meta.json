@@ -1,0 +1,17 @@
+{
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "model_ref": "Qwen/Qwen2.5-7B-Instruct",
+ "n_problems": 500,
+ "rollouts": 4,
+ "temperature": 0.7,
+ "shots": 4,
+ "n_solutions": 500,
+ "n_steps": 2573,
+ "gates": {
+  "accuracy": 0.8,
+  "annotation_rate": 0.14496696463272446,
+  "empty_rate": 0.0,
+  "passed": false
+ },
+ "local_validity_definition": "<<expr=result>> only, as Math-Shepherd"
+}

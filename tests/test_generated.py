@@ -15,10 +15,13 @@ from car.data.generated import (
     GeneratedSolution,
     annotation_rate,
     answers_match,
+    arithmetic_claims,
     build_fewshot,
     extract_answer,
     generation_prompt,
     local_validity,
+    normalise_notation,
+    notation_breakdown,
     split_steps,
     to_shepherd_label,
     to_shepherd_record,
@@ -91,14 +94,77 @@ def test_local_validity_is_none_without_annotation_by_default():
     assert local_validity("So 100 - 60 = 40 dollars.") is None
 
 
-def test_local_validity_prose_fallback_is_opt_in():
-    assert local_validity("So 100 - 60 = 40 dollars.", allow_prose=True) is True
-    assert local_validity("So 100 - 60 = 30 dollars.", allow_prose=True) is False
+def test_local_validity_any_notation_is_opt_in():
+    assert local_validity("So 100 - 60 = 40 dollars.", notation="any") is True
+    assert local_validity("So 100 - 60 = 30 dollars.", notation="any") is False
 
 
-def test_local_validity_prose_fallback_needs_an_operator():
+def test_local_validity_needs_an_operator():
     """`x = 5` is a definition, not a claim a calculator can refute."""
-    assert local_validity("Let the total = 5.", allow_prose=True) is None
+    assert local_validity("Let the total = 5.", notation="any") is None
+    assert local_validity("Step 3 = done", notation="any") is None
+
+
+# ---- LaTeX, the notation that broke the Qwen run ----------------------
+
+
+def test_latex_display_arithmetic_is_checkable():
+    """Qwen2.5 writes this; only 14.5% of its steps carried a <<>> marker."""
+    step = r"\[ \text{Miles Micah ran} = 3.5 \times 8 = 28 \]"
+    assert local_validity(step) is None                    # marker-only: invisible
+    assert local_validity(step, notation="any") is True
+
+
+def test_latex_display_arithmetic_catches_a_real_error():
+    assert local_validity(r"\[ 3.5 \times 8 = 29 \]", notation="any") is False
+
+
+def test_latex_inline_arithmetic_is_checkable():
+    assert local_validity(r"together ran \( 8 + 28 = 36 \) miles.",
+                          notation="any") is True
+
+
+def test_latex_fraction_is_checkable():
+    assert local_validity(r"\[ \frac{100}{4} = 25 \]", notation="any") is True
+
+
+def test_latex_labels_are_dropped_not_unwrapped():
+    r"""`\text{Miles Micah ran} = 28` must not become a claim about a label.
+
+    Unwrapping rather than dropping would leave `Miles Micah ran = 28`, whose
+    left side has no operator, so it would be silently discarded anyway -- but
+    a label containing digits (`\text{2 pads}`) would inject an operand that
+    was never part of the arithmetic.
+    """
+    assert local_validity(r"\[ \text{2 pads} = 60 \]", notation="any") is None
+
+
+def test_unicode_operators_are_normalised():
+    assert local_validity("2 × 30 = 60 sheets", notation="any") is True
+    assert local_validity("60 ÷ 4 = 15", notation="any") is True
+
+
+def test_marker_wins_over_derived_when_both_present():
+    """A marked step is checked Math-Shepherd's way even in `any` mode."""
+    pairs, source = arithmetic_claims(
+        r"48/2 = <<48/2=24>>24, i.e. \( 48 / 2 = 24 \)", notation="any"
+    )
+    assert source == "marker"
+    assert pairs == [("48/2", "24")]
+
+
+def test_notation_breakdown_separates_the_paths():
+    b = notation_breakdown([
+        "a = <<1+1=2>>2",
+        r"\[ 3 \times 3 = 9 \]",
+        "First, we work out the total.",
+    ])
+    assert (b["marker"], b["derived"], b["none"]) == (1, 1, 1)
+    assert b["checkable_rate"] == pytest.approx(2 / 3)
+
+
+def test_normalise_notation_leaves_plain_text_alone():
+    assert normalise_notation("2 + 2 = 4") == "2 + 2 = 4"
 
 
 def test_annotation_rate_counts_steps_not_solutions():
