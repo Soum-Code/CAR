@@ -26,7 +26,10 @@ features and raw samples are all committed.
 Conditions, all through the same `CARAgent` loop with one component swapped:
 plain chain-of-thought, always-verify, random gate at matched budget, quantile
 gate, split conformal, adaptive conformal with IPW, adaptive with naive
-updates.
+updates, and an **oracle score** — the same split-conformal calibrator driven by
+a score that reads the label. The oracle is not deployable; it is the ceiling,
+and it is what separates "the gate is bad" from "the task is hard at this
+budget".
 
 Verifiers, parameterised by the reach measured in Chapter 5: step-local
 arithmetic (scope 0.0000), independent judge (0.2283 at 2.0% false alarm), task
@@ -131,6 +134,30 @@ At α = 0.05 the measured selective risk is **three times the target**. The risk
 hardly moves across the whole sweep — 0.1491 to 0.1587 — while verification
 climbs from 4.6% to 26.9%. **The gate spends budget and buys nothing.**
 
+### How much of that is the score, and how much the budget
+
+The oracle answers this, because it changes the score and nothing else:
+
+| condition | verify % | calls/q | selective risk |
+|---|---|---|---|
+| no gate | 0.0% | 0.00 | 0.1554 |
+| split conformal, α = 0.05 | 4.6% | 0.23 | 0.1491 |
+| split conformal, α = 0.30 | 21.8% | 1.09 | 0.1538 |
+| **oracle score** | **7.3%** | **0.37** | **0.0885** |
+
+A perfect score cuts selective risk by 43% *and* spends a third of the
+verification the α = 0.30 setting does. The score is genuinely the binding
+constraint on everything the deployable conditions achieve.
+
+But **the oracle still misses α = 0.05 by 1.8×**. At two calls per question over
+a mean of 5.15 steps, most globally-wrong steps go unverified however perfectly
+they are ranked; the residual 0.0885 is the budget, not the score. (The oracle's
+verification rate is also flat across α — a binary score gives the conformal
+quantile nowhere to move.)
+
+Two bottlenecks, and they are separable: the score is worth 0.154 → 0.089, and
+the budget is what stands between 0.089 and 0.05.
+
 Token-level features alone give the same picture (0.1468 at α = 0.05), which is
 the point: adding the specification's favoured signal changed AUROC by 0.015
 and changed risk control by nothing.
@@ -176,26 +203,42 @@ measured operating point, and more verification makes it worse. Zero out its
 false-alarm rate and the same verifier gains **12 points**.
 
 
-![Projected accuracy by verifier. The FA = 0 ablation isolates the false-alarm rate as the whole of the difference. MODELLED, not measured.](figures/fig9-verifier-value.png)
+![Projected accuracy for the same verifier at the same 9.87% false-alarm rate under three scores. The FA = 0 ablation isolates the mechanism; the oracle column shows the score controls it. MODELLED, not measured.](figures/fig9-verifier-value.png)
 
-**Figure 7.4.** Projected accuracy by verifier. The FA = 0 ablation isolates the false-alarm rate as the whole of the difference. MODELLED, not measured.
+**Figure 7.4.** Projected accuracy for the same verifier at the same 9.87% false-alarm rate under three scores. The FA = 0 ablation isolates the mechanism; the oracle column shows the score controls it. MODELLED, not measured.
 
-The entire difference is a base-rate effect. Chapter 5 reported
+The difference is a base-rate effect. Chapter 5 reported
 `net = scope − false alarm = 0.8047`, measured on a population *conditioned on
 being arithmetic-blind inherited corruption* — every item in it was wrong. In
-deployment the verifier is pointed at all steps, and **84.2% of them are
-correct**, so the 9.87% false-alarm rate acts on a population four times larger
-than the one the 90.33% detection rate acts on.
+deployment the verifier is pointed at whatever the gate selects, and behind a
+near-chance score that is mostly correct steps.
 
-> Verifier scope measured on a positive-only population overstates its
-> deployment value. The figure of merit is not `scope − FA`; it is
-> `scope × P(wrong)` against `FA × P(correct)`, and on a strong generator the
-> second term dominates.
+**The oracle row settles which component is at fault, and it is not the
+verifier:**
 
-This is a correction to how C3 should be stated, and it is the sharpest
-practical result in the thesis. It also explains the first row: with scope
-0.0000 and no false alarms, a calculator gate cannot move the answer *at all* —
-exactly what C1 predicts.
+| score | verifier | calls/q | recall | projected accuracy |
+|---|---|---|---|---|
+| real, split conformal | task PRM | 1.09 | 0.1761 | 0.7912 |
+| real, always verify | task PRM | 1.89 | 0.2606 | **0.7637** |
+| **oracle** | **task PRM** | **0.37** | **0.4366** | **0.9780** |
+
+The same verifier, at the same measured 9.87% false-alarm rate, moves projected
+accuracy from 0.7637 to **0.9780** — 17.6 points above the no-gate baseline — on
+*a third* of the calls. A false alarm can only fire on a step the gate chose to
+verify, and a good score almost never chooses a correct one.
+
+> The figure of merit is not `scope − FA`, and it is not
+> `scope × P(wrong)` against `FA × P(correct)` over the population either. It is
+> conditioned on **what the gate selects**:
+> `scope × P(wrong | verified)` against `FA × P(correct | verified)`.
+> The score sets that conditioning, so improving the score raises the
+> verifier's net value without touching the verifier.
+
+That is a correction to how C3 should be stated, and a sharper one than the
+population-level version: the PRM is not a bad verifier being oversold, it is a
+good verifier being aimed badly. It also explains the first row of the table
+above — with scope 0.0000 a calculator gate cannot move the answer at all, however
+well aimed, which is exactly what C1 predicts.
 
 ## 7.5 What is measured and what is modelled
 
@@ -226,17 +269,23 @@ result is isolated by the FA = 0 ablation; the *magnitude* is not robust.
 
 Three independent failures, each with a number and a regression test:
 
-| failure point | measurement |
-|---|---|
-| the signal does not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742 |
-| the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× |
-| the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline |
+| failure point | measurement | what the oracle says about it |
+|---|---|---|
+| the signal does not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742 | this is the binding one: a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
+| the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
+| the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle |
 
-They compose into a claim about the design space rather than about one system,
-and repairing any single one of them is not sufficient. Better uncertainty
-estimation still leaves a calibration target that is not the risk. Better
-calibration still leaves a score that does not rank. A better verifier still
-has a false-alarm rate acting on a mostly-correct population.
+The oracle run changes the shape of this conclusion, and it is worth being
+exact. The three failures are *not* independent in the way an earlier draft of
+this chapter claimed. The verifier's net-negative result is a consequence of the
+score, not a separate defect: fix the score and the same verifier becomes worth
++17.6 points. What survives as genuinely separate is the score and the budget —
+a perfect score still cannot hold α = 0.05 at two calls per question.
+
+So the honest summary is two bottlenecks, one of which subsumes the third:
+**the signal, and the budget.** Better uncertainty estimation is necessary and
+not sufficient; better calibration cannot help while the score does not rank;
+and the verifier was never the problem.
 
 `docs/THESIS.md` listed three possible outcomes before this run and called the
 negative one the most interesting. It arrived by a different route than

@@ -84,7 +84,9 @@ everything else.
 Math-Shepherd's 93,129 labelled steps: within wrong-answer solutions, local
 error is 0.1708 and global error 0.7106, so **78.5% of globally-wrong steps are
 arithmetically perfect**. Controlling local selective risk at level α bounds
-nothing about the answer. (Chapter 4)
+nothing about the answer. The claim is about verifiers reading the generator's
+*unverified* context — §2.7 records one structural change, scoring against
+previously-verified premises, that does lift the ceiling. (Chapter 4)
 
 **C1b. The gap widens on a stronger generator.** Re-measured on
 Qwen2.5-7B-Instruct at 80.0% GSM8K accuracy against Mistral-7B-SFT's ~45%, the
@@ -128,13 +130,18 @@ operand-extraction fault that silently deleted the dependency edge of *every
 subtraction* in the corpus. Fixing it moved mean depth 2.54 → 2.79 and
 overturned a published conclusion. (Chapter 6)
 
-**C8. The assembled gate does not control risk, and fails at three independent
-points.** Generator uncertainty does not rank global step error (AUROC 0.5589
-token-level, 0.5740 semantic, 0.5742 combined, against 0.8668 on synthetic
-features with genuine separation). Split conformal consequently holds coverage
-while missing selective risk by 3× at every α that binds. And the
-highest-reach verifier is net-negative at its measured operating point.
-(Chapter 7)
+**C8. The assembled gate does not control risk, and the reason is the signal.**
+Generator uncertainty does not rank global step error (AUROC 0.5589 token-level,
+0.5740 semantic, 0.5742 combined, against 0.8668 on synthetic features with
+genuine separation). Split conformal consequently holds coverage while missing
+selective risk by 3× at every α that binds, and the highest-reach verifier is
+net-negative at its measured operating point.
+
+An oracle score separates cause from consequence: it takes selective risk
+0.1554 → **0.0885** and projected accuracy 0.7912 → **0.9780** using a third of
+the calls, so the verifier result is downstream of the score rather than a
+separate defect. It also still misses α = 0.05 by 1.8×, which locates the
+second and genuinely independent bottleneck: the budget. (Chapter 7)
 
 ## 1.5 The thesis statement
 

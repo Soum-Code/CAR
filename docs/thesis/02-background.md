@@ -217,7 +217,7 @@ The second constraint has a consequence Chapter 7 exploits: a verifier that
 sound. So a low-reach verifier does not merely help less — it feeds the
 calibrator systematically wrong labels.
 
-## 2.7 Error propagation in reasoning chains
+## 2.7 Propagation, verifier placement, and self-correction
 
 **The Hallucination Snowball** ([arXiv:2608.14588](https://arxiv.org/abs/2608.14588))
 models propagation across agent handoffs as a Markov chain and measures escape
@@ -227,7 +227,7 @@ figures give the decay constant used in this thesis's propagation model
 
 **Sherlock** (Ro et al., *Reliable and Efficient Agentic Workflow
 Execution*, [arXiv:2511.00330](https://arxiv.org/abs/2511.00330)) is the closest
-prior work to this thesis — closer than an earlier draft of this chapter
+prior work on the *system* side — closer than an earlier draft of this chapter
 admitted. It asks three questions: which nodes deserve verification, *which
 verifier to attach to each*, and how to pay for it. Its three mechanisms:
 
@@ -262,9 +262,9 @@ as it is generated, a learned cost model against a calibrated risk target — bu
 they are smaller than an earlier draft of this chapter claimed.
 
 **ARES** (You et al., *Probabilistic Soundness Guarantees in LLM Reasoning
-Chains*, [arXiv:2507.12948](https://arxiv.org/abs/2507.12948)) is the paper that
-most directly tests this thesis's central claim, and it deserves more than a
-citation.
+Chains*, [arXiv:2507.12948](https://arxiv.org/abs/2507.12948)) is the closest
+prior work on the *claim* side: it tests C1 directly, and it deserves more than
+a citation.
 
 Their diagnosis is C1 stated independently: *"current LLM-based error detection
 methods often fail to detect propagated errors because earlier errors can
@@ -306,10 +306,9 @@ the same weights is not a verifier.
 |---|---|---|---|---|---|
 | CSA | release vs abstain | whole output, independent rounds | calibrated score | anytime selective risk | no |
 | Kotte | abstain | whole output | nonconformity | CRC + impossibility bound | no |
-| ConfSpec | escalate draft → target | reasoning step | draft confidence vs hand-set γ | none | no |
 | ReProbe | nothing — scores only | reasoning step | <10M-param probe on frozen internal states | none | no |
 | Sherlock | placement **and verifier choice** | workflow DAG node | counterfactual fault injection + learned cost model | none | yes — its motivation |
-| PRM line | nothing — scores only | reasoning step | trained reward model | none | no |
+| PRMs (Lightman; Math-Shepherd) | nothing — scores only | reasoning step | trained reward model | none | no |
 | Snowball | boundary gate at handoff | agent handoff | deterministic numeric match | none | yes — Markov model |
 | ARES (You et al.) | nothing — scores only | step, given **verified** premises | entailment stability | certified soundness score | **yes — and detects it** |
 | **this work** | measurement, not a gate | **dependent step within a trajectory** | — | — | **yes — the object of study** |

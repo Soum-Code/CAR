@@ -153,6 +153,9 @@ VERIFIER_VALUE = [
     ("independent\njudge", 0.2283, 0.0200, 0.8022),
     ("task PRM\nas measured", 0.9033, 0.0987, 0.7637),
     ("task PRM\nablation FA=0", 0.9033, 0.0000, 0.9231),
+    # Same verifier, same measured false-alarm rate, oracle score. This is the
+    # point of the figure: the verifier is downstream of the score.
+    ("task PRM\nORACLE score", 0.9033, 0.0987, 0.9780),
 ]
 BASELINE_ACC = 0.8022
 
@@ -514,23 +517,24 @@ def fig9_verifier_value():
     names = [v[0] for v in VERIFIER_VALUE]
     acc = [v[3] for v in VERIFIER_VALUE]
     x = np.arange(len(names))
-    colors = [INK_3, INK_3, CRITICAL, GOOD]
+    colors = [INK_3, INK_3, CRITICAL, S3, GOOD]
     ax.bar(x, acc, width=0.55, color=colors, zorder=3)
     for xi, a in zip(x, acc, strict=True):
         ax.text(xi, a + 0.006, f"{a:.4f}", ha="center", color=INK, fontsize=8.5,
                 fontweight="bold")
 
     ax.axhline(BASELINE_ACC, color=INK_2, ls=(0, (4, 3)), lw=1.4, zorder=4)
-    ax.text(3.42, BASELINE_ACC + 0.004, "no gate\n0.8022", color=INK_2, fontsize=8)
+    ax.text(4.42, BASELINE_ACC + 0.004, "no gate\n0.8022", color=INK_2, fontsize=8)
 
     ax.set_xticks(x, names, fontsize=8.5)
-    ax.set_ylim(0.65, 0.96)
+    ax.set_ylim(0.65, 1.01)
     ax.set_ylabel("projected final-answer accuracy  (MODELLED)")
-    ax.set_title("The highest-reach verifier loses accuracy —\n"
-                 "its false-alarm rate acts on the 84.2% that are correct",
+    ax.set_title("The verifier is not the problem, the score is.\n"
+                 "Same verifier, same 9.87% false-alarm rate, three scores.",
                  loc="left", pad=14, x=-0.06)
-    note(fig, "PROJECTED, not measured: replay cannot regenerate text, so repair is "
-              "modelled. The FA=0 column isolates the mechanism.")
+    note(fig, "PROJECTED, not measured: replay cannot regenerate text, so repair "
+              "is modelled. A false alarm can only fire on a step the gate chose "
+              "to verify, and a good score rarely chooses a correct one.")
     save(fig, "fig9-verifier-value")
 
 

@@ -23,8 +23,13 @@ The derived quantity that the thesis is about:
 inherited_corruption(t)  =  local_valid(t)  AND  NOT global_correct(t)
 ```
 
-A step that is arithmetically perfect and still wrong. This is the population
-no deterministic verifier can see.
+A step that is arithmetically perfect and still wrong. No deterministic
+verifier can see it, and none of the four verifier classes measured in
+Chapter 5 can either — but §2.7 records one structural change that does lift
+the ceiling: scoring each step against *previously-verified* premises rather
+than against the generator's own unverified context. The population is
+therefore invisible to a verifier reading generated context, which is a
+narrower claim than "invisible", and the one this thesis supports.
 
 ### Two estimators for the headline ratio
 
@@ -143,8 +148,10 @@ The two baselines most often skipped are the two that matter most:
 - **Random gate at matched budget.** If the gate cannot beat random allocation
   at the same number of calls, the score is doing nothing and no amount of
   calibration will rescue it.
-- **Oracle gate.** The upper bound. It separates "our gate is good" from "this
-  task was easy."
+- **Oracle score.** The upper bound: the same calibrator, budget and verifier
+  driven by a score that reads the label. It separates "the gate is bad" from
+  "the task is hard at this budget", and Chapter 7 reports it as a row in every
+  table.
 
 ### Replay, and what it forbids
 

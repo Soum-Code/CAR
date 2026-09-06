@@ -154,7 +154,25 @@ The floor is a property of the generator, not of the task: on Qwen2.5-7B
 μ = 0.1221 and α = 0.20 carries **no floor at all**. Any statement about
 attainable α has to name the model it was measured on.
 
-### C7 — The assembled gate does not work, and fails at three separate points
+### C6 — StrategyQA cannot exercise the phenomenon it is used for
+
+Extracted all 2272 annotated dependency graphs: mean depth 2.30, **72.9% exactly
+one hop deep**, and only 11.2% of steps have any descendant other than the
+answer. A step can only corrupt downstream reasoning if downstream reasoning
+exists.
+
+### C7 — Derived dependency graphs are 94.4% correct
+
+Every GSM8K dependency edge here is derived, not annotated: line *i* links to
+line *j* when an operand of *i* equals the result of *j*. Hand-validating 50
+stratified graphs measured that at **5.6% edge error** — and found a systematic
+bug on the way. The operand regex read each subtraction operator as a minus
+sign, so **every subtraction in the corpus silently lost its dependency edge**.
+Fixing it moved mean depth 2.54 → 2.79 and headroom 26.6% → 29.9%, and
+overturned a published conclusion. See
+[docs/FINDINGS-DEPGRAPH.md](docs/FINDINGS-DEPGRAPH.md).
+
+### C8 — The assembled gate does not work
 
 The whole loop, run on real output: 500 Qwen2.5-7B solutions, real uncertainty,
 real conformal calibration, real budget. See
@@ -185,26 +203,25 @@ while verification climbs. Split conformal holds its *coverage* guarantee
 throughout — coverage is a property of the acceptance rule, and with an
 uninformative score it is simply not the risk of what gets accepted.
 
-**And the one verifier with reach is net-negative.** Projected accuracy against
-a 0.8022 baseline, always-verify:
+**And the verifier with reach is net-negative — but only behind a bad score.**
+Projected accuracy against a 0.8022 baseline:
 
-| verifier | scope | FA | projected accuracy |
+| score | verifier | calls/q | projected accuracy |
 |---|---|---|---|
-| task PRM | 0.9033 | 0.0987 | **0.7637** |
-| task PRM, ablation FA = 0 | 0.9033 | 0.0000 | **0.9231** |
+| real | task PRM (FA 0.0987) | 1.89 | **0.7637** |
+| **oracle** | task PRM (FA 0.0987) | **0.37** | **0.9780** |
 
-C3's `net = scope − FA = 0.8047` was measured on a population where every item
-was wrong. Deployment points the verifier at all steps, 84.2% of which are
-correct, so the false-alarm term acts on a population four times larger than
-the detection term. **The figure of merit is `scope × P(wrong)` against
-`FA × P(correct)`, not `scope − FA`.**
+A false alarm can only fire on a step the gate chose to verify. C3's
+`net = scope − FA` is the wrong figure of merit, and so is the population-level
+`scope × P(wrong)` vs `FA × P(correct)`: the right one conditions on what the
+gate selects. **The PRM is not a bad verifier being oversold — it is a good
+verifier being aimed badly.**
 
-### C6 — StrategyQA cannot exercise the phenomenon it is used for
-
-Extracted all 2272 annotated dependency graphs: mean depth 2.30, **72.9% exactly
-one hop deep**, and only 11.2% of steps have any descendant other than the
-answer. A step can only corrupt downstream reasoning if downstream reasoning
-exists.
+An oracle score also locates the remaining bottleneck: it takes selective risk
+0.154 → 0.089, but still misses α = 0.05 by 1.8×, because at two calls per
+question most wrong steps go unverified however well they are ranked. Two
+bottlenecks, the signal and the budget; the verifier is downstream of the
+first.
 
 ---
 

@@ -19,10 +19,13 @@ reproducing.
 | Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific** | 95.9% on Mistral, 66.4% on Qwen |
 | C3's `net = scope − FA` is the figure of merit | this thesis, ch. 5 | **corrected** | base-rate error; see §7.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at every binding α |
+| The three failures are independent | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
 
-The last row is the thesis. The design this project set out to build does not
-work, and the reasons are three independent failures rather than one fixable
-defect.
+The second-to-last row is the thesis. The last is the correction the oracle
+baseline forced: of the three failure points, only two are separate. The
+verifier's net-negative result is a consequence of aiming it with a near-chance
+score, and disappears when the score is perfect. What remains genuinely
+independent is the **signal** and the **budget**.
 
 ## 9.2 Threats to validity
 
@@ -88,10 +91,13 @@ and PRM are listed as alternatives in a great deal of system design. They span
 0.00 to 0.90 detection rate on the population that matters. Which one you pick
 is the design decision; the gate around it is not.
 
-**Evaluate a verifier on the population you will deploy it against.** A
-detection rate measured on a positive-only set is not a deployment number. With
-84% of steps correct, a 10% false-alarm rate destroys more than a 90% detection
-rate saves.
+**Evaluate a verifier on the population your gate will actually send it.** A
+detection rate measured on a positive-only set is not a deployment number — and
+neither is one measured over the whole population. What matters is
+`P(wrong | verified)`, and the *score* sets that. The same PRM at the same 9.87%
+false-alarm rate is worth −4 points of accuracy behind a near-chance score and
++17.6 behind a perfect one. A verifier is not good or bad; it is well or badly
+aimed.
 
 **Coverage is not risk.** A conformal guarantee will hold, and be reported as
 holding, while the quantity you care about is untouched. Nothing in the
@@ -177,20 +183,29 @@ instead measured why one does not work. The final statement:
 > The gap does not close by widening the verification window — arithmetic
 > lookback saturates at 0.1999 because 80% of inherited corruption has no
 > upstream arithmetic error at all. It does not close by asking the model to
-> check itself, which detects zero errors. It closes only for a verifier that
-> is both independent of the generator and specialised for the task, and
-> *that* verifier is net-negative in deployment because its false-alarm rate
-> acts on a population that is overwhelmingly correct.
+> check itself, which detects zero errors. Among verifiers reading the
+> generator's own unverified context, it closes only for one that is both
+> independent of the generator and specialised for the task.
 >
-> And the gate that would allocate its budget cannot be built, because neither
-> token-level uncertainty (AUROC 0.5589) nor sampling-based semantic divergence
-> (0.5740) ranks the risk, and combining them buys 0.0002. Split conformal
-> calibration then holds its coverage guarantee while missing its selective
-> risk target by a factor of three, and reports nothing amiss.
+> (Scoring against *verified* premises instead lifts the ceiling further — You
+> et al. reach 90.3% F1 on propagated errors that way — but it assumes a
+> verified prefix, which is precisely what a budgeted gate cannot supply.)
 >
-> Selective verification of LLM reasoning fails at the signal, at the
-> calibration, and at the verifier. Repairing any one of them is not
-> sufficient.
+> And the gate that would allocate that verifier's budget cannot be built,
+> because neither token-level uncertainty (AUROC 0.5589) nor sampling-based
+> semantic divergence (0.5740) ranks the risk, and combining them buys 0.0002.
+> Split conformal calibration then holds its coverage guarantee while missing
+> its selective-risk target by a factor of three, and reports nothing amiss.
+>
+> An oracle score locates the damage precisely. It takes selective risk from
+> 0.154 to 0.089 and projected accuracy from 0.79 to 0.98 with a third of the
+> verification calls — so the verifier was never the problem, and the score is.
+> But the oracle still misses α = 0.05 by 1.8×, because at two calls per
+> question most wrong steps go unverified however well they are ranked.
+>
+> Selective verification of LLM reasoning is bottlenecked at the **signal** and
+> at the **budget**. The verifier is downstream of the first, and the
+> calibration cannot help while the first is unfixed.
 
 That is a claim about the design space rather than about one system, each leg
 has a measured number and a regression test, and it is falsifiable in the only

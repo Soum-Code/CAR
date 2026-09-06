@@ -84,9 +84,10 @@ generator improves.
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
 | C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 940 test steps | **measured** |
-| C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining buys 0.0002 | 12,865 generations | **measured** |
 | C8b — the gate misses every binding alpha | risk 0.147 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
-| C8c — the highest-scope verifier is net-negative | 0.7637 vs 0.8022 baseline; 0.9231 with FA=0 | end-to-end run | **measured** |
+| C8c — the verifier result is DOWNSTREAM of the score | 0.7637 behind the real score, 0.9780 behind an oracle, same verifier | end-to-end run | **measured** |
+| C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining buys 0.0002 | 12,865 generations | **measured** |
+| C8e — a perfect score still misses a binding alpha | oracle risk 0.0885 vs alpha=0.05; the budget binds | end-to-end run | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
 
 Everything marked *simulated* rests on the propagation model in

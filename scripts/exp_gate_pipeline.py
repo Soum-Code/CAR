@@ -117,6 +117,35 @@ def inject_synthetic(corpus, signal: float, seed: int = 0) -> None:
             )
 
 
+class OracleScorer:
+    """A perfect uncertainty score. Not deployable; it reads the label.
+
+    Chapter 3 promises this baseline and it is the only way to separate "the
+    gate is bad" from "the task is hard at this budget". Every other component
+    -- calibration, budget, verifier, the loop itself -- is unchanged, so the
+    difference between this row and the real ones is attributable to the score
+    and nothing else.
+
+    Keyed on the identity of the feature object rather than its values, because
+    `ReplayStepGenerator` hands back the same object each time and two distinct
+    steps can carry numerically identical features.
+    """
+
+    def __init__(self, corpus):
+        self._label = {
+            id(st.features): st.global_ok for ex in corpus for st in ex.steps
+        }
+
+    def fit(self, dev_features):
+        return self
+
+    def score(self, feats) -> float:
+        ok = self._label.get(id(feats))
+        if ok is None:
+            return 0.0
+        return 0.0 if ok else 1.0
+
+
 # ---- evaluation -----------------------------------------------------------
 
 
@@ -267,18 +296,32 @@ def main():
         for i, st in enumerate(by_id[ex.example_id].steps)
     }
 
+    # The oracle runs the SAME calibrator on a perfect score, so the gap between
+    # it and "split conformal" is what a better signal could buy and nothing
+    # else.
+    oracle_scorer = OracleScorer(corpus)
+    ocal_s = np.asarray([
+        oracle_scorer.score(st.features)
+        for ex in splits.calibration for st in by_id[ex.example_id].steps
+    ])
+
     conditions = [
-        ("cot (never verify)", lambda: NeverVerify()),
-        ("always verify", lambda: AlwaysVerify()),
-        ("random gate", lambda: RandomGate(rate=0.5, seed=args.seed)),
-        ("quantile gate", lambda: QuantileGate(quantile=1 - args.alpha).fit(cal_s)),
-        ("split conformal", lambda: SplitConformalCalibrator(alpha=args.alpha).fit(cal_s, cal_y)),
+        ("cot (never verify)", lambda: NeverVerify(), scorer),
+        ("always verify", lambda: AlwaysVerify(), scorer),
+        ("random gate", lambda: RandomGate(rate=0.5, seed=args.seed), scorer),
+        ("quantile gate", lambda: QuantileGate(quantile=1 - args.alpha).fit(cal_s),
+         scorer),
+        ("split conformal", lambda: SplitConformalCalibrator(alpha=args.alpha).fit(cal_s, cal_y),
+         scorer),
         ("CAR (adaptive+ipw)", lambda: AdaptiveCalibrator(
             alpha=args.alpha, gamma=0.005, epsilon=0.2, update_mode="ipw",
-            seed=args.seed).fit(cal_s, cal_y)),
+            seed=args.seed).fit(cal_s, cal_y), scorer),
         ("CAR (adaptive, naive)", lambda: AdaptiveCalibrator(
             alpha=args.alpha, gamma=0.005, epsilon=0.0, update_mode="naive",
-            seed=args.seed).fit(cal_s, cal_y)),
+            seed=args.seed).fit(cal_s, cal_y), scorer),
+        ("ORACLE score (ceiling)",
+         lambda: SplitConformalCalibrator(alpha=args.alpha).fit(ocal_s, cal_y),
+         oracle_scorer),
     ]
 
     # The last entry is an ABLATION, not a measured verifier: the task PRM with
@@ -299,11 +342,11 @@ def main():
               f"{'sel.risk':>10}{'target':>8}{'recall':>9}{'blocked':>9}"
               f"{'PROJ acc':>10}")
         print("  " + "-" * 88)
-        for name, make in conditions:
+        for name, make, sc in conditions:
             verifier = ScopedVerifier(labels, scope=scope, false_alarm=fa,
                                       label=kind, seed=args.seed)
             row = run_condition(name, make(), by_id, splits.test, verifier,
-                                alpha=args.alpha, scorer=scorer,
+                                alpha=args.alpha, scorer=sc,
                                 budget=args.budget, seed=args.seed)
             tgt = "-" if name in ("cot (never verify)", "always verify",
                                   "random gate") else f"{args.alpha:.2f}"

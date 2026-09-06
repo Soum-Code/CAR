@@ -52,7 +52,7 @@ python scripts/make_figures.py
 | 7.1 | 7 | ROC — all three signals hug the diagonal, the control does not |
 | 7.2 | 7 | measured risk against target α; the gate misses every binding one |
 | 7.3 | 7 | the accuracy–cost curve against Kotte's impossibility floor |
-| 7.4 | 7 | projected accuracy by verifier, with the FA = 0 ablation |
+| 7.4 | 7 | same verifier, three scores — the verifier is downstream of the score |
 
 Figures 7.1–7.3 are computed from the committed corpus at render time, so they
 cannot drift from Chapter 7's tables. The rest are measured constants, each
