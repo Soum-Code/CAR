@@ -74,11 +74,11 @@ python scripts/check_citations.py --all        # every cited arXiv id has an ent
 python scripts/check_citations.py --markdown   # regenerate the readable list
 ```
 
-Seven entries are marked **UNVERIFIED**: this project has their arXiv id and
-title from the literature review but no author list confirmed against the
-source. They carry the marker rather than a guessed author list, because a
-missing author is recoverable and an invented one is not. The checker lists
-them on every run.
+All 21 entries were verified against the arXiv listing on 2026-09-07. Four of
+this project's own shorthand names turned out not to match the paper they
+referred to — most sharply, arXiv:2511.06209 is **ReProbe** (Ni et al.), not
+"UHeads". The chapters that used the wrong names are corrected, and the keys
+are author-year so a nickname cannot drift from its source again.
 
 ## Status
 
@@ -87,9 +87,11 @@ measured and reproducible, and every refuted claim has a regression test.
 
 Known gaps, in the order they would matter to an examiner:
 
-1. **Chapter 2 needs the outstanding reads.** Sherlock, ARES, CAP and
-   Barber et al. on conformal beyond exchangeability are cited from secondary
-   description in places; §2.7–2.8 should be tightened after a full read.
+1. **Chapter 2 still needs full reads, not just verified metadata.** Ro et al.
+   (Sherlock), You et al., Ni et al. and Barber et al. are described from their
+   titles and abstracts; §2.7–2.8 should be tightened after reading them
+   properly. Their bibliographic details are now correct, which is a different
+   thing from having read them.
 2. **No related-work chapter separate from background.** For a paper
    submission these would split.
 3. **A third generator** would settle which of the per-generator quantities

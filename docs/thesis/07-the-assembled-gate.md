@@ -73,10 +73,12 @@ the better of the two signals, and **combining them adds nothing**
 (0.5740 → 0.5742). The two scores correlate at **r = +0.44**, so they are
 largely the same information.
 
-This is a direct replication, on a second benchmark, of
-[arXiv:2602.02427](https://arxiv.org/html/2602.02427)'s finding that
-sampling-agreement methods are weaker at *intermediate step* level than at
-whole-answer level.
+This is the same conclusion Wen et al.
+([arXiv:2602.02427](https://arxiv.org/abs/2602.02427)) reach from the other
+direction: they argue embedding perturbation reflects intermediate-step
+uncertainty better than sampling-based agreement, and this is the
+sampling-based half measured on a second benchmark. Their alternative signal
+is not tested here — see Chapter 9.
 
 ### The equivalence relation was load-bearing
 

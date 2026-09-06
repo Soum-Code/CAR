@@ -211,6 +211,16 @@ The censored-feedback machinery stays in the system — it is needed and it work
 
 ## 7. Reading still outstanding
 
+> **Note added 2026-09-07.** The shorthand names used above were checked against
+> arXiv when the bibliography was built, and four did not match. arXiv:2511.06209
+> is **ReProbe** (Ni et al.), not "UHeads"; 2511.00330 is *Sherlock: Reliable and
+> Efficient Agentic Workflow Execution* (Ro et al.); 2507.12948 is *Probabilistic
+> Soundness Guarantees in LLM Reasoning Chains* (You et al.), not "ARES"; and
+> 2602.02427 is *Embedding Perturbation may Better Reflect Intermediate-Step
+> Uncertainty in LLM Reasoning* (Wen et al.). The descriptions in this file are
+> substantively right; the labels were not. See docs/thesis/references.bib for
+> the verified metadata.
+
 - Sherlock (2511.00330) — full read. Now the closest prior work on 4.2.
 - ARES (2507.12948) — propagated-error step evaluation; overlaps the propagation framing.
 - *When does verification pay off?* (2512.02304) — cost-benefit, not yet read.

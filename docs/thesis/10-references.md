@@ -3,10 +3,9 @@
 Generated from [`references.bib`](references.bib) by
 `python scripts/check_citations.py --markdown`. Do not edit by hand.
 
-Entries marked **[unverified]** have an arXiv identifier and a title
-recorded during the literature review, but no author list confirmed
-against the source. They must be checked before submission. No author
-list is guessed: a missing one is recoverable, an invented one is not.
+All entries were verified against the arXiv listing on 2026-09-07.
+Any that regain an **[unverified]** marker have a `note` saying so and
+must be checked before submission.
 
 ## Conformal prediction and risk control
 
@@ -17,9 +16,9 @@ list is guessed: a missing one is recoverable, an invented one is not.
   <br>The online threshold update this project's adaptive calibrator is built on
 - `barber2023beyond` — **Conformal Prediction Beyond Exchangeability** · Barber, Rina Foygel and Candès, Emmanuel J. and Ramdas, Aaditya and Tibshirani, Ryan J., The Annals of Statistics, 2023
   <br>The formal route for risk control under the gate-induced dependence this thesis characterises empirically; see ch. 9 future work
-- `khosravi2026csa` **[unverified]** — **Conformal Selective Acting: Anytime-Valid Risk Control for RLVR-Trained LLMs** · Khosravi and Huo, 2026 · [2605.20270](https://arxiv.org/abs/2605.20270)
+- `khosravi2026csa` — **Conformal Selective Acting: Anytime-Valid Risk Control for RLVR-Trained LLMs** · Khosravi, Hamed and Huo, Xiaoming, 2026 · [2605.20270](https://arxiv.org/abs/2605.20270)
   <br>Theorem E.1 is the sparse-verifier result that supersedes this project's censored-feedback claim
-- `kotte2026certify` **[unverified]** — **When Can Conformal Risk Control Certify LLM Outputs?** · Kotte, 2026 · [2606.29054](https://arxiv.org/abs/2606.29054)
+- `kotte2026certify` — **When Can Conformal Risk Control Certify LLM Outputs? Bounds, Impossibility, and Adaptation for Structured Generation** · Kotte, Varun, 2026 · [2606.29054](https://arxiv.org/abs/2606.29054)
   <br>Proposition 3 is the impossibility bound used throughout as a feasibility instrument
 
 ## Benchmarks and step-labelled data
@@ -35,10 +34,10 @@ list is guessed: a missing one is recoverable, an invented one is not.
 
 - `lightman2023verify` — **Let's Verify Step by Step** · Lightman, Hunter and Kosaraju, Vineet and Burda, Yura and Edwards, Harri and Baker, Bowen and Lee, Teddy and Leike, Jan and Schulman, John and Sutskever, Ilya and Cobbe, Karl, 2023 · [2305.20050](https://arxiv.org/abs/2305.20050)
   <br>Process supervision beats outcome supervision on mathematical reasoning
-- `uheads2025` **[unverified]** — **Uncertainty Heads** · —, 2025 · [2511.06209](https://arxiv.org/html/2511.06209v2)
-  <br>A trained head under 10M parameters matching PRMs 750--810x larger; the efficiency result any "better step score" proposal must beat
-- `stepuncertainty2026` **[unverified]** — **On the Limits of Sampling-Based Uncertainty at Intermediate Reasoning Steps** · —, 2026 · [2602.02427](https://arxiv.org/html/2602.02427)
-  <br>Reports that sampling-agreement methods struggle to pinpoint intermediate uncertainty; ch. 7 replicates this on GSM8K
+- `ni2025reprobe` — **ReProbe: Efficient Test-Time Scaling of Multi-Step Reasoning by Probing Internal States of Large Language Models** · Ni, Jingwei and Fadeeva, Ekaterina and Wu, Tianyi and Akhtar, Mubashara and Zhang, Jiaheng and Ash, Elliott and Leippold, Markus and Baldwin, Timothy and Ng, See-Kiong and Shelmanov, Artem and Sachan, Mrinmaya, 2025 · [2511.06209](https://arxiv.org/abs/2511.06209)
+  <br>A small probe on frozen internal states matching far larger PRMs; the efficiency result any "better step score" proposal must beat, and the signal class ch. 9 names as the most promising untested alternative
+- `wen2026embedding` — **Embedding Perturbation may Better Reflect Intermediate-Step Uncertainty in LLM Reasoning** · Wen, Qihao and Wang, Jiahao and Nan, Yang and He, Pengfei and Tandon, Ravi and Xu, Han, 2026 · [2602.02427](https://arxiv.org/abs/2602.02427)
+  <br>Argues embedding perturbation reflects intermediate-step uncertainty better than sampling-based signals do. Ch. 7 measures the sampling-based half and finds it near chance, which is the same conclusion from the other direction
 - `farquhar2024semantic` — **Detecting Hallucinations in Large Language Models Using Semantic Entropy** · Farquhar, Sebastian and Kossen, Jannik and Kuhn, Lorenz and Gal, Yarin, Nature, 2024
   <br>Whole-answer semantic entropy via bidirectional entailment clustering; ch. 7 applies the principle to one step and finds it does not carry
 
@@ -46,12 +45,12 @@ list is guessed: a missing one is recoverable, an invented one is not.
 
 - `huang2024selfcorrect` — **Large Language Models Cannot Self-Correct Reasoning Yet** · Huang, Jie and Chen, Xinyun and Mishra, Swaroop and Zheng, Huaixiu Steven and Yu, Adams Wei and Song, Xinying and Zhou, Denny, International Conference on Learning Representations (ICLR), 2024 · [2310.01798](https://arxiv.org/abs/2310.01798)
   <br>The prediction ch. 5's same-model critic arm confirms at step level: scope 0.0000
-- `singh2026snowball` **[unverified]** — **The Hallucination Snowball** · Singh and Pawar, 2026 · [2608.14588](https://arxiv.org/abs/2608.14588)
+- `singh2026snowball` — **The Hallucination Snowball: Modeling Error Propagation as State Transitions in Multi-Agent LLM Pipelines** · Singh, Prabhjot and Pawar, Bhushan, 2026 · [2608.14588](https://arxiv.org/abs/2608.14588)
   <br>Escape probabilities 24.6/48.3/89.3\% across successive boundaries; the source of this project's decay constant 0.377
-- `sherlock2025` **[unverified]** — **Sherlock: Verifier Placement for Agentic Workflows** · —, 2025 · [2511.00330](https://arxiv.org/pdf/2511.00330)
-  <br>Closest prior work to ch. 6: verifier placement on a known DAG by fan-in, offline
-- `ares2025` **[unverified]** — **ARES: Probabilistic Soundness of Reasoning Steps Given Verified Premises** · —, 2025 · [2507.12948](https://arxiv.org/abs/2507.12948)
-  <br>Overlaps the local/global framing directly
+- `ro2025sherlock` — **Sherlock: Reliable and Efficient Agentic Workflow Execution** · Ro, Yeonju and Qiu, Haoran and Goiri, 'Iñigo and Fonseca, Rodrigo and Bianchini, Ricardo and Akella, Aditya and Wang, Zhangyang and Erez, Mattan and Choukse, Esha, 2025 · [2511.00330](https://arxiv.org/abs/2511.00330)
+  <br>Closest prior work to ch. 6: verifier placement on a known workflow DAG, chosen offline by structure
+- `you2025probabilistic` — **Probabilistic Soundness Guarantees in LLM Reasoning Chains** · You, Weiqiu and Xue, Anton and Havaldar, Shreya and Rao, Delip and Jin, Helen and Callison-Burch, Chris and Wong, Eric, 2025 · [2507.12948](https://arxiv.org/abs/2507.12948)
+  <br>Evaluates a step given verified premises, which is the local/global decomposition of ch. 3 approached from the other side
 
 ## Selective labels
 

@@ -86,10 +86,9 @@ def render_markdown(entries, section_of) -> str:
         "Generated from [`references.bib`](references.bib) by",
         "`python scripts/check_citations.py --markdown`. Do not edit by hand.",
         "",
-        "Entries marked **[unverified]** have an arXiv identifier and a title",
-        "recorded during the literature review, but no author list confirmed",
-        "against the source. They must be checked before submission. No author",
-        "list is guessed: a missing one is recoverable, an invented one is not.",
+        "All entries were verified against the arXiv listing on 2026-09-07.",
+        "Any that regain an **[unverified]** marker have a `note` saying so and",
+        "must be checked before submission.",
         "",
     ]
     for section, keys in section_of.items():
@@ -121,10 +120,11 @@ SECTIONS = {
     "Benchmarks and step-labelled data": {
         "cobbe2021gsm8k", "geva2021strategyqa", "wang2024mathshepherd"},
     "Process supervision and step-level scoring": {
-        "lightman2023verify", "uheads2025", "stepuncertainty2026",
+        "lightman2023verify", "ni2025reprobe", "wen2026embedding",
         "farquhar2024semantic"},
     "Verification, self-correction and propagation": {
-        "huang2024selfcorrect", "singh2026snowball", "sherlock2025", "ares2025"},
+        "huang2024selfcorrect", "singh2026snowball", "ro2025sherlock",
+        "you2025probabilistic"},
     "Selective labels": {"lakkaraju2017selective"},
     "Models used in the measurements": {
         "jiang2023mistral", "qwen2024qwen25", "dubey2024llama3"},

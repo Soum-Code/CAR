@@ -62,7 +62,7 @@ removed the method claims one at a time.
 | original claim | outcome |
 |---|---|
 | Adaptive conformal under censored feedback is novel | **scooped** — Conformal Selective Acting, Thm E.1, publishes Bernoulli subsampling with 1/π importance weighting under a stronger anytime guarantee |
-| Composite uncertainty is the key signal | **crowded, then refuted** — UHeads matches PRMs 810× larger; measured here at AUROC 0.5589 |
+| Composite uncertainty is the key signal | **crowded, then refuted** — a small probe on internal states matches far larger PRMs (Ni et al., ReProbe); measured here at AUROC 0.5589 |
 | Semantic entropy at intermediate steps is the key signal | **refuted** — measured here at AUROC 0.5740 |
 | Influence-weighted allocation | **refuted** — lost to plain uniform in five separate tests |
 | "Verify early beats verify late" | **refuted** — front-loading is the worst shape at every scope > 0 |

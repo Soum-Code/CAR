@@ -105,10 +105,16 @@ ancestor count.
 ## 9.4 Future work
 
 **A better step-level signal is the bottleneck.** Everything downstream is
-gated on AUROC 0.56. Trained probes on internal states (UHeads-style) are the
-obvious candidate and were not tested here; a head that reaches even 0.75 would
-make the rest of this pipeline worth rebuilding. The negative result in
-Chapter 7 is about *these* signals, not about all possible signals.
+gated on AUROC 0.56, and the two most promising candidates were both left
+untested. Probes on frozen internal states (Ni et al., ReProbe) are cheap and
+reportedly match far larger PRMs. Embedding perturbation is the signal Wen et
+al. argue reflects intermediate-step uncertainty better than the sampling-based
+family — and this thesis measured only the family they argue against, so their
+alternative is untouched by the negative result here.
+
+A signal reaching even 0.75 would make the rest of this pipeline worth
+rebuilding. Chapter 7 is a result about *token-level and sampling-based*
+signals, not about all possible signals.
 
 **Bidirectional entailment clustering.** Semantic divergence was measured under
 one equivalence relation. The raw K = 5 samples are committed, so a

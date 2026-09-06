@@ -25,7 +25,7 @@ negative results are part of the contribution.
 | original claim | status |
 |---|---|
 | Adaptive conformal under censored feedback is novel | **scooped** — [CSA](https://arxiv.org/abs/2605.20270) Thm E.1 publishes Bernoulli subsampling with 1/π importance weighting, under a stronger anytime guarantee |
-| Composite uncertainty is the key signal | **crowded** — [UHeads](https://arxiv.org/html/2511.06209v2) matches PRMs 810× larger; semantic entropy is [contested at step level](https://arxiv.org/html/2602.02427) |
+| Composite uncertainty is the key signal | **crowded, then refuted** — a small probe on internal states matches far larger PRMs ([ReProbe](https://arxiv.org/abs/2511.06209)); sampling-based step uncertainty is [contested](https://arxiv.org/abs/2602.02427) and measured here at AUROC 0.5589 |
 | H3: verify early beats verify late | **false** — refuted on chains, 5 synthetic DAG families, and real extracted graphs |
 | Influence-weighted allocation | **false** — lost to plain uniform every time it was properly tested |
 | StrategyQA as primary benchmark | **wrong choice** — 72.9% of its graphs are one hop deep |
