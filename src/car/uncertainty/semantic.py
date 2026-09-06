@@ -32,6 +32,46 @@ def exact_match_equivalence(a: str, b: str) -> bool:
     return a.strip().lower() == b.strip().lower()
 
 
+def numeric_equivalence(a: str, b: str) -> bool:
+    """Two arithmetic steps mean the same thing if they assert the same value.
+
+    Bidirectional entailment needs an NLI model and a second GPU pass. On
+    arithmetic reasoning there is a cheaper equivalence that is *closer to the
+    intended meaning*, not merely cheaper: what an arithmetic step asserts is a
+    number, so two samples that reach the same number agree regardless of how
+    they phrase it.
+
+        "He sold 48/2 = <<48/2=24>>24 clips"
+        "Half of 48 is \\( 48 / 2 = 24 \\)"
+
+    are one cluster here and two under exact match, which would report
+    disagreement where the model has none. That failure mode inflates
+    divergence exactly on the verbose, well-hedged steps, i.e. it correlates
+    with style rather than uncertainty.
+
+    Falls back to normalised string equality when neither side asserts a
+    number, so prose steps still cluster sensibly.
+    """
+    from car.data.generated import arithmetic_claims
+
+    va = _asserted_value(a, arithmetic_claims)
+    vb = _asserted_value(b, arithmetic_claims)
+    if va is None or vb is None:
+        return exact_match_equivalence(a, b)
+    return abs(va - vb) < 1e-6
+
+
+def _asserted_value(text: str, claims_fn) -> float | None:
+    """The last number this step claims, or None if it claims none."""
+    pairs, _ = claims_fn(text, notation="any")
+    for _, result in reversed(pairs):
+        try:
+            return float(str(result).replace(",", "").strip())
+        except (ValueError, AttributeError):
+            continue
+    return None
+
+
 def cluster_by_equivalence(
     texts: Sequence[str], equivalent: EquivalenceFn = exact_match_equivalence
 ) -> list[int]:

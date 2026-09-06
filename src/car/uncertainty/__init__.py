@@ -15,6 +15,7 @@ from car.uncertainty.semantic import (
     cluster_by_equivalence,
     exact_match_equivalence,
     normalised_semantic_divergence,
+    numeric_equivalence,
     semantic_entropy,
 )
 
@@ -27,6 +28,7 @@ __all__ = [
     "max_surprisal",
     "mean_logprob",
     "normalised_semantic_divergence",
+    "numeric_equivalence",
     "perplexity",
     "semantic_entropy",
     "token_entropy",
