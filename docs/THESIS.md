@@ -48,6 +48,7 @@ reviewer who finds the scoop themselves will discount everything else.
 | 4b | **Generator transfer** — does C1 survive a stronger model? | **DONE** — it widens |
 | 5 | **Measuring verifier reach** — arithmetic vs semantic scope | **DONE** — 0.1999 vs 0.9033 |
 | 6 | Allocation — what follows from reach; refutation of "verify early" | simulation done, needs real-model confirmation |
+| 6b | **The assembled gate** — end to end, and why it fails | **DONE** — negative at three points |
 | 7 | Feasibility — the Kotte floor with measured μ; what α is attainable | done |
 | 8 | Benchmark analysis — StrategyQA has no propagation headroom | done |
 | 9 | Limitations, negative results, conclusion | ongoing |
@@ -77,6 +78,9 @@ generator improves.
 | C5b — the floor is generator-dependent | μ 0.3908 -> 0.1221; no floor at α=0.20 | Qwen2.5-7B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
+| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 (0.8668 on synthetic signal, 0.4828 on noise) | 940 test steps | **measured** |
+| C8b — the gate misses every binding alpha | risk 0.147 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
+| C8c — the highest-scope verifier is net-negative | 0.7637 vs 0.8022 baseline; 0.9231 with FA=0 | end-to-end run | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
 
 Everything marked *simulated* rests on the propagation model in
@@ -149,7 +153,7 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 |---|---|---|---|
 | 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
 | 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.6% |
-| 3 | Full gate pipeline end-to-end on GSM8K | scaffold ready, ~1 GPU-day | ch. 6 confirmation |
+| 3 | ~~Full gate pipeline end-to-end on GSM8K~~ | done | negative result; see FINDINGS-PIPELINE |
 | 4 | ~~Re-measure error rates on a second generator~~ | done | Qwen2.5-7B; Llama 3.1 is licence-gated on Kaggle |
 | 5 | Cross-domain check on StrategyQA + retrieval | ~1 GPU-day | generality; limited by C6 |
 
@@ -212,15 +216,23 @@ a benchmark that cannot exhibit the *propagation* finding.
 All three remain publishable, which is the property that made this project
 worth doing:
 
-- **Positive** — verifier reach is measurable, differs sharply across verifier
-  types, and predicts the optimal allocation. Strongest outcome; needs ch. 5.
-- **Mixed** — the gap is confirmed but reach turns out hard to estimate
-  reliably. Still yields the measurement, the benchmark critique, and the
-  feasibility analysis.
-- **Negative** — retrieval verifiers turn out to have near-zero scope too. That
-  would be the most interesting result: it means step-level verification cannot
-  close the gap at all, and the intervention has to move to the reasoning
-  structure rather than the checking.
+These were written before the end-to-end run. **The outcome was the negative
+one**, which this section had already called the most interesting, and it
+arrived by a different route than expected: not because reach is universally
+low, but because the signal driving the gate does not rank the risk, the
+calibration certifies coverage rather than risk, and the one verifier with
+reach loses more to false alarms than it recovers.
+
+The resulting claim is about the design space rather than one system:
+
+> Selective verification of LLM reasoning fails at three independent points.
+> The signal does not rank the risk (AUROC 0.56); the calibration certifies a
+> quantity that is not the risk (coverage holds, selective risk misses alpha by
+> 3x); and the only verifier with reach costs more in false alarms than it
+> recovers on a realistic base rate. Fixing any one of them is not sufficient.
+
+That is a stronger contribution than a working gate, and it is falsifiable:
+each of the three has a measured number and a regression test.
 
 ---
 

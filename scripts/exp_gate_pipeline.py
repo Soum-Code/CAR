@@ -279,8 +279,15 @@ def main():
             seed=args.seed).fit(cal_s, cal_y)),
     ]
 
-    for kind in ("arithmetic_local", "independent_judge", "task_prm"):
-        scope, fa = MEASURED_SCOPE[kind]
+    # The last entry is an ABLATION, not a measured verifier: the task PRM with
+    # its false-alarm rate set to zero. It exists to separate "the verifier
+    # cannot see the error" from "the verifier sees it but breaks correct steps
+    # on the way", which the measured rows cannot distinguish.
+    arms = [(k, *MEASURED_SCOPE[k]) for k in
+            ("arithmetic_local", "independent_judge", "task_prm")]
+    arms.append(("task_prm ABLATION: no false alarms", MEASURED_SCOPE["task_prm"][0], 0.0))
+
+    for kind, scope, fa in arms:
         print()
         print("=" * 92)
         print(f"VERIFIER: {kind}   scope={scope:.4f}  false alarm={fa:.4f}   "
@@ -291,7 +298,8 @@ def main():
               f"{'PROJ acc':>10}")
         print("  " + "-" * 88)
         for name, make in conditions:
-            verifier = ScopedVerifier.from_measured(labels, kind, seed=args.seed)
+            verifier = ScopedVerifier(labels, scope=scope, false_alarm=fa,
+                                      label=kind, seed=args.seed)
             row = run_condition(name, make(), by_id, splits.test, verifier,
                                 alpha=args.alpha, scorer=scorer,
                                 budget=args.budget, seed=args.seed)
@@ -305,6 +313,41 @@ def main():
 
         print(f"  {'-' * 88}")
         print(f"  {'corpus answer accuracy (no gate)':<40}{base:.4f}")
+    # ---- does alpha bind at all? ------------------------------------------
+    # Every row above "meets" alpha=0.30, and so does verifying nothing, because
+    # the base risk is below the target. A guarantee satisfied by the empty
+    # policy certifies nothing, so sweep alpha down to where it actually binds.
+    print()
+    print("=" * 92)
+    print("ALPHA SWEEP: where does the target actually constrain anything?")
+    print("=" * 92)
+    print(f"base risk with no gate at all: {base_risk:.4f}. An alpha above that")
+    print("is met by doing nothing, so only alpha below it tests the gate.")
+    print()
+    print(f"  {'alpha':<8}{'floor':>8}{'binds?':>9}{'split risk':>13}"
+          f"{'split ver%':>12}{'CAR risk':>11}{'CAR ver%':>10}")
+    print("  " + "-" * 82)
+    for a in (0.05, 0.10, 0.15, 0.20, 0.30):
+        v = ScopedVerifier(labels, scope=MEASURED_SCOPE["task_prm"][0],
+                           false_alarm=0.0, label="prm", seed=args.seed)
+        s_row = run_condition("split", SplitConformalCalibrator(alpha=a).fit(cal_s, cal_y),
+                              by_id, splits.test, v, alpha=a, scorer=scorer,
+                              budget=args.budget, seed=args.seed)
+        v = ScopedVerifier(labels, scope=MEASURED_SCOPE["task_prm"][0],
+                           false_alarm=0.0, label="prm", seed=args.seed)
+        c_row = run_condition("CAR", AdaptiveCalibrator(
+            alpha=a, gamma=0.005, epsilon=0.2, update_mode="ipw", seed=args.seed
+        ).fit(cal_s, cal_y), by_id, splits.test, v, alpha=a, scorer=scorer,
+            budget=args.budget, seed=args.seed)
+        floor_a = min_verification_rate(base_risk, a)
+        binds = "yes" if a < base_risk else "no"
+        print(f"  {a:<8.2f}{floor_a:>8.1%}{binds:>9}{s_row['selective_risk']:>13.4f}"
+              f"{s_row['verification_rate']:>12.1%}{c_row['selective_risk']:>11.4f}"
+              f"{c_row['verification_rate']:>10.1%}")
+    print()
+    print("A row whose measured risk exceeds its alpha is a target the gate")
+    print("could not hold at this budget with this score.")
+
     print()
     print("sel.risk is MEASURED: the fraction of steps the gate let through")
     print("unverified that are globally wrong. It is the quantity alpha is")

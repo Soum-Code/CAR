@@ -31,7 +31,8 @@ negative results are part of the contribution.
 | StrategyQA as primary benchmark | **wrong choice** — 72.9% of its graphs are one hop deep |
 
 What survived is not a method. It is a measurement, and it is one nobody has
-made.
+made. The end-to-end run (C7) then refutes the original proposal outright, on
+its own data — which is the contribution, not a setback.
 
 ---
 
@@ -153,6 +154,44 @@ The floor is a property of the generator, not of the task: on Qwen2.5-7B
 μ = 0.1221 and α = 0.20 carries **no floor at all**. Any statement about
 attainable α has to name the model it was measured on.
 
+### C7 — The assembled gate does not work, and fails at three separate points
+
+The whole loop, run on real output: 500 Qwen2.5-7B solutions, real uncertainty,
+real conformal calibration, real budget. See
+[docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
+
+**The signal does not rank the risk.** Token entropy, surprisal and log-prob
+combined give **AUROC 0.5589** for detecting a globally-wrong step. The same
+pipeline scores 0.8668 on synthetic features with real separation and 0.4828 on
+noise, so the machinery works; the signal is not there.
+
+**So calibration certifies nothing useful.** Base risk is 0.1578, meaning any
+α ≥ 0.20 is met by verifying nothing. At the α values that actually bind:
+
+| α | 0.05 | 0.10 | 0.15 |
+|---|---|---|---|
+| measured selective risk | **0.1468** | **0.1511** | **0.1501** |
+| verification rate | 5.4% | 9.5% | 13.2% |
+
+Risk misses the target by 3× at α = 0.05 and barely moves across the sweep,
+while verification climbs. Split conformal holds its *coverage* guarantee
+throughout — coverage is a property of the acceptance rule, and with an
+uninformative score it is simply not the risk of what gets accepted.
+
+**And the one verifier with reach is net-negative.** Projected accuracy against
+a 0.8022 baseline, always-verify:
+
+| verifier | scope | FA | projected accuracy |
+|---|---|---|---|
+| task PRM | 0.9033 | 0.0987 | **0.7637** |
+| task PRM, ablation FA = 0 | 0.9033 | 0.0000 | **0.9231** |
+
+C3's `net = scope − FA = 0.8047` was measured on a population where every item
+was wrong. Deployment points the verifier at all steps, 84.2% of which are
+correct, so the false-alarm term acts on a population four times larger than
+the detection term. **The figure of merit is `scope × P(wrong)` against
+`FA × P(correct)`, not `scope − FA`.**
+
 ### C6 — StrategyQA cannot exercise the phenomenon it is used for
 
 Extracted all 2272 annotated dependency graphs: mean depth 2.30, **72.9% exactly
@@ -175,7 +214,7 @@ breadth.
 | 2 | Measure semantic verifier scope | **done** — 0.9033 at 9.9% FA (Kaggle P100) |
 | 3 | Re-measure error rates on a second generator | **done** — Qwen2.5-7B, C1 rises 0.78 → 0.90 |
 | 4 | Same-model + independent-judge scope arms | **done** — 0.0000 and 0.2283 |
-| 5 | Full gate pipeline end-to-end on GSM8K | scaffold ready, needs GPU generation |
+| 5 | Full gate pipeline end-to-end on GSM8K | **done** — negative: AUROC 0.56, target missed 3x |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
 
 ---
@@ -190,7 +229,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-236 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+256 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 
@@ -222,6 +261,10 @@ python scripts/exp_propagation.py
 
 ```bash
 python scripts/exp_generator_transfer.py
+```
+
+```bash
+python scripts/exp_gate_pipeline.py
 ```
 
 ---
