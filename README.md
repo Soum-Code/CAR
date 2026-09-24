@@ -191,6 +191,17 @@ and improves selective risk at every α on fewer calls. It still misses α = 0.0
 by 2.9×, and still leaves the task PRM net-negative. See
 [docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md).
 
+**And AUROC turns out to be the wrong target.** Sweeping a synthetic score of
+controlled AUROC through the same gate puts the crossing — where the task PRM
+stops costing more than it recovers — at **AUROC ≈ 0.65**, *below* the probe
+that already exists, and shows that threshold is made entirely of false alarms
+(at FA = 0 the same verifier pays for itself down to 0.55). It also refutes its
+own metric: the probe converts AUROC 0.6968 into 0.7802 projected accuracy
+where a synthetic score of identical AUROC reaches 0.8206, because only the
+*first* bad step can be repaired and the probe ranks late ones
+(corr with position +0.18, against −0.28 for the composite). See
+[docs/FINDINGS-SCORE-QUALITY.md](docs/FINDINGS-SCORE-QUALITY.md).
+
 > Measured under string-equality clustering the same samples give AUROC 0.4904,
 > *below* chance, because Qwen writes one computation three ways. The
 > equivalence relation is part of the measurement, not an implementation
@@ -249,6 +260,7 @@ breadth.
 | 5 | Full gate pipeline end-to-end on GSM8K | **done** — negative: AUROC 0.56, target missed 3x |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
 | 7 | Probe on frozen internal states | **done** — AUROC 0.6968; the signal exists and does not close the gap |
+| 8 | Locate the score quality the verifier needs | **done** — AUROC ~0.65, and AUROC is the wrong metric |
 
 ---
 

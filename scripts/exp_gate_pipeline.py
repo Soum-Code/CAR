@@ -183,9 +183,21 @@ def evaluate(trajectories, alpha) -> dict:
     accepted_labels = []
     blocked = explored = 0
     caught = total_bad = 0
+    first_caught = first_total = 0
     calls = 0
 
     for traj in trajectories:
+        # `recall` counts any bad step caught, but the projection only rewards
+        # catching the FIRST one -- everything after it inherits corruption
+        # that repairing a later step does not undo. The two come apart when a
+        # score's ranking correlates with step position, so both are reported.
+        labelled = [r for r in traj.steps if r.label is not None]
+        first_bad = next((r for r in labelled if r.label is False), None)
+        if first_bad is not None:
+            first_total += 1
+            if first_bad.revised:
+                first_caught += 1
+
         for r in traj.steps:
             if r.budget_blocked:
                 blocked += 1
@@ -218,6 +230,7 @@ def evaluate(trajectories, alpha) -> dict:
         "verification_rate": calls / max(1, n_steps),
         "calls_per_q": calls / max(1, len(trajectories)),
         "recall": caught / max(1, total_bad),
+        "first_bad_recall": first_caught / max(1, first_total),
         "forced_explore": explored,
         "budget_blocked": blocked,
         "base_accuracy": float(np.mean(base)) if base else float("nan"),
@@ -385,9 +398,9 @@ def main():
               f"(measured, ch. 5)")
         print("=" * 92)
         print(f"  {'condition':<22}{'verify%':>9}{'calls/q':>9}"
-              f"{'sel.risk':>10}{'target':>8}{'recall':>9}{'blocked':>9}"
-              f"{'PROJ acc':>10}")
-        print("  " + "-" * 88)
+              f"{'sel.risk':>10}{'target':>8}{'recall':>9}{'1st-bad':>9}"
+              f"{'blocked':>9}{'PROJ acc':>10}")
+        print("  " + "-" * 97)
         for name, make, sc in conditions:
             verifier = ScopedVerifier(labels, scope=scope, false_alarm=fa,
                                       label=kind, seed=args.seed)
@@ -398,7 +411,8 @@ def main():
                                   "random gate") else f"{args.alpha:.2f}"
             print(f"  {name:<22}{row['verification_rate']:>9.1%}"
                   f"{row['calls_per_q']:>9.2f}{row['selective_risk']:>10.4f}"
-                  f"{tgt:>8}{row['recall']:>9.4f}{row['budget_blocked']:>9,}"
+                  f"{tgt:>8}{row['recall']:>9.4f}{row['first_bad_recall']:>9.4f}"
+                  f"{row['budget_blocked']:>9,}"
                   f"{row['projected_accuracy']:>10.4f}")
             base = row["base_accuracy"]
 

@@ -151,6 +151,19 @@ misses α = 0.05 by 2.9× and leaves the task PRM net-negative. The probe is
 trained on 670 steps with a learning curve that has not plateaued, so this is a
 floor on the signal class, not a ceiling. (Chapter 7.6)
 
+**C10. The score quality the verifier needs is lower than assumed, and AUROC is
+the wrong way to measure it.** Sweeping a synthetic score of controlled AUROC
+through the same gate puts the crossing — where the task PRM stops costing more
+than it recovers — at **AUROC ≈ 0.65**, below the probe that already exists.
+That threshold is made entirely of false alarms: at a 0% false-alarm rate the
+same verifier is worth having down to AUROC 0.55. No score quality up to 0.99
+holds α = 0.05, so the budget is confirmed as the separate bottleneck across the
+whole range rather than at one point. And equal AUROCs are not equally
+valuable — the probe converts its ranking into 0.7802 projected accuracy where a
+synthetic score of the same AUROC reaches 0.8206, because only the *first* bad
+step in a solution can be repaired and the probe ranks late ones.
+(Chapter 7.4)
+
 ## 1.5 The thesis statement
 
 > Conformal machinery applied to multi-step reasoning certifies whether a step

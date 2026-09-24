@@ -28,6 +28,9 @@ runs/*
 !runs/uncertainty_qwen25_7b_exactmatch.jsonl
 !runs/semantic_samples.jsonl
 !runs/probe_qwen25_7b.json
+# CPU, ~70s, but committed so the regression tests in
+# tests/test_score_quality.py run from a fresh clone.
+!runs/score_quality_threshold.json
 outputs/
 # Thesis figures are build products, but they are the paper's figures --
 # committed so the draft renders on GitHub without a build step.

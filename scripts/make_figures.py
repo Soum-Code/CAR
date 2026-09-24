@@ -161,6 +161,8 @@ BASELINE_ACC = 0.8022
 
 # scripts/gpu_probe_states.py -- the probe result
 PROBE = Path("runs/probe_qwen25_7b.json")
+# scripts/exp_score_quality_threshold.py
+SCORE_QUALITY = Path("runs/score_quality_threshold.json")
 
 # scripts/exp_gate_pipeline.py --probe : selective risk by score quality
 SCORE_VS_RISK = [
@@ -628,6 +630,87 @@ def fig11_score_vs_risk():
     save(fig, "fig11-score-vs-risk")
 
 
+def fig12_score_quality():
+    """Where the verifier stops being a liability, and why AUROC misses it."""
+    import json
+
+    blob = json.loads(SCORE_QUALITY.read_text(encoding="utf-8"))
+    base = blob["baseline_projected_accuracy"]
+    lo, hi = blob["crossing_ci_last_negative"], blob["crossing_ci_first_positive"]
+
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.9))
+
+    # ---- left: projected accuracy against score quality --------------------
+    ax = style(axes[0], grid_axis="both")
+    for key, col, lab in [("sweep_b", S2, "false alarms off"),
+                          ("sweep_a", S1, "measured 9.87% false alarm")]:
+        pts = blob[key]
+        x = [p["auroc_target"] for p in pts]
+        y = [p["projected_accuracy"] for p in pts]
+        ax.fill_between(x, [p["projected_accuracy_lo"] for p in pts],
+                        [p["projected_accuracy_hi"] for p in pts],
+                        color=col, alpha=0.18, lw=0, zorder=2)
+        ax.plot(x, y, color=col, lw=1.8, zorder=3)
+        ax.text(0.995, y[-1] + 0.004, lab, color=col, fontsize=8, ha="right")
+
+    # The band the sweep cannot resolve. Drawing it is the point: a single
+    # crossing number would be quoting seed noise to three decimals.
+    ax.axvspan(lo, hi, color=INK_3, alpha=0.10, lw=0, zorder=1)
+    ax.axhline(base, color=INK_3, ls=(0, (5, 3)), lw=1.2, zorder=2)
+    ax.text(0.553, base + 0.004, f"no gate at all, {base:.4f}", color=INK_2,
+            fontsize=8, va="bottom")
+    ax.text((lo + hi) / 2, 0.957, f"crossing\n{lo:g}–{hi:g}", color=INK_2,
+            fontsize=8, ha="center", va="top")
+
+    # Both labels go to the RIGHT of their marker: token+sem sits at x = 0.5742,
+    # close enough to the axis that a left-placed label overruns the y ticks.
+    for auroc, acc, lab, dy in [(0.5742, 0.7912, "token+sem", 5),
+                                (0.6968, 0.7802, "probe", -12)]:
+        ax.plot([auroc], [acc], marker="D", ms=5.5, color=INK, zorder=5)
+        ax.annotate(lab, (auroc, acc), textcoords="offset points",
+                    xytext=(7, dy), fontsize=8, color=INK, ha="left")
+
+    ax.set_xlim(0.54, 1.0)
+    ax.set_ylim(0.755, 0.97)
+    ax.set_xlabel("score AUROC")
+    ax.set_ylabel("projected accuracy (MODELLED)")
+    ax.set_title("The threshold is made of false alarms", loc="left", pad=10)
+
+    # ---- right: first-bad-step recall, where the real scores come apart ----
+    ax = style(axes[1], grid_axis="both")
+    pts = blob["sweep_a"]
+    x = [p["auroc_target"] for p in pts]
+    ax.plot(x, [p["first_bad_recall"] for p in pts], color=S1, lw=1.8,
+            zorder=3, label="synthetic score")
+    ax.plot(x, [p["recall"] for p in pts], color=INK_3, lw=1.4,
+            ls=(0, (4, 3)), zorder=3, label="  (any bad step)")
+
+    for auroc, fbr, lab, dx in [(0.5742, 0.3590, "token+sem", 5),
+                                (0.6968, 0.3077, "probe", 5)]:
+        ax.plot([auroc], [fbr], marker="D", ms=5.5, color=INK, zorder=5)
+        ax.annotate(lab, (auroc, fbr), textcoords="offset points",
+                    xytext=(dx, -11), fontsize=8, color=INK)
+
+    ax.set_xlim(0.54, 1.0)
+    ax.set_xlabel("score AUROC")
+    ax.set_ylabel("first-bad-step recall")
+    ax.set_title("Equal AUROC, unequal value", loc="left", pad=10)
+    ax.legend(frameon=False, fontsize=8, loc="upper left")
+
+    # Wrapped by hand: `note` does not wrap, and bbox_inches="tight" grows the
+    # canvas to fit a single long line, which flattened this figure to 6:1.
+    note(fig,
+         "Left: 64 seeds per point, band is a 95% CI on the mean; the shaded column is "
+         "where the sweep cannot separate the gate from doing nothing.\n"
+         "Right: the probe sits BELOW the curve for its own AUROC and the composite "
+         "above it. The probe's score correlates +0.18 with step position and the\n"
+         "composite's -0.28, while the projection only pays for the FIRST bad step. "
+         "Calls/q differ across the three (1.18 synthetic, 1.09 token+sem, 0.96\n"
+         "probe); sweep D pins the rate and the ordering holds.",
+         y=-0.10)
+    save(fig, "fig12-score-quality")
+
+
 def main():
     print("writing figures to", OUT)
     fig1_gap()
@@ -645,6 +728,10 @@ def main():
     fig9_verifier_value()
     fig10_probe_layers()
     fig11_score_vs_risk()
+    if SCORE_QUALITY.exists():
+        fig12_score_quality()
+    else:
+        print("  (skipping fig 12: run scripts/exp_score_quality_threshold.py)")
     return 0
 
 

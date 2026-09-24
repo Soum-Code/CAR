@@ -91,6 +91,10 @@ generator improves.
 | C9 — a probe on internal states DOES rank step error | AUROC 0.6968 vs 0.5742; +0.12 | 925 test steps | **measured** |
 | C9b — and it still does not close the gap | risk 0.1432 at alpha=0.05 (2.9x target); PRM still net-negative at 0.7802 | end-to-end run | **measured** |
 | C9c — 0.6968 is a floor, not a ceiling | learning curve 0.7374 -> 0.8748 over 167 -> 670 steps, no plateau | probe run | **measured** |
+| C10 — the verifier turns net-positive at AUROC ~0.65 | net- to 0.625, net+ from 0.700; below the probe's own 0.6968 | 13 x 64 sweep | **measured** |
+| C10b — that threshold is made entirely of false alarms | at FA=0 the same PRM is net-positive down to AUROC 0.55 | ablation | **measured** |
+| C10c — no score quality holds a binding alpha | best is 0.0956 at AUROC 0.99, 1.9x the alpha=0.05 target | sweep | **measured** |
+| C10d — AUROC is not a sufficient figure of merit | equal-AUROC scores differ by 0.04 proj. acc; corr(position, probe)=+0.18 vs composite -0.28 | matched-budget sweep | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
 
 Everything marked *simulated* rests on the propagation model in

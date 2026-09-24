@@ -22,6 +22,8 @@ reproducing.
 | The three failures are independent | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
 | Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
 | A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed, attributably** | 0.6968 measured, learning curve still climbing at 670 training steps |
+| The verifier needs a score "well above 0.70" | this thesis, ch. 7 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65; the probe already clears it |
+| AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
 
 The second-to-last row is the thesis. The last is the correction the oracle
 baseline forced: of the three failure points, only two are separate. The
@@ -101,6 +103,15 @@ false-alarm rate is worth −4 points of accuracy behind a near-chance score and
 +17.6 behind a perfect one. A verifier is not good or bad; it is well or badly
 aimed.
 
+**Do not tune a step-level score on AUROC.** It is the natural metric and it is
+not the quantity a reasoning system is paid on. Under error propagation only the
+*first* bad step in a solution can be repaired, so a score that ranks late
+errors highly scores well on AUROC and rescues nothing. Measured here: a trained
+probe at AUROC 0.6968 converts to 0.7802 projected accuracy where a synthetic
+score of the same AUROC reaches 0.8206, because the probe's score correlates
++0.18 with step position and the synthetic one 0.00. Rank by AUROC if you must
+compare to the literature; select on first-bad-step recall.
+
 **Coverage is not risk.** A conformal guarantee will hold, and be reported as
 holding, while the quantity you care about is untouched. Nothing in the
 procedure warns you. Measure selective risk on the accepted set directly.
@@ -128,9 +139,16 @@ combine better than either alone, so the productive object may be a hybrid.
 The more useful finding is what 0.70 was *not* enough for. It did not make the
 gate hold any binding α, and it did not make the PRM worth having — projected
 accuracy 0.7802, still under the 0.8022 baseline, where the oracle reaches
-0.9780. Somewhere between 0.70 and 1.0 a 9.87%-false-alarm verifier turns from
-liability into a 17.6-point gain, and locating that threshold is a concrete,
-cheap experiment this thesis did not run.
+0.9780.
+
+§7.4 then locates the threshold that earlier drafts could only gesture at. A
+9.87%-false-alarm verifier turns from liability into gain at **AUROC ≈ 0.65**,
+net-negative to 0.625 and net-positive from 0.700 — *below* the probe's own
+0.6968. Two things follow, and they cut in opposite directions. The signal
+bottleneck is nearly closed already, which is more encouraging than this thesis
+expected. And it is closed faster by fixing the verifier's false alarms than by
+improving the score at all: at FA = 0 the PRM is worth having at every score
+quality down to 0.55.
 
 *Embedding perturbation.* Wen et al. argue this reflects intermediate-step
 uncertainty better than sampling-based agreement does. This thesis measured only
@@ -140,21 +158,25 @@ uncertainty *is* readable — so what embedding perturbation would add is a
 cheaper route to it, one that needs no labelled training steps at all.
 
 Chapter 7 is a result about token-level and sampling-based signals, not about
-all possible signals, and §7.6 is the demonstration of that. But the probe also
-sets the bar for what "better" has to mean: 0.6968 was not enough to hold any
-binding α, nor to make the PRM worth its false alarms. The useful target is not
-"beat 0.5742" — it is whichever AUROC turns the verifier net-positive, and that
-number is somewhere above 0.70 and unmeasured.
+all possible signals, and §7.6 is the demonstration of that. But §7.4 also
+changes what "better" should mean. The target is not a higher AUROC: the
+verifier already turns positive at ≈ 0.65, and no AUROC at all holds α = 0.05
+at this budget. The target is a score that ranks the **earliest** bad step
+highly, because that is the only one a repair can rescue. A signal evaluated on
+AUROC alone can improve on that metric while getting worse at the thing the
+system is for — which is what the probe did.
 
 **Bidirectional entailment clustering.** Semantic divergence was measured under
 one equivalence relation. The raw K = 5 samples are committed, so a
 entailment-based relation can be evaluated with no GPU at all — and Chapter 7
 shows the relation is load-bearing, so this is not a detail.
 
-**Verifier calibration rather than verifier reach.** §7.4 suggests the
-productive direction is not a higher-scope verifier but a *better-calibrated*
-one: at 90% detection, halving the false-alarm rate is worth more than any
-further detection gain.
+**Verifier calibration rather than verifier reach.** §7.4 no longer merely
+suggests this, it measures it. The score quality a 90.3%-scope verifier needs
+before it is worth calling is AUROC ≈ 0.65 at a 9.87% false-alarm rate and
+*nothing at all* at a 0% one — the PRM is net-positive down to AUROC 0.55 once
+its false alarms are removed. The threshold is made entirely of false alarms,
+so halving that rate buys more than any further detection gain.
 
 **Verify against verified premises, under a budget.** ARES (You et al., §2.7)
 detects propagated errors at 90.3% F1 by scoring each step solely against

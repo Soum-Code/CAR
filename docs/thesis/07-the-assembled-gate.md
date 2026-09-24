@@ -189,7 +189,7 @@ either number. And it misses α = 0.05 by **2.9×**.
 > be absent." It is not. A better signal exists, improves the gate, uses fewer
 > calls — and the gate still does not hold its target.
 
-Figure 7.6 plots risk against score quality for all three; §7.6 is where the
+Figure 7.7 plots risk against score quality for all three; §7.6 is where the
 probe itself is measured.
 
 ![Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.](figures/fig7-alpha-sweep.png)
@@ -255,10 +255,9 @@ verifier:**
 The probe row is the informative one. It catches **40% more wrong steps** than
 the measured score on *fewer* calls, and projected accuracy is still below the
 0.8022 baseline. At AUROC 0.70 the gate still points the verifier at correct
-steps often enough for false alarms to dominate; only the oracle escapes. So the
-threshold at which a 9.87%-false-alarm verifier becomes worth having sits
-somewhere well above 0.70, and locating it is a question about score quality
-rather than about the verifier.
+steps often enough for false alarms to dominate; only the oracle escapes. So
+there is a score quality at which a 9.87%-false-alarm verifier becomes worth
+having, and the next subsection measures it rather than guessing.
 
 The same verifier, at the same measured 9.87% false-alarm rate, moves projected
 accuracy from 0.7637 to **0.9780** — 17.6 points above the no-gate baseline — on
@@ -277,6 +276,109 @@ population-level version: the PRM is not a bad verifier being oversold, it is a
 good verifier being aimed badly. It also explains the first row of the table
 above — with scope 0.0000 a calculator gate cannot move the answer at all, however
 well aimed, which is exactly what C1 predicts.
+
+### How good does the score have to be?
+
+> Reproduce: `python scripts/exp_score_quality_threshold.py --seeds 64`
+> Full writeup: [docs/FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md)
+
+Score quality can be made a dial. Under the binormal model a globally-wrong step
+draws its score from N(d, 1) and a correct step from N(0, 1), so
+AUROC = Φ(d / √2) and the separation needed for a target AUROC inverts in closed
+form as d = √2 · Φ⁻¹(AUROC). Everything else is held fixed — same corpus, same
+splits, same calibrator, same budget, same verifier at its measured scope and
+false-alarm rate — so what moves between rows is the ranking and nothing else.
+
+| AUROC | verify % | sel. risk | 1st-bad recall | PROJ acc | 95% CI | |
+|---|---|---|---|---|---|---|
+| 0.550 | 22.5% | 0.1536 | 0.2853 | 0.7782 | [0.7725, 0.7840] | net − |
+| 0.625 | 23.1% | 0.1463 | 0.3786 | 0.7940 | [0.7880, 0.8001] | net − |
+| 0.650 | 23.3% | 0.1441 | 0.4111 | 0.8010 | [0.7953, 0.8067] | ~same |
+| **0.700** | 23.6% | 0.1405 | 0.4635 | **0.8119** | [0.8057, 0.8181] | **net +** |
+| 0.800 | 24.1% | 0.1335 | 0.5753 | 0.8341 | [0.8282, 0.8400] | net + |
+| 0.990 | 24.6% | 0.1258 | 0.7736 | 0.8712 | [0.8650, 0.8775] | net + |
+
+**The crossing is at AUROC ≈ 0.65** — net-negative up to 0.625, net-positive
+from 0.700, with the means crossing the 0.8022 baseline at 0.657. Between those
+two the sweep cannot distinguish the gated system from doing nothing, so the
+result is an interval, not a point. 64 seeds per row.
+
+An earlier draft of this section guessed "well above 0.70". That was wrong in
+the direction that matters: the requirement is *lower* than assumed, and the
+probe's 0.6968 is sitting on the boundary rather than far short of it.
+
+**The threshold is made entirely of false alarms.** Rerun the sweep with the
+verifier's false-alarm rate switched off and there is no crossing to find:
+
+| AUROC | 0.550 | 0.650 | 0.750 | 0.900 | 0.990 |
+|---|---|---|---|---|---|
+| PROJ acc, FA = 0.0987 | 0.7782 | 0.8010 | 0.8219 | 0.8566 | 0.8712 |
+| PROJ acc, FA = 0 | 0.8589 | 0.8844 | 0.9045 | 0.9421 | 0.9563 |
+
+At FA = 0 the verifier is worth having at *every* score quality tested,
+including 0.55 — a score barely better than a coin. The entire question "how
+good does the score need to be" is created by the false-alarm rate, which makes
+this the sharpest form of §7.4's correction and the one a practitioner can act
+on: halving a verifier's false-alarm rate lowers the score quality you need
+more than raising its detection rate does.
+
+**And no score quality holds a binding α at this budget.** At α = 0.05 the best
+any row manages is selective risk 0.0956, at AUROC 0.99 — still 1.9× the
+target. §7.3 showed that at a single point with a binary oracle; the sweep shows
+it across the whole range, which rules out reading the oracle's failure as an
+artifact of its degenerate score distribution. Score quality is not the binding
+constraint on risk control. The budget is.
+
+![Left: projected accuracy against score AUROC, with and without false alarms. Right: first-bad-step recall, where the two real scores come apart from the synthetic curve.](figures/fig12-score-quality.png)
+
+**Figure 7.5.** Where the verifier stops being a liability, and why AUROC does
+not predict it. Shaded column on the left is the interval the sweep cannot
+resolve.
+
+### AUROC is not a sufficient description of a score
+
+The sweep also answers a question it was not built for. Pinning verification at
+19.1% — the probe's measured rate, so only the ranking differs — gives:
+
+| | AUROC | calls/q | recall | 1st-bad recall | PROJ acc |
+|---|---|---|---|---|---|
+| synthetic score | 0.6974 | 0.79 | 0.2416 | **0.3413** | **0.8206** |
+| **probe, layer 25** | 0.6968 | 0.96 | 0.2465 | **0.3077** | **0.7802** |
+
+The probe sits at the **0th percentile of 64 synthetic draws** on the same 182
+test questions. It catches slightly *more* wrong steps and rescues *fewer*
+answers, and the mechanism is measurable rather than inferred:
+
+```
+corr(normalised step position, probe score)      +0.1813
+corr(normalised step position, composite score)  -0.2766
+```
+
+**The probe flags late steps; the composite flags early ones.** Chapter 6
+measured local error rising with position — corr(position, error) = +0.950,
+doubling from 11% at step 1 to 22% at step 8 — so a score that chases positional
+difficulty is rewarded on AUROC. But the projection only pays for the **first**
+bad step, because everything downstream inherits corruption that repairing a
+later step does not undo (C2, and 0 recoveries in 25,971 solutions). The
+probe's AUROC advantage is being spent where it cannot buy an answer.
+
+> Two scores with identical AUROC are worth different amounts. What a
+> step-level score is worth depends on **which** errors it ranks highly, and
+> under a propagation objective the ones that count are the earliest.
+
+Two consequences for how the rest of this chapter should be read. The crossing
+above is an estimate for a *well-behaved* score, so 0.65 is a floor on the
+requirement rather than a specification — a real score with a positional bias
+lands below the synthetic curve, exactly as the probe does. And the AUROCs in
+§7.2 are the right measurement of the wrong quantity: comparable to each other
+and to the literature, but not sufficient to predict what a score is worth in
+the loop.
+
+The honest limit on this: only **40 of 182** test trajectories contain a
+globally-wrong step, so first-bad recall has a denominator near 39 and any
+single pair of rows differs by two or three trajectories. The claim rests on the
+monotone trend across 13 grid points × 64 seeds (0.2853 → 0.7736), not on the
+probe-versus-synthetic pair alone.
 
 ## 7.5 What is measured and what is modelled
 
@@ -323,11 +425,11 @@ the same hash splits — so the AUROCs compare step for step.
 
 ![Left: AUROC by hidden layer, every layer tried. Right: the learning curve, still climbing.](figures/fig10-probe-layers.png)
 
-**Figure 7.5.** The probe's layer profile and learning curve. A smooth rise through the network, peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates.
+**Figure 7.6.** The probe's layer profile and learning curve. A smooth rise through the network, peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates.
 
 ![Selective risk against score AUROC, with the alpha targets and the no-gate line.](figures/fig11-score-vs-risk.png)
 
-**Figure 7.6.** Same corpus, calibrator and budget; only the score differs — the measured signals at 0.5742, the probe at 0.6968, an oracle at 1.0. A better score helps monotonically and still does not reach either target.
+**Figure 7.7.** Same corpus, calibrator and budget; only the score differs — the measured signals at 0.5742, the probe at 0.6968, an oracle at 1.0. A better score helps monotonically and still does not reach either target.
 
 
 ### Two things that stop this being over-read
@@ -364,7 +466,7 @@ Three independent failures, each with a number and a regression test:
 |---|---|---|
 | the measured signals do not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742; a probe reaches 0.6968 | binding, and *not* a dead end — the signal exists, and a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
 | the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
-| the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle |
+| the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle, and turns positive at AUROC ≈ 0.65 |
 
 The oracle run changes the shape of this conclusion, and it is worth being
 exact. The three failures are *not* independent in the way an earlier draft of
@@ -377,6 +479,16 @@ So the honest summary is two bottlenecks, one of which subsumes the third:
 **the signal, and the budget.** Better uncertainty estimation is necessary and
 not sufficient; better calibration cannot help while the score does not rank;
 and the verifier was never the problem.
+
+The score-quality sweep puts numbers on both halves of that and adds a third
+thing nobody asked for. The verifier turns positive at AUROC ≈ 0.65, which is
+*below* the probe's 0.6968 — so the signal bottleneck is nearly cleared
+already, and it is cleared entirely by removing false alarms rather than by
+improving the score at all. The budget bottleneck, by contrast, survives the
+whole range: no score quality up to 0.99 holds α = 0.05. And the third thing is
+that **AUROC turns out to be the wrong target** — the probe converts its ranking
+into answers worse than a synthetic score of identical AUROC, because it ranks
+late steps and only the first bad step can be repaired.
 
 `docs/THESIS.md` listed three possible outcomes before this run and called the
 negative one the most interesting. It arrived by a different route than

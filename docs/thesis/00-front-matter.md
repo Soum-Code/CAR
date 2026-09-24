@@ -62,6 +62,15 @@ the signal is not absent either. Neither rescues the gate: the probe misses
 α = 0.05 by 2.9× and the oracle by 1.8×, because at two verification calls per
 question the budget binds regardless of ranking.
 
+A sweep over synthetic scores of controlled AUROC then locates the threshold
+the verifier needs. It is **≈ 0.65** — below the probe that already exists —
+and it is made entirely of false alarms: at a 0% false-alarm rate the same
+verifier pays for itself down to AUROC 0.55. The sweep also refutes the metric
+it is built on. Two scores of identical AUROC are worth different amounts,
+because error propagation means only the *first* bad step in a solution can be
+repaired, and a score that ranks late steps highly earns AUROC it cannot
+convert.
+
 The contribution is therefore a characterisation of a design space rather than
 a system: selective verification of LLM reasoning fails at the signal, at the
 calibration, and at the verifier, and repairing any one of them is not
