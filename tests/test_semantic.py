@@ -11,6 +11,7 @@ with verbosity rather than with doubt.
 import pytest
 
 from car.uncertainty.semantic import (
+    EntailmentEquivalence,
     cluster_by_equivalence,
     exact_match_equivalence,
     normalised_semantic_divergence,
@@ -111,3 +112,153 @@ def test_majority_agreement_sits_between_the_extremes():
     )
     d = normalised_semantic_divergence(ids)
     assert 0.0 < d < 1.0
+
+
+# ---- bidirectional entailment ----------------------------------------
+# The NLI model is a 1.6GB download and far too slow for a unit test, so these
+# stub `_entails_batch` and exercise the logic around it: the bidirectionality,
+# the cache, the batching hook and the question conditioning. What the model
+# itself decides is measured in docs/FINDINGS-ENTAILMENT.md, not asserted here.
+
+
+class FakeNLI(EntailmentEquivalence):
+    """Entails iff the directed pair is in `truth`. Counts forward passes."""
+
+    def __init__(self, truth, **kw):
+        super().__init__(**kw)
+        self.truth = set(truth)
+        self.batches = 0
+
+    def _entails_batch(self, keys):
+        if keys:
+            self.batches += 1
+        self.calls += len(keys)
+        # Keys are (context, premise, hypothesis); the fake ignores context so
+        # the tests can state their expectations as plain text pairs.
+        return [(a, b) in self.truth for _, a, b in keys]
+
+
+def test_entailment_must_hold_in_both_directions():
+    """One-way entailment is not equivalence.
+
+    "he sold 24 clips" entails "he sold clips" and not the reverse, and calling
+    that a shared meaning is what collapses distinct answers into one cluster.
+    """
+    eq = FakeNLI({("a", "b")})
+    assert not eq("a", "b")
+    assert not eq("b", "a")
+
+    eq = FakeNLI({("a", "b"), ("b", "a")})
+    assert eq("a", "b")
+    assert eq("b", "a")
+
+
+def test_identical_texts_never_reach_the_model():
+    eq = FakeNLI(set())
+    assert eq("same", "same")
+    assert eq.calls == 0
+
+
+def test_prime_batches_every_pair_at_once():
+    """Without priming this is one forward pass per question, which on CPU is
+    the difference between half an hour and half a day."""
+    eq = FakeNLI({("a", "b"), ("b", "a")})
+    eq.prime(["a", "b", "c"])
+    assert eq.batches == 1
+    assert eq.calls == 6  # 3 texts, ordered pairs, self-pairs skipped
+
+    before = eq.calls
+    assert eq("a", "b")
+    assert not eq("a", "c")
+    assert eq.calls == before  # answered from cache
+
+
+def test_prime_does_not_repeat_work_across_steps():
+    eq = FakeNLI({("a", "b"), ("b", "a")})
+    eq.prime(["a", "b"])
+    first = eq.calls
+    eq.prime(["a", "b"])
+    assert eq.calls == first
+
+
+def test_clustering_through_the_relation_merges_only_mutual_pairs():
+    eq = FakeNLI({("x", "y"), ("y", "x")})
+    eq.prime(["x", "y", "z"])
+    ids = cluster_by_equivalence(["x", "y", "z"], eq)
+    assert ids[0] == ids[1]
+    assert ids[2] != ids[0]
+
+
+def test_context_is_prepended_to_both_sides():
+    """Kuhn et al. condition entailment on the question; two step fragments can
+    be mutually entailing as bare strings and disagree as answers to it."""
+    eq = FakeNLI(set())
+    eq.set_context("Q: how many clips?")
+    assert eq._pair("a", "b") == ("Q: how many clips? a", "Q: how many clips? b")
+    eq.set_context("")
+    assert eq._pair("a", "b") == ("a", "b")
+
+
+def test_prime_many_fills_one_batch_across_steps():
+    """The reason the corpus is primed before clustering rather than per step.
+
+    A single step has ~11 distinct ordered pairs, nowhere near a batch; priming
+    per step measured under 0.2 steps/s on 16 cores.
+    """
+    eq = FakeNLI(set(), batch_size=64)
+    eq.prime_many([("q1", ["a", "b"]), ("q2", ["c", "d"]), ("q3", ["e", "f"])])
+    assert eq.batches == 1
+    assert eq.calls == 6
+
+
+def test_cache_is_keyed_on_context_too():
+    """Two identical fragments can entail under one question and not another.
+
+    A context-blind cache reuses the first verdict for the second question,
+    which is wrong rather than merely approximate -- and silent.
+    """
+    eq = FakeNLI({("a", "b"), ("b", "a")})
+    eq.set_context("Q1")
+    eq.prime(["a", "b"])
+    assert eq("a", "b")
+
+    before = eq.calls
+    eq.set_context("Q2")
+    eq.prime(["a", "b"])
+    assert eq.calls > before, "second question must not reuse the first's cache"
+
+
+def test_prime_many_reports_progress():
+    """A half-hour CPU run with no output is indistinguishable from a hung one."""
+    seen = []
+    eq = FakeNLI(set(), batch_size=2)
+    eq.prime_many([("q", ["a", "b", "c"])], progress=lambda d, t: seen.append((d, t)))
+    assert seen and seen[-1][0] == seen[-1][1]
+
+
+def test_verdicts_survive_a_restart(tmp_path):
+    """Resumability. The NLI pass is ~28k pairs at ~2/s on CPU -- nearly four
+    hours -- and losing it to an interruption is the failure mode that has
+    already cost this project one long run."""
+    path = tmp_path / "cache.jsonl"
+    eq = FakeNLI({("a", "b"), ("b", "a")}, cache_path=path)
+    eq.set_context("Q")
+    eq.prime(["a", "b"])
+    first = eq.calls
+    eq.close()
+    assert first > 0
+
+    resumed = FakeNLI(set(), cache_path=path)  # empty truth: any call is a miss
+    resumed.set_context("Q")
+    assert resumed.cached_hits == first
+    assert resumed("a", "b")          # answered from the persisted verdicts
+    assert resumed.calls == 0
+
+
+def test_a_truncated_cache_line_is_skipped_not_fatal(tmp_path):
+    """A hard kill mid-write leaves a partial final line."""
+    path = tmp_path / "cache.jsonl"
+    path.write_text('{"c":"Q","a":"a","b":"b","e":true}\n{"c":"Q","a":"a","b"',
+                    encoding="utf-8")
+    eq = FakeNLI(set(), cache_path=path)
+    assert eq.cached_hits == 1

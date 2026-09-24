@@ -57,6 +57,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from car.data.generated import ANSWER_PREFIX, build_fewshot, generation_prompt  # noqa: E402
 from car.data.math_shepherd import load_solutions  # noqa: E402
 from car.uncertainty.semantic import (  # noqa: E402
+    EntailmentEquivalence,
     cluster_by_equivalence,
     exact_match_equivalence,
     normalised_semantic_divergence,
@@ -66,7 +67,16 @@ from car.uncertainty.semantic import (  # noqa: E402
 TRAIN = Path("data/raw/gsm8k/train.jsonl")
 MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
-EQUIVALENCE = {"numeric": numeric_equivalence, "exact": exact_match_equivalence}
+# Factories, not instances: the entailment relation loads a 400M-parameter NLI
+# model on first use, and the other two must stay free to construct.
+EQUIVALENCE = {
+    "numeric": lambda: numeric_equivalence,
+    "exact": lambda: exact_match_equivalence,
+    # Verdicts are cached to disk: the NLI pass is ~28k pairs at ~2/s on CPU,
+    # and a run that long needs to survive an interruption.
+    "entailment": lambda: EntailmentEquivalence(
+        cache_path=Path("runs/entailment_cache.jsonl")),
+}
 
 
 def strip_answer_tail(text: str) -> str:
@@ -273,9 +283,13 @@ def main():
               flush=True)
 
     if args.cluster_only:
-        missing = len(prompts) - len(already)
+        # By index, not by count: with --limit the checkpoint legitimately holds
+        # MORE samples than this run needs, and a count comparison reported that
+        # as a negative shortfall and refused to run.
+        missing = [i for i in range(len(prompts)) if i not in already]
         if missing:
-            print(f"cluster-only, but {missing} prompts have no samples")
+            print(f"cluster-only, but {len(missing)} prompts have no samples "
+                  f"(first: {missing[0]})")
             return 1
         samples = [already[i] for i in range(len(prompts))]
     else:
@@ -286,7 +300,28 @@ def main():
             checkpoint=ckpt, done=already,
         )
 
-    eq = EQUIVALENCE[args.equivalence]
+    eq = EQUIVALENCE[args.equivalence]()
+
+    # A model-backed relation is primed for the WHOLE corpus before clustering
+    # starts. One step has ~11 distinct ordered pairs, which does not fill a
+    # batch; priming per step measured under 0.2 steps/s on 16 cores. Collecting
+    # every pair first lets them be sorted by length and batched properly.
+    if hasattr(eq, "prime_many"):
+        groups = [(sols[si].question, [t for t in texts if t])
+                  for (si, _), texts in zip(index, samples, strict=True)]
+        t_start = time.time()
+
+        def report(done, total, _t0=t_start):
+            if done % (eq.batch_size * 20) and done != total:
+                return
+            rate = done / max(1e-9, time.time() - _t0)
+            print(f"  {done:,}/{total:,} NLI pairs  {rate:.1f}/s  "
+                  f"eta {(total - done) / max(rate, 1e-9) / 60:.1f} min",
+                  flush=True)
+
+        eq.prime_many(groups, progress=report)
+        print(f"  primed in {(time.time() - t_start) / 60:.1f} min", flush=True)
+
     n_singleton = n_unanimous = 0
     for (si, ti), texts in zip(index, samples, strict=True):
         texts = [t for t in texts if t]
@@ -294,6 +329,10 @@ def main():
             div = 0.0
             n_singleton += 1
         else:
+            # Entailment conditions on the question; the cheap relations have
+            # no such hook and ignore it.
+            if hasattr(eq, "set_context"):
+                eq.set_context(sols[si].question)
             ids = cluster_by_equivalence(texts, eq)
             div = normalised_semantic_divergence(ids)
             if len(set(ids)) == 1:

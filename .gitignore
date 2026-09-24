@@ -31,6 +31,10 @@ runs/*
 # CPU, ~70s, but committed so the regression tests in
 # tests/test_score_quality.py run from a fresh clone.
 !runs/score_quality_threshold.json
+# ~4h of CPU NLI. The per-pair verdicts, so the clustering can be
+# rerun or a different relation compared without repeating the pass.
+!runs/entailment_cache.jsonl
+!runs/uncertainty_qwen25_7b_entail.jsonl
 outputs/
 # Thesis figures are build products, but they are the paper's figures --
 # committed so the draft renders on GitHub without a build step.
@@ -44,6 +48,8 @@ outputs/
 !runs/uncertainty_qwen25_7b_sem.jsonl
 !runs/uncertainty_qwen25_7b_exactmatch.jsonl
 !runs/semantic_samples.jsonl
+!runs/entailment_cache.jsonl
+!runs/uncertainty_qwen25_7b_entail.jsonl
 
 # Model + data caches
 .cache/
