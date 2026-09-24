@@ -11,6 +11,11 @@ from car.uncertainty.features import (
     perplexity,
     token_entropy,
 )
+from car.uncertainty.probe import (
+    ProbeResult,
+    learning_curve,
+    select_and_fit,
+)
 from car.uncertainty.semantic import (
     cluster_by_equivalence,
     exact_match_equivalence,
@@ -27,9 +32,12 @@ __all__ = [
     "fit_weights_logistic",
     "max_surprisal",
     "mean_logprob",
+    "ProbeResult",
+    "learning_curve",
     "normalised_semantic_divergence",
     "numeric_equivalence",
     "perplexity",
+    "select_and_fit",
     "semantic_entropy",
     "token_entropy",
 ]
