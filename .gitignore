@@ -27,6 +27,7 @@ runs/*
 !runs/uncertainty_qwen25_7b_sem.jsonl
 !runs/uncertainty_qwen25_7b_exactmatch.jsonl
 !runs/semantic_samples.jsonl
+!runs/probe_qwen25_7b.json
 outputs/
 # Thesis figures are build products, but they are the paper's figures --
 # committed so the draft renders on GitHub without a build step.

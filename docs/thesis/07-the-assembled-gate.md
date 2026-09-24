@@ -51,6 +51,15 @@ steps −0.3323. The direction is right and the separation is negligible.
 a one-standard-deviation separation gives AUROC **0.8668**, and on pure noise
 **0.4828**. The machinery detects signal when there is signal.
 
+### A probe on internal states does rank it
+
+The obvious objection — that the signal might exist somewhere the measured
+features do not reach — is testable, and §7.6 tests it. A logistic probe on the
+generator's own frozen hidden states reaches **AUROC 0.6968**, +0.12 over
+everything above. So the result in this section is about *these signals*, not
+about step-level uncertainty in general. It does not change the conclusions
+below, and why it does not is the more interesting half.
+
 
 ![ROC for detecting a globally-wrong step. All three real signals hug the diagonal; the dashed control shows what the same harness does when a signal exists.](figures/fig6-roc.png)
 
@@ -134,6 +143,10 @@ At α = 0.05 the measured selective risk is **three times the target**. The risk
 hardly moves across the whole sweep — 0.1491 to 0.1587 — while verification
 climbs from 4.6% to 26.9%. **The gate spends budget and buys nothing.**
 
+Token-level features alone give the same picture (0.1468 at α = 0.05), which is
+the point: adding the specification's favoured signal changed AUROC by 0.015
+and changed risk control by nothing.
+
 ### How much of that is the score, and how much the budget
 
 The oracle answers this, because it changes the score and nothing else:
@@ -143,6 +156,7 @@ The oracle answers this, because it changes the score and nothing else:
 | no gate | 0.0% | 0.00 | 0.1554 |
 | split conformal, α = 0.05 | 4.6% | 0.23 | 0.1491 |
 | split conformal, α = 0.30 | 21.8% | 1.09 | 0.1538 |
+| **probe score, α = 0.30** | **19.1%** | **0.96** | **0.1394** |
 | **oracle score** | **7.3%** | **0.37** | **0.0885** |
 
 A perfect score cuts selective risk by 43% *and* spends a third of the
@@ -158,10 +172,25 @@ quantile nowhere to move.)
 Two bottlenecks, and they are separable: the score is worth 0.154 → 0.089, and
 the budget is what stands between 0.089 and 0.05.
 
-Token-level features alone give the same picture (0.1468 at α = 0.05), which is
-the point: adding the specification's favoured signal changed AUROC by 0.015
-and changed risk control by nothing.
+The probe sits where its AUROC predicts. At every α it improves on the measured
+score and misses the target:
 
+| α | target | token + semantic | **probe** | oracle |
+|---|---|---|---|---|
+| 0.05 | 0.05 | 0.1491 | **0.1432** | 0.0885 |
+| 0.10 | 0.10 | 0.1494 | **0.1363** | 0.0885 |
+| 0.30 | — | 0.1538 | **0.1394** | 0.0885 |
+
+It closes about 29% of the AUROC gap to a perfect score and about 22% of the
+risk gap, which is the internal consistency one would want before believing
+either number. And it misses α = 0.05 by **2.9×**.
+
+> The earlier version of this chapter could be read as "the signal happened to
+> be absent." It is not. A better signal exists, improves the gate, uses fewer
+> calls — and the gate still does not hold its target.
+
+Figure 7.6 plots risk against score quality for all three; §7.6 is where the
+probe itself is measured.
 
 ![Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.](figures/fig7-alpha-sweep.png)
 
@@ -220,7 +249,16 @@ verifier:**
 |---|---|---|---|---|
 | real, split conformal | task PRM | 1.09 | 0.1761 | 0.7912 |
 | real, always verify | task PRM | 1.89 | 0.2606 | **0.7637** |
+| probe | task PRM | 0.96 | 0.2465 | 0.7802 |
 | **oracle** | **task PRM** | **0.37** | **0.4366** | **0.9780** |
+
+The probe row is the informative one. It catches **40% more wrong steps** than
+the measured score on *fewer* calls, and projected accuracy is still below the
+0.8022 baseline. At AUROC 0.70 the gate still points the verifier at correct
+steps often enough for false alarms to dominate; only the oracle escapes. So the
+threshold at which a 9.87%-false-alarm verifier becomes worth having sits
+somewhere well above 0.70, and locating it is a question about score quality
+rather than about the verifier.
 
 The same verifier, at the same measured 9.87% false-alarm rate, moves projected
 accuracy from 0.7637 to **0.9780** — 17.6 points above the no-gate baseline — on
@@ -265,13 +303,66 @@ a correct step as fatal to the answer, where a real system might revise a
 correct step to another correct value. The *direction* of the false-alarm
 result is isolated by the FA = 0 ablation; the *magnitude* is not robust.
 
-## 7.6 What this chapter establishes
+## 7.6 A probe on internal states
+
+> Reproduce: `python scripts/gpu_probe_states.py`, then
+> `python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json`
+> Full writeup: [docs/FINDINGS-PROBE.md](../FINDINGS-PROBE.md)
+
+ReProbe (Ni et al., §2.4) trains a sub-10M-parameter probe on a frozen model's
+internal states and matches PRMs up to 810× larger. That makes it the cheapest
+available test of whether §7.2's result is about the *particular* signals
+measured there.
+
+One teacher-forced pass per solution over the same corpus, hidden states taken
+at each step's final token for all 29 hidden-state tensors (the embedding
+output plus 28 transformer layers), a logistic probe per layer, and
+the same hash splits — so the AUROCs compare step for step.
+
+**AUROC 0.6968 on test**, against 0.5742 for the best of the measured signals.
+
+![Left: AUROC by hidden layer, every layer tried. Right: the learning curve, still climbing.](figures/fig10-probe-layers.png)
+
+**Figure 7.5.** The probe's layer profile and learning curve. A smooth rise through the network, peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates.
+
+![Selective risk against score AUROC, with the alpha targets and the no-gate line.](figures/fig11-score-vs-risk.png)
+
+**Figure 7.6.** Same corpus, calibrator and budget; only the score differs — the measured signals at 0.5742, the probe at 0.6968, an oracle at 1.0. A better score helps monotonically and still does not reach either target.
+
+
+### Two things that stop this being over-read
+
+**The winner's curse is large, and visible.** The selection-split AUROC is
+**0.8748** against 0.6968 on test — a **0.18 gap**, from choosing the best of 29
+layers × 5 regularisation strengths on 287 selection steps. Had the layer been
+chosen on test, this section would report ~0.87 and claim the probe beats the
+ch. 5 PRM. `select_and_fit` does not take test indices as a parameter, and a
+test asserts its signature cannot grow one; the discipline is worth 0.18 AUROC
+of wrongness here.
+
+**The probe is data-starved, so 0.6968 is a floor.** The learning curve climbs
+0.7374 → 0.8748 across 167 → 670 training steps with no sign of a plateau, and
+ReProbe trains on far more. Every conclusion above should be read as "at this
+level of probe training". The one that does not depend on it is the oracle's:
+even a perfect score misses α = 0.05 by 1.8×, because at two calls per question
+over 5.15 steps the budget binds regardless of ranking.
+
+### What it changes
+
+Chapter 9 predicted, before the run, that a probe here would land near the
+ch. 5 PRM's 0.9033 rather than above it — reasoning that ReProbe's margin is
+largest out of domain while strong PRMs reach parity on GSM8K. The measured
+0.6968 is **below** that, with the training curve still climbing, so the miss is
+attributable to probe-scale training on 670 steps rather than to the reasoning.
+The prediction is worth re-running with proper training data, not retracting.
+
+## 7.7 What this chapter establishes
 
 Three independent failures, each with a number and a regression test:
 
-| failure point | measurement | what the oracle says about it |
+| failure point | measurement | what the oracle and the probe say about it |
 |---|---|---|
-| the signal does not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742 | this is the binding one: a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
+| the measured signals do not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742; a probe reaches 0.6968 | binding, and *not* a dead end — the signal exists, and a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
 | the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
 | the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle |
 
@@ -292,7 +383,7 @@ negative one the most interesting. It arrived by a different route than
 predicted — not because reach is universally low, but because the failures are
 distributed across the whole pipeline.
 
-## 7.7 Limits
+## 7.8 Limits
 
 - **182 test questions, 940 test steps.** The α-sweep gap (0.149 against a 0.05
   target) is far too large to be sampling noise, but finer between-condition
@@ -305,6 +396,11 @@ distributed across the whole pipeline.
   bidirectional entailment might cluster differently on the 59% of steps that
   are prose. The raw samples are committed
   (`runs/semantic_samples.jsonl`) so another relation can be tried with no GPU.
+- **The probe is trained on 670 steps.** ReProbe trains on far more, and the
+  learning curve has not plateaued, so 0.6968 is a floor on what this signal
+  class can do here rather than an estimate of it. Every statement about what
+  AUROC 0.70 fails to buy is sound; statements about what internal states
+  *cannot* do are not available from this run.
 - **Chain topology.** Replay assumes each step depends on the previous one.
   Influence weighting is off by default, having lost to uniform five times, so
   this affects little — but it is an assumption.

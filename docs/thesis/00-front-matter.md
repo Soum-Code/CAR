@@ -47,13 +47,20 @@ intuition that early errors are cheaper to catch is correct; the inference that
 early steps should therefore be verified is not, because later steps are
 measurably harder (corr(position, local error) = +0.950).
 
-**Fourth, the assembled gate fails, at three independent points.** Generator
-uncertainty barely ranks step error (AUROC 0.5589 for token-level signals,
-0.5740 for resampled semantic divergence, 0.5742 combined). Split conformal
-calibration consequently holds its *coverage* guarantee while missing its
-selective-risk target by a factor of three. And the one verifier with real
-reach is net-negative in deployment, because its 9.87% false-alarm rate acts on
-a step population that is 84.2% correct.
+**Fourth, the assembled gate fails — and an oracle and a trained probe locate
+why.** Generator uncertainty barely ranks step error (AUROC 0.5589 token-level,
+0.5740 resampled semantic divergence, 0.5742 combined). Split conformal
+consequently holds its *coverage* guarantee while missing its selective-risk
+target by a factor of three, and the one verifier with real reach is
+net-negative behind that score.
+
+Two controls separate cause from consequence. An **oracle score** takes
+selective risk 0.154 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
+the calls, so the verifier was never the problem — it was being aimed badly. A
+**probe on the generator's own frozen hidden states** reaches AUROC 0.6968, so
+the signal is not absent either. Neither rescues the gate: the probe misses
+α = 0.05 by 2.9× and the oracle by 1.8×, because at two verification calls per
+question the budget binds regardless of ranking.
 
 The contribution is therefore a characterisation of a design space rather than
 a system: selective verification of LLM reasoning fails at the signal, at the

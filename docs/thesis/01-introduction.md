@@ -143,6 +143,14 @@ the calls, so the verifier result is downstream of the score rather than a
 separate defect. It also still misses α = 0.05 by 1.8×, which locates the
 second and genuinely independent bottleneck: the budget. (Chapter 7)
 
+**C9. A better signal exists, and is still not enough.** A logistic probe on the
+generator's own frozen hidden states reaches **AUROC 0.6968** against 0.5742 for
+everything else measured — so the failure is not that step-level uncertainty is
+unreadable. It improves selective risk at every α on fewer calls, and still
+misses α = 0.05 by 2.9× and leaves the task PRM net-negative. The probe is
+trained on 670 steps with a learning curve that has not plateaued, so this is a
+floor on the signal class, not a ceiling. (Chapter 7.6)
+
 ## 1.5 The thesis statement
 
 > Conformal machinery applied to multi-step reasoning certifies whether a step

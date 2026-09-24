@@ -20,6 +20,8 @@ reproducing.
 | C3's `net = scope − FA` is the figure of merit | this thesis, ch. 5 | **corrected** | base-rate error; see §7.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at every binding α |
 | The three failures are independent | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
+| Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
+| A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed, attributably** | 0.6968 measured, learning curve still climbing at 670 training steps |
 
 The second-to-last row is the thesis. The last is the correction the oracle
 baseline forced: of the three failure points, only two are separate. The
@@ -110,27 +112,39 @@ ancestor count.
 
 ## 9.4 Future work
 
-**A better step-level signal is the bottleneck**, and two candidates were left
-untested — both with a concrete, checkable prediction attached.
+**A better step-level signal is the bottleneck.** Two candidates were named here
+with a concrete, checkable prediction attached to each. One has since been run,
+and the result is recorded below alongside the prediction it missed.
 
-*Probes on frozen internal states.* ReProbe (Ni et al.) trains a sub-10M-
-parameter probe that beats PRMs 150x larger. But its margin is largest **out of
-domain**, and the strongest PRMs reach parity with it on GSM8K. The prediction
-for this setup is therefore specific: a probe should land near the ch. 5 PRM's
-0.9033, not above it — which would make the signal good enough to calibrate on
-while leaving §7.4's false-alarm problem entirely intact. Ni et al. also find
-probe and PRM combine better than either alone, so the productive object may be
-a hybrid rather than a replacement.
+*Probes on frozen internal states — now tested, and worth continuing.* §7.6
+reports AUROC **0.6968**, +0.12 over everything else measured here, improving
+selective risk at every α on fewer calls. The prediction that it would land near
+0.9033 was **wrong in an attributable direction**: 670 training steps against
+ReProbe's far larger sets, with a learning curve that has not plateaued. The
+obvious next step is the same probe with proper training data, and the
+prediction re-run rather than abandoned. Ni et al. also find probe and PRM
+combine better than either alone, so the productive object may be a hybrid.
+
+The more useful finding is what 0.70 was *not* enough for. It did not make the
+gate hold any binding α, and it did not make the PRM worth having — projected
+accuracy 0.7802, still under the 0.8022 baseline, where the oracle reaches
+0.9780. Somewhere between 0.70 and 1.0 a 9.87%-false-alarm verifier turns from
+liability into a 17.6-point gain, and locating that threshold is a concrete,
+cheap experiment this thesis did not run.
 
 *Embedding perturbation.* Wen et al. argue this reflects intermediate-step
 uncertainty better than sampling-based agreement does. This thesis measured only
 the family they argue against, so their alternative is untouched by the negative
-result here — it is the cheapest remaining test of whether the AUROC 0.56 result
-is about *these* signals or about step-level uncertainty generally.
+result here. The probe has already settled the general question — step-level
+uncertainty *is* readable — so what embedding perturbation would add is a
+cheaper route to it, one that needs no labelled training steps at all.
 
-A signal reaching even 0.75 would make the rest of this pipeline worth
-rebuilding. Chapter 7 is a result about token-level and sampling-based signals,
-not about all possible signals.
+Chapter 7 is a result about token-level and sampling-based signals, not about
+all possible signals, and §7.6 is the demonstration of that. But the probe also
+sets the bar for what "better" has to mean: 0.6968 was not enough to hold any
+binding α, nor to make the PRM worth its false alarms. The useful target is not
+"beat 0.5742" — it is whichever AUROC turns the verifier net-positive, and that
+number is somewhere above 0.70 and unmeasured.
 
 **Bidirectional entailment clustering.** Semantic divergence was measured under
 one equivalence relation. The raw K = 5 samples are committed, so a
@@ -202,6 +216,13 @@ instead measured why one does not work. The final statement:
 > verification calls — so the verifier was never the problem, and the score is.
 > But the oracle still misses α = 0.05 by 1.8×, because at two calls per
 > question most wrong steps go unverified however well they are ranked.
+>
+> And a better signal does exist: a probe on the generator's own frozen hidden
+> states reaches 0.6968 against 0.5742, and improves the gate at every α on
+> fewer calls. It is not enough. It misses α = 0.05 by 2.9×, and leaves the
+> task PRM still net-negative. The failure is not that step-level uncertainty
+> is unreadable — it is that reading it better than anything here managed still
+> does not buy risk control at a realistic budget.
 >
 > Selective verification of LLM reasoning is bottlenecked at the **signal** and
 > at the **budget**. The verifier is downstream of the first, and the

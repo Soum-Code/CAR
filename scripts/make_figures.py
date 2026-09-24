@@ -159,6 +159,17 @@ VERIFIER_VALUE = [
 ]
 BASELINE_ACC = 0.8022
 
+# scripts/gpu_probe_states.py -- the probe result
+PROBE = Path("runs/probe_qwen25_7b.json")
+
+# scripts/exp_gate_pipeline.py --probe : selective risk by score quality
+SCORE_VS_RISK = [
+    ("token + semantic", 0.5742, 0.1491, 0.1494, 0.1538),
+    ("probe, layer 25", 0.6968, 0.1432, 0.1363, 0.1394),
+    ("oracle", 1.0000, 0.0885, 0.0885, 0.0885),
+]
+NO_GATE_RISK = 0.1554
+
 CORPUS = Path("runs/generated_qwen25_7b.jsonl")
 FEATURES = Path("runs/uncertainty_qwen25_7b_sem.jsonl")
 
@@ -538,6 +549,85 @@ def fig9_verifier_value():
     save(fig, "fig9-verifier-value")
 
 
+def fig10_probe_layers():
+    """The signal is real: a coherent depth profile, and a curve still climbing."""
+    import json
+
+    if not PROBE.exists():
+        print("  (skipping fig10: probe result not present)")
+        return
+    d = json.loads(PROBE.read_text(encoding="utf-8"))
+    per = {int(k): v for k, v in d["per_layer_select"].items()}
+
+    fig, (ax, ax2) = plt.subplots(1, 2, figsize=(9.2, 3.2),
+                                  gridspec_kw={"width_ratios": [2.1, 1]})
+    style(ax)
+    style(ax2)
+
+    xs = sorted(per)
+    ax.plot(xs, [per[x] for x in xs], color=S1, marker="o", markersize=4, zorder=3)
+    ax.scatter([d["layer"]], [per[d["layer"]]], s=90, color=S2, zorder=4)
+    ax.annotate(f"layer {d['layer']}, selected", (d["layer"], per[d["layer"]]),
+                textcoords="offset points", xytext=(-8, -22), ha="right",
+                color=INK, fontsize=8.5)
+    ax.axhline(0.5742, color=INK_3, ls=(0, (4, 4)), lw=1.2, zorder=2)
+    ax.text(0.4, 0.585, "ch. 7 best signal, 0.5742", color=INK_2, fontsize=8)
+    ax.set_xlabel("hidden layer (0 = embeddings, 28 = final)")
+    ax.set_ylabel("AUROC on the selection split")
+    ax.set_ylim(0.55, 0.92)
+    ax.set_title("Internal states encode step soundness", loc="left", pad=10)
+
+    ns = [n for n, _ in d["learning_curve"]]
+    ax2.plot(ns, [a for _, a in d["learning_curve"]], color=S3, marker="o", zorder=3)
+    ax2.set_xlabel("probe training steps")
+    ax2.set_ylabel("AUROC")
+    ax2.set_title("and it is still climbing", loc="left", pad=10)
+    note(fig, "Left: every layer tried, not just the winner. Right: no plateau, so "
+              "the reported AUROC is a floor, not a ceiling.")
+    save(fig, "fig10-probe-layers")
+
+
+def fig11_score_vs_risk():
+    """The payoff and the limit in one picture."""
+    fig, ax = plt.subplots(figsize=(6.2, 3.8))
+    style(ax, grid_axis="both")
+
+    aurocs = [a for _, a, *_ in SCORE_VS_RISK]
+    # The two alpha settings give nearly the same curve, which is itself the
+    # finding: the measured risk barely responds to the target. Labelled at the
+    # right end, where the points are not crowded.
+    for j, (alpha, col, lab) in enumerate(
+            [(0.05, S1, "gate set to α = 0.05"), (0.10, S2, "gate set to α = 0.10")]):
+        risks = [r[2 + j] for r in SCORE_VS_RISK]
+        ax.plot(aurocs, risks, color=col, marker="o", zorder=3)
+        ax.axhline(alpha, color=col, ls=(0, (3, 3)), lw=1.2, zorder=2)
+        ax.text(0.515, alpha + 0.0015, f"its target, {alpha:g}", color=col,
+                fontsize=8, va="bottom")
+        ax.text(1.015, risks[-1] + (0.004 if j == 0 else -0.004), lab,
+                color=INK, fontsize=8.5, va="center")
+
+    ax.axhline(NO_GATE_RISK, color=INK_3, ls=(0, (5, 3)), lw=1.2, zorder=2)
+    ax.text(0.515, NO_GATE_RISK + 0.0015, "no gate at all", color=INK_2,
+            fontsize=8, va="bottom")
+
+    ax.set_xlim(0.50, 1.32)
+    # Names on the axis rather than floating in the plot: the three
+    # labels collided with each other and with the y ticks.
+    ax.set_xticks([0.5742, 0.6968, 1.0],
+                  ["token + semantic\n0.5742",
+                   "probe, layer 25\n0.6968",
+                   "oracle\n1.0000"])
+    ax.set_ylim(0.03, 0.175)
+    ax.set_xlabel("score AUROC")
+    ax.set_ylabel("measured selective risk")
+    ax.set_title("A better score helps, and does not reach the target",
+                 loc="left", pad=10)
+    note(fig, "Same corpus, calibrator and budget; only the score differs. Even a "
+              "perfect score misses alpha = 0.05 by 1.8x -- past that point the "
+              "budget binds, not the ranking.")
+    save(fig, "fig11-score-vs-risk")
+
+
 def main():
     print("writing figures to", OUT)
     fig1_gap()
@@ -553,6 +643,8 @@ def main():
     sweep, alphas, mu = fig7_alpha_sweep()
     fig8_pareto(sweep, alphas, mu)
     fig9_verifier_value()
+    fig10_probe_layers()
+    fig11_score_vs_risk()
     return 0
 
 

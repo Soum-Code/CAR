@@ -117,6 +117,36 @@ def inject_synthetic(corpus, signal: float, seed: int = 0) -> None:
             )
 
 
+class ProbeScorer:
+    """Scores from a trained probe on frozen internal states.
+
+    Deployable, unlike the oracle: the probe reads the generator's own hidden
+    states, not the label. Loaded from the JSON `gpu_probe_states.py` writes,
+    keyed positionally -- record i of the score list is step i of the corpus in
+    reading order -- so the length is asserted rather than assumed.
+    """
+
+    def __init__(self, corpus, path):
+        import json
+
+        blob = json.loads(Path(path).read_text(encoding="utf-8"))
+        flat = [st for ex in corpus for st in ex.steps]
+        if len(blob["scores"]) != len(flat):
+            raise ValueError(
+                f"probe file has {len(blob['scores'])} scores but the corpus has "
+                f"{len(flat)} steps; positional pairing would misalign every step"
+            )
+        self.meta = {k: blob[k] for k in ("layer", "C", "auroc_test", "auroc_select")}
+        self._score = {id(st.features): s
+                       for st, s in zip(flat, blob["scores"], strict=True)}
+
+    def fit(self, dev_features):
+        return self
+
+    def score(self, feats) -> float:
+        return float(self._score.get(id(feats), 0.0))
+
+
 class OracleScorer:
     """A perfect uncertainty score. Not deployable; it reads the label.
 
@@ -219,6 +249,9 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--corpus", type=Path, default=CORPUS)
     ap.add_argument("--features", type=Path, default=FEATURES)
+    ap.add_argument("--probe", type=Path, default=None,
+                    help="add a row scored by the trained internal-state probe "
+                         "from scripts/gpu_probe_states.py")
     ap.add_argument("--synthetic-signal", type=float, default=None,
                     help="ignore --features and inject features with this "
                          "label separation; 0.0 is the null hypothesis")
@@ -323,6 +356,19 @@ def main():
          lambda: SplitConformalCalibrator(alpha=args.alpha).fit(ocal_s, cal_y),
          oracle_scorer),
     ]
+
+    if args.probe:
+        probe_scorer = ProbeScorer(corpus, args.probe)
+        pcal_s = np.asarray([
+            probe_scorer.score(st.features)
+            for ex in splits.calibration for st in by_id[ex.example_id].steps
+        ])
+        print(f"probe   layer {probe_scorer.meta['layer']}, "
+              f"test AUROC {probe_scorer.meta['auroc_test']:.4f}")
+        conditions.insert(-1, (
+            "PROBE score",
+            lambda: SplitConformalCalibrator(alpha=args.alpha).fit(pcal_s, cal_y),
+            probe_scorer))
 
     # The last entry is an ABLATION, not a measured verifier: the task PRM with
     # its false-alarm rate set to zero. It exists to separate "the verifier

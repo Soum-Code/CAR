@@ -178,12 +178,18 @@ The whole loop, run on real output: 500 Qwen2.5-7B solutions, real uncertainty,
 real conformal calibration, real budget. See
 [docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
 
-**The signal does not rank the risk.** Token entropy, surprisal and log-prob
-combined give **AUROC 0.5589** for detecting a globally-wrong step. Semantic
-divergence — the signal the spec weighted most heavily, resampled at K=5 over
-all 2,573 steps — gives **0.5740**, and combining them gives **0.5742**. The
-same pipeline scores 0.8668 on synthetic features with real separation and
-0.4828 on noise, so the machinery works; the signal is not there.
+**The measured signals do not rank the risk.** Token entropy, surprisal and
+log-prob combined give **AUROC 0.5589**. Semantic divergence — the signal the
+spec weighted most heavily, resampled at K=5 over all 2,573 steps — gives
+**0.5740**, and combining them gives **0.5742**. The same pipeline scores 0.8668
+on synthetic features with real separation and 0.4828 on noise, so the machinery
+works.
+
+**A probe on internal states does rank it — and still is not enough.** A
+logistic probe on the generator's own frozen hidden states reaches **0.6968**,
+and improves selective risk at every α on fewer calls. It still misses α = 0.05
+by 2.9×, and still leaves the task PRM net-negative. See
+[docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md).
 
 > Measured under string-equality clustering the same samples give AUROC 0.4904,
 > *below* chance, because Qwen writes one computation three ways. The
@@ -196,6 +202,8 @@ same pipeline scores 0.8668 on synthetic features with real separation and
 | α | 0.05 | 0.10 | 0.15 |
 |---|---|---|---|
 | measured selective risk | **0.1491** | **0.1494** | **0.1516** |
+| with the probe score | 0.1432 | 0.1363 | — |
+| with a perfect score | 0.0885 | 0.0885 | 0.0885 |
 | verification rate | 4.6% | 9.2% | 14.1% |
 
 Risk misses the target by 3× at α = 0.05 and barely moves across the sweep,
@@ -240,6 +248,7 @@ breadth.
 | 4 | Same-model + independent-judge scope arms | **done** — 0.0000 and 0.2283 |
 | 5 | Full gate pipeline end-to-end on GSM8K | **done** — negative: AUROC 0.56, target missed 3x |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
+| 7 | Probe on frozen internal states | **done** — AUROC 0.6968; the signal exists and does not close the gap |
 
 ---
 
