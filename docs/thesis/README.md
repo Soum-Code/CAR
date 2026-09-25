@@ -11,7 +11,7 @@ Full draft, 2026-09-06. Nine chapters plus front matter.
 | 4 | [Measuring the gap](04-measuring-the-gap.md) | `exp_measure_error_rate.py`, `exp_generator_transfer.py` |
 | 5 | [Verifier reach](05-verifier-reach.md) | `exp_verifier_scope.py`, `gpu_semantic_scope.py --analyse` |
 | 6 | [Allocation](06-allocation.md) | `exp_allocation.py`, `exp_topology.py`, `validate_dependency_graphs.py score` |
-| 7 | [The assembled gate](07-the-assembled-gate.md) | `exp_gate_pipeline.py` |
+| 7 | [The assembled gate](07-the-assembled-gate.md) | `exp_gate_pipeline.py`, `exp_significance.py` |
 | 8 | [Feasibility and benchmarks](08-feasibility-and-benchmarks.md) | `exp_strategyqa_topology.py`, `exp_benchmark_compare.py` |
 | 9 | [Limitations and conclusion](09-conclusion.md) | — |
 | — | [References](10-references.md) | `check_citations.py --markdown` |
@@ -27,7 +27,7 @@ discarded, not only what worked.
 | 4 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 4, [FINDINGS-GENERATOR.md](../FINDINGS-GENERATOR.md) |
 | 5 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 5 |
 | 6 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 1–3, [FINDINGS-DEPGRAPH.md](../FINDINGS-DEPGRAPH.md) |
-| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md) |
+| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-SIGNIFICANCE.md](../FINDINGS-SIGNIFICANCE.md) |
 | 8 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 2–3 |
 | 2, 9 | [POSITIONING.md](../POSITIONING.md) |
 

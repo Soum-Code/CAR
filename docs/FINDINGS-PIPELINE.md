@@ -202,9 +202,12 @@ is a claim about the *design space* rather than about one system.
   cluster differently on the prose steps, which are 59% of the corpus. The raw
   samples are committed (`runs/semantic_samples.jsonl`) so another relation can
   be tried with no GPU at all.
-- **182 test questions, 940 test steps.** Small. The α-sweep gap (0.147 vs a
-  0.05 target) is far too large to be sampling noise, but the finer
-  between-condition differences are not resolvable.
+- **182 test questions, 925 test steps, 914 replayed.** Small. The AUROCs cover
+  all 925 steps; the pipeline rows cover the 914 the loop reaches under
+  `max_steps=16`. (An earlier version of this line said 940, which matches
+  neither count.) The α-sweep gap (0.147 vs a 0.05 target) is far too large to be
+  sampling noise; the finer between-condition differences are priced in
+  FINDINGS-SIGNIFICANCE.md, and most are not resolvable.
 - **Chain topology.** Replay assumes each step depends on the previous one.
   Influence weighting is off by default (it lost to uniform in five separate
   tests), so this affects little, but it is an assumption.

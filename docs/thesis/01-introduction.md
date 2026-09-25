@@ -62,8 +62,8 @@ removed the method claims one at a time.
 | original claim | outcome |
 |---|---|
 | Adaptive conformal under censored feedback is novel | **scooped** — Conformal Selective Acting, Thm E.1, publishes Bernoulli subsampling with 1/π importance weighting under a stronger anytime guarantee |
-| Composite uncertainty is the key signal | **crowded, then refuted** — a small probe on internal states matches far larger PRMs (Ni et al., ReProbe); measured here at AUROC 0.5589 |
-| Semantic entropy at intermediate steps is the key signal | **refuted** — measured here at AUROC 0.5740 |
+| Composite uncertainty is the key signal | **crowded, then refuted** — a small probe on internal states matches far larger PRMs (Ni et al., ReProbe); measured here at AUROC 0.5589, interval [0.4780, 0.6328] covering chance |
+| Semantic entropy at intermediate steps is the key signal | **refuted** — measured here at AUROC 0.5740 [0.5054, 0.6433]: above chance, far below the ≈ 0.65 the verifier needs |
 | Influence-weighted allocation | **refuted** — lost to plain uniform in five separate tests |
 | "Verify early beats verify late" | **refuted** — front-loading is the worst shape at every scope > 0 |
 | StrategyQA as the primary benchmark | **wrong choice** — 72.9% of its dependency graphs are one hop deep |
@@ -133,7 +133,9 @@ overturned a published conclusion. (Chapter 6)
 **C8. The assembled gate does not control risk, and the reason is the signal.**
 Generator uncertainty does not rank global step error (AUROC 0.5589 token-level,
 0.5740 semantic, 0.5742 combined, against 0.8668 on synthetic features with
-genuine separation). Split conformal consequently holds coverage while missing
+genuine separation). Every one of those is quoted with a 95% interval in §7.7,
+which also settles which of this chapter's comparisons the corpus can support:
+the probe's advantage yes, the equivalence relation's no. Split conformal consequently holds coverage while missing
 selective risk by 3× at every α that binds, and the highest-reach verifier is
 net-negative at its measured operating point.
 
@@ -144,8 +146,9 @@ separate defect. It also still misses α = 0.05 by 1.8×, which locates the
 second and genuinely independent bottleneck: the budget. (Chapter 7)
 
 **C9. A better signal exists, and is still not enough.** A logistic probe on the
-generator's own frozen hidden states reaches **AUROC 0.6968** against 0.5742 for
-everything else measured — so the failure is not that step-level uncertainty is
+generator's own frozen hidden states reaches **AUROC 0.6968 [0.6302, 0.7569]**
+against 0.5742 for everything else measured, a paired **+0.1226 [+0.0287,
++0.2288]** (p = 0.004) — so the failure is not that step-level uncertainty is
 unreadable. It improves selective risk at every α on fewer calls, and still
 misses α = 0.05 by 2.9× and leaves the task PRM net-negative. The probe is
 trained on 670 steps with a learning curve that has not plateaued, so this is a

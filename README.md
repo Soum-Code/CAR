@@ -25,7 +25,7 @@ negative results are part of the contribution.
 | original claim | status |
 |---|---|
 | Adaptive conformal under censored feedback is novel | **scooped** — [CSA](https://arxiv.org/abs/2605.20270) Thm E.1 publishes Bernoulli subsampling with 1/π importance weighting, under a stronger anytime guarantee |
-| Composite uncertainty is the key signal | **crowded, then refuted** — a small probe on internal states matches far larger PRMs ([ReProbe](https://arxiv.org/abs/2511.06209)); sampling-based step uncertainty is [contested](https://arxiv.org/abs/2602.02427) and measured here at AUROC 0.5589 |
+| Composite uncertainty is the key signal | **crowded, then refuted** — a small probe on internal states matches far larger PRMs ([ReProbe](https://arxiv.org/abs/2511.06209)); sampling-based step uncertainty is [contested](https://arxiv.org/abs/2602.02427) and measured here at AUROC 0.5589, whose interval covers chance |
 | H3: verify early beats verify late | **false** — refuted on chains, 5 synthetic DAG families, and real extracted graphs |
 | Influence-weighted allocation | **false** — lost to plain uniform every time it was properly tested |
 | StrategyQA as primary benchmark | **wrong choice** — 72.9% of its graphs are one hop deep |
@@ -179,15 +179,24 @@ real conformal calibration, real budget. See
 [docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
 
 **The measured signals do not rank the risk.** Token entropy, surprisal and
-log-prob combined give **AUROC 0.5589**. Semantic divergence — the signal the
-spec weighted most heavily, resampled at K=5 over all 2,573 steps — gives
-**0.5740**, and combining them gives **0.5742**. The same pipeline scores 0.8668
-on synthetic features with real separation and 0.4828 on noise, so the machinery
-works.
+log-prob combined give **AUROC 0.5589 [0.4780, 0.6328]**. Semantic divergence —
+the signal the spec weighted most heavily, resampled at K=5 over all 2,573
+steps — gives **0.5740 [0.5054, 0.6433]**, and combining them gives **0.5742**,
+a paired **+0.0003 [−0.0390, +0.0445]** over divergence alone. The same pipeline
+scores 0.8668 on synthetic features with real separation and 0.4828 on noise, so
+the machinery works.
+
+Intervals are 95% percentile bootstrap resampling *solutions*, not steps — the
+design effect is 1.8 to 3.3, so the naive error bars would have been up to 1.8×
+too small. Divergence is the one measured signal whose interval clears chance;
+it is still far below the ≈ 0.65 the verifier needs. See
+[docs/FINDINGS-SIGNIFICANCE.md](docs/FINDINGS-SIGNIFICANCE.md).
 
 **A probe on internal states does rank it — and still is not enough.** A
-logistic probe on the generator's own frozen hidden states reaches **0.6968**,
-and improves selective risk at every α on fewer calls. It still misses α = 0.05
+logistic probe on the generator's own frozen hidden states reaches **0.6968
+[0.6302, 0.7569]** — a paired **+0.1226 [+0.0287, +0.2288]**, p = 0.004, and the
+only comparison in that chapter this corpus can resolve — and improves selective
+risk at every α on fewer calls. It still misses α = 0.05
 by 2.9×, and still leaves the task PRM net-negative. See
 [docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md).
 
@@ -202,10 +211,15 @@ where a synthetic score of identical AUROC reaches 0.8206, because only the
 (corr with position +0.18, against −0.28 for the composite). See
 [docs/FINDINGS-SCORE-QUALITY.md](docs/FINDINGS-SCORE-QUALITY.md).
 
-> Measured under string-equality clustering the same samples give AUROC 0.4904,
-> *below* chance, because Qwen writes one computation three ways. The
-> equivalence relation is part of the measurement, not an implementation
-> detail — see [docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
+> Measured under string-equality clustering the same samples give AUROC 0.4904 —
+> and that reads as *below chance* only until an interval goes around it:
+> [0.4379, 0.5459] covers 0.5, and the paired difference from numeric clustering
+> is +0.0453 [−0.0138, +0.0949], p = 0.124. The relation changes the score a
+> great deal (the two agree on 61.8% of steps) and the answer not measurably. An
+> earlier draft claimed the relation was load-bearing on the result; it is
+> withdrawn. What saved the conclusion was not picking the better relation — it
+> was putting an interval on the number. See
+> [docs/FINDINGS-SIGNIFICANCE.md](docs/FINDINGS-SIGNIFICANCE.md).
 
 **So calibration certifies nothing useful.** Base risk is 0.1578, meaning any
 α ≥ 0.20 is met by verifying nothing. At the α values that actually bind:
@@ -312,6 +326,16 @@ python scripts/exp_generator_transfer.py
 python scripts/exp_gate_pipeline.py
 ```
 
+```bash
+python scripts/exp_significance.py
+```
+
+The last one is the one to run before quoting any AUROC from this project. It
+puts a 95% interval on every headline number, pairs every comparison on the same
+resamples, and reports which of them the corpus can actually support. Three
+claims in earlier drafts did not survive it, and they are listed in
+[docs/FINDINGS-SIGNIFICANCE.md](docs/FINDINGS-SIGNIFICANCE.md).
+
 ---
 
 ## Layout
@@ -330,6 +354,8 @@ src/car/
   data/               GSM8K (primary), StrategyQA, Math-Shepherd, splits
                       generated.py: corpora from other generators
   eval/               AUROC, ECE, selective risk, coverage, false-safe
+                      inference.py: clustered bootstrap intervals, paired
+                      differences, design effect, minimum detectable effect
   agent/loop.py       the control loop
 ```
 

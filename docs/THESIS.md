@@ -83,18 +83,22 @@ generator improves.
 | C5b — the floor is generator-dependent | μ 0.3908 -> 0.1221; no floor at α=0.20 | Qwen2.5-7B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
-| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 940 test steps | **measured** |
+| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 [0.4780, 0.6328] token-level, 0.5740 [0.5054, 0.6433] semantic, 0.5742 [0.4915, 0.6504] both (0.8668 on synthetic signal, 0.4828 on noise) | 925 test steps | **measured** |
 | C8b — the gate misses every binding alpha | risk 0.147 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
 | C8c — the verifier result is DOWNSTREAM of the score | 0.7637 behind the real score, 0.9780 behind an oracle, same verifier | end-to-end run | **measured** |
-| C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining buys 0.0002 | 12,865 generations | **measured** |
+| C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining adds +0.0003 [-0.0390, +0.0445] | 12,865 generations | **measured** |
 | C8e — a perfect score still misses a binding alpha | oracle risk 0.0885 vs alpha=0.05; the budget binds | end-to-end run | **measured** |
-| C9 — a probe on internal states DOES rank step error | AUROC 0.6968 vs 0.5742; +0.12 | 925 test steps | **measured** |
+| C9 — a probe on internal states DOES rank step error | AUROC 0.6968 [0.6302, 0.7569] vs 0.5742; paired +0.1226 [+0.0287, +0.2288], p=0.004 | 925 test steps | **measured** |
 | C9b — and it still does not close the gap | risk 0.1432 at alpha=0.05 (2.9x target); PRM still net-negative at 0.7802 | end-to-end run | **measured** |
 | C9c — 0.6968 is a floor, not a ceiling | learning curve 0.7374 -> 0.8748 over 167 -> 670 steps, no plateau | probe run | **measured** |
 | C10 — the verifier turns net-positive at AUROC ~0.65 | net- to 0.625, net+ from 0.700; below the probe's own 0.6968 | 13 x 64 sweep | **measured** |
 | C10b — that threshold is made entirely of false alarms | at FA=0 the same PRM is net-positive down to AUROC 0.55 | ablation | **measured** |
 | C10c — no score quality holds a binding alpha | best is 0.0956 at AUROC 0.99, 1.9x the alpha=0.05 target | sweep | **measured** |
 | C10d — AUROC is not a sufficient figure of merit | equal-AUROC scores differ by 0.04 proj. acc; corr(position, probe)=+0.18 vs composite -0.28 | matched-budget sweep | **measured** |
+| C11 — the corpus resolves one of ch. 7's comparisons, not four | design effect 1.8-3.3; the probe's +0.1226 survives, numeric-vs-exact (+0.0453) and both-vs-token (+0.0153) do not | 925 test steps, 4,000 solution-clustered resamples | **measured** |
+| C11b — exact-match clustering is not sub-chance | 0.4904 [0.4379, 0.5459] covers 0.5 | 2,573 steps | **withdrawn claim** |
+| C11c — divergence's 7-value grid is not why it fails | quantising the probe onto it costs 0.0131 AUROC | 925 test steps | **measured** |
+| C11d — a fourth equivalence relation needs AUROC > 0.6503 to register | paired SE 0.0272, 80% power; ch. 7.4's crossing is ~0.65 | 925 test steps | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
 
 Everything marked *simulated* rests on the propagation model in

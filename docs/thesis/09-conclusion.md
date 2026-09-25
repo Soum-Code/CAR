@@ -9,8 +9,8 @@ reproducing.
 | claim | source | outcome | evidence |
 |---|---|---|---|
 | Adaptive conformal under censored feedback is novel | this project's specification | **scooped** | CSA Thm E.1, a stronger anytime guarantee |
-| Composite token-level uncertainty is the key signal | specification | **refuted** | AUROC 0.5589 |
-| Semantic entropy at intermediate steps is the key signal | specification | **refuted** | AUROC 0.5740; combining buys 0.0002 |
+| Composite token-level uncertainty is the key signal | specification | **refuted** | AUROC 0.5589, interval [0.4780, 0.6328] covering chance |
+| Semantic entropy at intermediate steps is the key signal | specification | **refuted** | AUROC 0.5740 [0.5054, 0.6433] — above chance, far below usable; combining adds +0.0003 [−0.0390, +0.0445] |
 | Influence weighting (descendant count) beats uniform | specification §4.2 | **refuted 5×** | loses to uniform on chains, 5 DAG families, 2 real corpora |
 | H3: verify early beats verify late | specification | **refuted** | worst policy at every scope > 0; corr(position, error) = +0.950 |
 | α = 0.10 is a workable target | specification | **infeasible** | 32.3% Kotte entry fee at μ = 0.3908 |
@@ -20,16 +20,28 @@ reproducing.
 | C3's `net = scope − FA` is the figure of merit | this thesis, ch. 5 | **corrected** | base-rate error; see §7.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at every binding α |
 | The three failures are independent | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
-| Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
+| Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742 — paired +0.1226 [+0.0287, +0.2288], p = 0.004 — and improves the gate |
 | A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed, attributably** | 0.6968 measured, learning curve still climbing at 670 training steps |
 | The verifier needs a score "well above 0.70" | this thesis, ch. 7 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65; the probe already clears it |
 | AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
+| Exact-match clustering drives divergence *below* chance | this thesis, ch. 7 | **withdrawn** | 0.4904 [0.4379, 0.5459] covers 0.5: indistinguishable from chance, not below it |
+| The equivalence relation is load-bearing on the result | this thesis, ch. 7 | **not established** | load-bearing on the score (61.8% agreement, mean 0.4239 vs 0.6468); on AUROC, +0.0453 [−0.0138, +0.0949], p = 0.124 |
+| Steps are an adequate resampling unit for these AUROCs | implicit in every number before §7.7 | **refuted** | design effect 1.8–3.3; naive standard errors 1.3–1.8× too small |
 
 The second-to-last row is the thesis. The last is the correction the oracle
 baseline forced: of the three failure points, only two are separate. The
 verifier's net-negative result is a consequence of aiming it with a near-chance
 score, and disappears when the score is perfect. What remains genuinely
 independent is the **signal** and the **budget**.
+
+Three of those rows are the work of §7.7 rather than of an experiment, and they
+are worth separating out. Two claims this thesis made are withdrawn not because a
+new measurement contradicted them but because an interval was finally put around
+the old one, and a claim that cannot be distinguished from no effect is not a
+finding. A project that keeps its refutations has to be willing to refute its own
+refutations; these are two of those. The third row is the method error that let
+the first two stand: every AUROC here was quoted as if 2,573 steps were 2,573
+independent observations, and they are 500 solutions.
 
 ## 9.2 Threats to validity
 
@@ -75,9 +87,10 @@ one is wrong in a direction that makes the allocation conclusions
 alarms; the direction is isolated by the FA = 0 ablation, the magnitude is not
 robust.
 
-**Sample size in the end-to-end run.** 182 test questions, 940 test steps. The
-headline gap is far outside sampling noise; the between-condition differences
-are not.
+**Sample size in the end-to-end run.** 182 test questions, 925 test steps, of
+which the loop replays 914 (`max_steps=16` truncates the rest). The headline gap
+is far outside sampling noise; the between-condition differences are not, and
+§7.7 now says which ones by how much rather than leaving it at "are not".
 
 **Single task family.** Everything measured here is grade-school arithmetic
 word problems. Whether the local/global gap has the same size on code, on

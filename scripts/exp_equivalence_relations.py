@@ -1,9 +1,9 @@
 """Three meaning-equivalence relations over one fixed set of samples. [CPU]
 
-Chapter 7 reports that semantic divergence barely ranks step error (AUROC
-0.5740 on test, 0.5488 over all steps) and that the result is *relation-
-dependent*: re-clustering the same samples by string equality drives it to
-0.4904, below chance. That raises an obvious objection to the negative result.
+Chapter 7 reports that semantic divergence barely ranks step error (AUROC 0.5740
+on test, 0.5488 over all steps), and an earlier draft added that the result is
+*relation-dependent*: re-clustering the same samples by string equality gives
+0.4904. That raises an obvious objection to the negative result.
 `numeric_equivalence` is a cheap stand-in for the relation the literature
 actually uses, so 0.5740 might be a property of the stand-in rather than of
 sampling-based step uncertainty.
@@ -17,7 +17,28 @@ is now `EntailmentEquivalence`, and
         --equivalence entailment \
         --out runs/uncertainty_qwen25_7b_entail.jsonl
 
-re-clusters the committed K=5 samples with it, on CPU, in about half an hour.
+re-clusters the committed K=5 samples with it, on CPU. Budget about four hours:
+the pass is ~28k ordered NLI pairs at ~2/s on 16 cores. (An earlier version of
+this docstring said half an hour, which was a guess, and wrong.) It needs
+`microsoft/deberta-large-mnli` from the Hugging Face hub, so it will not run in a
+sandbox with no route to huggingface.co.
+
+READ THIS BEFORE SPENDING THE FOUR HOURS
+----------------------------------------
+`scripts/exp_significance.py` prices this experiment in advance, and the answer
+changes how its result should be read. The paired SE between two relations on
+these 925 steps is 0.0272, so the smallest difference detectable at 80% power is
+0.076: a third relation registers only above **0.6503** AUROC. Chapter 7's
+separate score-quality sweep puts the point where the verifier starts paying for
+itself at ≈ 0.65.
+
+So this run has exactly two possible outcomes. Entailment lands below ~0.65, in
+which case it is indistinguishable from numeric equivalence and the negative
+result stands unchanged -- which is worth having, because it answers the
+objection. Or it lands above, in which case it is not a better stand-in for a
+weak signal, it is a usable signal, and it belongs in ch. 7.6 beside the probe. A
+small positive difference is not a third outcome; it is noise, and it should not
+be reported as vindication.
 
 The comparison is clean in a way a fresh sampling run would not be: all three
 relations see the *same* 12,865 generations, so nothing here is confounded with
@@ -61,6 +82,11 @@ WEIGHTS = {
     "task_verifier_signal": 0.0,
 }
 OUT = Path("runs/equivalence_relations.json")
+
+#: The AUROC a new relation has to beat to be distinguishable from numeric
+#: equivalence on these 925 steps: 0.5740 plus the 0.076 minimum detectable
+#: difference `exp_significance.py` derives from the paired bootstrap SE.
+DETECTABLE_ABOVE = 0.6503
 
 
 def measure(name, features, corpus_path, gsm8k):
@@ -156,13 +182,23 @@ def main():
     print()
     print(f"Best relation on test: {best['relation']} at "
           f"{best['auroc_test']:.4f}.")
-    if best["auroc_test"] < 0.60:
-        print("Every relation lands near chance. The negative result in ch. 7")
-        print("is a property of sampling-based step uncertainty on this corpus,")
-        print("not of the equivalence function used to cluster the samples.")
+    # The bar is the smallest difference this corpus can resolve, not a round
+    # number. exp_significance.py measures it at 0.076 over numeric
+    # equivalence's 0.5740; anything under it is a point estimate with an
+    # interval through zero, whatever its direction.
+    if best["auroc_test"] < DETECTABLE_ABOVE:
+        print(f"No relation clears {DETECTABLE_ABOVE:.4f}, the smallest AUROC")
+        print("this corpus can distinguish from numeric equivalence at 80%")
+        print("power. So the negative result in ch. 7 is a property of")
+        print("sampling-based step uncertainty on this corpus, not of the")
+        print("equivalence function -- and no ORDERING among the relations")
+        print("above is established by these point estimates.")
     else:
-        print("A relation clears 0.60, so the ch. 7 number was relation-limited")
-        print("and the chapter needs revisiting.")
+        print(f"A relation clears {DETECTABLE_ABOVE:.4f}, which this corpus can")
+        print("resolve. It is also above ch. 7.4's crossing, so it is not a")
+        print("better stand-in for a weak signal -- it is a usable signal, and")
+        print("ch. 7.6 is where it belongs. Re-run exp_significance.py to get")
+        print("the paired interval before writing it up.")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(

@@ -47,6 +47,12 @@ Token entropy, max surprisal and mean log-probability, combined and
 standardised on dev data only. `mean_logprob` on good steps is −0.2916; on bad
 steps −0.3323. The direction is right and the separation is negligible.
 
+Both numbers are quoted with an interval for the rest of this chapter:
+**0.5589 [0.4780, 0.6328]** and **0.5742 [0.4915, 0.6504]**, 95% percentile
+bootstrap resampling *solutions*, not steps. Neither interval clears chance, so
+the claim in this section's title is a claim the corpus can support. The
+machinery, and why the unit is the solution, is §7.9.
+
 **This is not a harness failure.** The same pipeline on synthetic features with
 a one-standard-deviation separation gives AUROC **0.8668**, and on pure noise
 **0.4828**. The machinery detects signal when there is signal.
@@ -55,9 +61,11 @@ a one-standard-deviation separation gives AUROC **0.8668**, and on pure noise
 
 The obvious objection — that the signal might exist somewhere the measured
 features do not reach — is testable, and §7.6 tests it. A logistic probe on the
-generator's own frozen hidden states reaches **AUROC 0.6968**, +0.12 over
-everything above. So the result in this section is about *these signals*, not
-about step-level uncertainty in general. It does not change the conclusions
+generator's own frozen hidden states reaches **AUROC 0.6968
+[0.6302, 0.7569]**, and the paired difference over the best signal above is
+**+0.1226 [+0.0287, +0.2288]**, p = 0.004 — the one comparison in this section
+that a corpus of 500 solutions can actually resolve. So the result in this
+section is about *these signals*, not about step-level uncertainty in general. It does not change the conclusions
 below, and why it does not is the more interesting half.
 
 
@@ -73,17 +81,34 @@ independently sampled continuations. It was therefore resampled: K = 5
 continuations of the next step for all 2,573 steps, clustered into
 meaning classes.
 
-| feature set | AUROC (test) | AUROC (all steps) |
-|---|---|---|
-| token-level only | 0.5589 | 0.5277 |
-| **semantic divergence only** | **0.5740** | **0.5488** |
-| both | 0.5742 | 0.5427 |
+| feature set | AUROC (test) | 95% CI | AUROC (all steps) | 95% CI |
+|---|---|---|---|---|
+| token-level only | 0.5589 | [0.4780, 0.6328] | 0.5277 | [0.4838, 0.5760] |
+| **semantic divergence only** | **0.5740** | **[0.5054, 0.6433]** | **0.5488** | **[0.5081, 0.5910]** |
+| both | 0.5742 | [0.4915, 0.6504] | 0.5427 | [0.4983, 0.5920] |
 
 Divergence is 0.4115 on globally-correct steps and 0.4809 on wrong ones — the
 right direction, worth 0.07 on a [0,1] scale. Semantic divergence is marginally
 the better of the two signals, and **combining them adds nothing**
 (0.5740 → 0.5742). The two scores correlate at **r = +0.44**, so they are
 largely the same information.
+
+Two things the intervals change about how that paragraph should be read.
+
+Divergence is the one signal here whose interval **does** clear chance, on test
+and on all steps both. 0.5740 is not "no information"; it is information far
+below any usable level, which is the weaker and correct version of the claim.
+The refutation this chapter delivers is that the signal is unusable, not that it
+is absent — and §7.4's crossing at AUROC ≈ 0.65 is what makes "unusable"
+quantitative rather than rhetorical.
+
+"Combining them adds nothing" is the harder claim, because it asserts an absence.
+The paired difference is **+0.0003 [−0.0390, +0.0445]**, p = 0.955. So the
+absence holds to within ±0.04 AUROC and no better: this corpus can say the
+combination does not help appreciably, and cannot say the gain is 0.0002 rather
+than 0.04. The digits in "0.0002" are real arithmetic on the point estimates and
+they overstate what is known, so the claim is stated as the interval from here
+on.
 
 This is the same conclusion Wen et al.
 ([arXiv:2602.02427](https://arxiv.org/abs/2602.02427)) reach from the other
@@ -92,7 +117,7 @@ uncertainty better than sampling-based agreement, and this is the
 sampling-based half measured on a second benchmark. Their alternative signal
 is not tested here — see Chapter 9.
 
-### The equivalence relation was load-bearing
+### The equivalence relation moves the score, not measurably the answer
 
 Clustering samples requires deciding when two candidate next-steps mean the
 same thing. The library default was string equality. Qwen writes one
@@ -111,19 +136,45 @@ to what an arithmetic step actually asserts.
 
 The same samples, re-clustered:
 
-| clustering | mean divergence | unanimous steps | AUROC |
-|---|---|---|---|
-| numeric equivalence | 0.4239 | 1006 / 2573 | **0.5488** |
-| exact string match | 0.6468 | 524 / 2573 | **0.4904** |
+| clustering | mean divergence | unanimous steps | AUROC (all) | 95% CI |
+|---|---|---|---|---|
+| numeric equivalence | 0.4239 | 1006 / 2573 | **0.5488** | [0.5081, 0.5910] |
+| exact string match | 0.6468 | 524 / 2573 | **0.4904** | [0.4379, 0.5459] |
 
-Exact match inflates divergence by half and drives AUROC *below chance*, because
-measured "disagreement" then tracks notational variety — a property of
-verbosity rather than of doubt.
+Exact match inflates mean divergence by half and halves the number of unanimous
+steps, because measured "disagreement" then tracks notational variety — a
+property of verbosity rather than of doubt. The two relations produce the same
+divergence value on only 61.8% of steps and correlate at r = +0.63, so the
+choice is unquestionably load-bearing *on the score*.
+
+On the answer it is not, and the interval is what shows it. 0.4904 has a CI of
+[0.4379, 0.5459], which covers chance: exact-match clustering is
+**indistinguishable from chance, not below it**. And the paired difference
+between the two relations is **+0.0453 [−0.0138, +0.0949]**, p = 0.124 —
+consistent with the better relation being worth nothing at all. An earlier draft
+of this section read the two point estimates as a demonstration that the
+relation determines the result. It does not demonstrate that. It shows a
+difference in the same direction as the argument, at a magnitude this corpus
+cannot resolve.
 
 **Had the default been used, this chapter would have reported that semantic
-divergence is anti-predictive.** That is a different conclusion, a wrong one,
-and it would have been entirely believable: a clean sub-chance AUROC reads as
-"this signal is actively misleading" rather than "your clustering is broken."
+divergence is anti-predictive.** That remains true, and it is now the sharper
+lesson rather than the weaker one. A clean sub-chance point estimate reads as
+"this signal is actively misleading"; the interval around it says only
+"this signal does nothing." What prevented the wrong conclusion was not, in the
+end, choosing the better equivalence relation — a point estimate under either
+relation was going to be over-read. It was putting an interval on it. The
+relation still deserves the care, because a score that tracks verbosity is wrong
+for reasons that would surface elsewhere, but the *evidence* that saved this
+chapter is the bootstrap, not the clustering.
+
+This also prices the experiment that has not been run. §7.7 works out that
+a fourth relation registers on this corpus only if it beats numeric equivalence
+by 0.076, i.e. only above **0.6503** AUROC — which is, to within 0.001, the point
+at which §7.4's independent sweep says the verifier starts paying for itself. The
+two calculations have nothing to do with each other and the coincidence is worth
+stating plainly: **on this corpus a clustering relation can only be heard if it
+is already good enough to be useful.**
 
 ## 7.3 So the calibration certifies nothing useful
 
@@ -145,7 +196,8 @@ climbs from 4.6% to 26.9%. **The gate spends budget and buys nothing.**
 
 Token-level features alone give the same picture (0.1468 at α = 0.05), which is
 the point: adding the specification's favoured signal changed AUROC by 0.015
-and changed risk control by nothing.
+(paired, **[−0.0068, +0.0369]**, p = 0.148 — not distinguishable from no change
+at all) and changed risk control by nothing.
 
 ### How much of that is the score, and how much the budget
 
@@ -458,13 +510,93 @@ largest out of domain while strong PRMs reach parity on GSM8K. The measured
 attributable to probe-scale training on 670 steps rather than to the reasoning.
 The prediction is worth re-running with proper training data, not retracting.
 
-## 7.7 What this chapter establishes
+## 7.7 How much of this chapter the corpus can actually support
+
+Every AUROC above is measured on one corpus of 500 solutions, and until late in
+this project none of them carried an error bar. That is a problem specific to
+what this chapter argues: most of its claims are claims about a *difference*
+between two AUROCs, and two of them — "the signal does not rank the risk",
+"combining adds nothing" — are claims that a difference is **absent**. A small
+point estimate is equally consistent with a small effect and a small corpus, and
+nothing in the results above could tell those apart.
+
+`scripts/exp_significance.py` supplies the intervals. Every score is evaluated on
+the same steps, so every comparison is paired on the same resamples and the
+corpus variability the two scores share cancels.
+
+### The resampling unit is the solution, for a reason that is not the obvious one
+
+The obvious argument is this thesis's own: Chapter 4 measures that 49.6% of wrong
+steps in wrong-answer solutions are locally valid and wrong only because a
+premise was, so one corruption turns every step below it wrong at once and step
+labels within a solution are strongly dependent. A step-level bootstrap treats
+2,573 steps as 2,573 draws when they came from 500.
+
+That argument is wrong, and the test suite pins it as wrong. Clustered *labels*
+alone leave an AUROC's variance essentially untouched — design effect 0.94 on
+synthetic data built to hold exactly that dependence. AUROC is a two-sample rank
+statistic and barely notices the class balance of a resample moving around. What
+inflates it is a per-solution shift in the *score*: one verbose question whose
+every step draws a high divergence, one terse question whose every step draws a
+low one (deff 1.45 alone). The two together multiply, to 4.3.
+
+Both are present here, and the measured design effects are:
+
+| score | deff (test) | deff (all steps) |
+|---|---|---|
+| token-level composite | 2.13 | 2.13 |
+| both signals | 2.21 | 2.27 |
+| semantic divergence (numeric) | 1.80 | 2.16 |
+| semantic divergence (exact match) | 1.86 | 3.27 |
+| probe on hidden states | 1.83 | — |
+
+So every standard error in this chapter, had it been computed the naive way,
+would have been **1.3× to 1.8× too small** — enough to turn two of the intervals
+above from covering chance to excluding it. The intervals cover sampling
+variability in the evaluation corpus with the score held fixed; they do not cover
+the cost of *fitting* the score, which §7.6 quotes separately and which is larger
+(0.8748 on the selection split against 0.6968 on test).
+
+### Divergence's seven values are not the explanation
+
+Semantic divergence over K = 5 samples is not a continuous score. Its value
+depends only on the block sizes of the sample partition, so it can take exactly
+seven values — the partitions of 5 — and on these steps 36% of them sit at 0 and
+18% at 1. Comparing its AUROC to the probe's therefore risks confounding two
+different things: how much signal a score carries, and how finely it can express
+one.
+
+Quantising the probe onto divergence's own grid — same value distribution, same
+ordering — separates them. It costs the probe **0.0131** AUROC, 0.6968 → 0.6837.
+The token-level composite loses nothing measurable (−0.0074, i.e. it moves within
+noise). So the resolution is not what holds divergence at 0.5740. Sampling five
+continuations and counting meaning classes is a coarse instrument, and it is not
+coarseness that makes it uninformative here.
+
+### What a fourth relation would have to do
+
+The paired standard error between two equivalence relations on these steps is
+0.0272. At 80% power that makes the smallest detectable difference **0.076**, so
+a relation measured against these same 925 steps registers only above **0.6503**
+AUROC. §7.4's sweep — a separate experiment, on synthetic scores — puts the point
+where the verifier stops costing more than it recovers at **≈ 0.65**.
+
+The agreement to within 0.001 is coincidence. It is also the most useful single
+number about the unrun experiment: bidirectional entailment, or any other
+relation, can only be *heard* on this corpus if it is already good enough to be
+*useful*. A point estimate of 0.60 from a better relation would be
+indistinguishable from numeric equivalence's 0.5740 and would change nothing in
+this chapter; a point estimate above 0.65 would not be a better stand-in for the
+signal, it would *be* the signal, and would belong in §7.6 next to the probe.
+That is worth knowing before spending four hours of NLI inference on it.
+
+## 7.8 What this chapter establishes
 
 Three independent failures, each with a number and a regression test:
 
 | failure point | measurement | what the oracle and the probe say about it |
 |---|---|---|
-| the measured signals do not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742; a probe reaches 0.6968 | binding, and *not* a dead end — the signal exists, and a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
+| the measured signals do not rank the risk | AUROC 0.5589 [0.4780, 0.6328] / 0.5740 [0.5054, 0.6433] / 0.5742 [0.4915, 0.6504]; a probe reaches 0.6968 [0.6302, 0.7569] | binding, and *not* a dead end — the signal exists, and a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
 | the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
 | the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle, and turns positive at AUROC ≈ 0.65 |
 
@@ -495,11 +627,15 @@ negative one the most interesting. It arrived by a different route than
 predicted — not because reach is universally low, but because the failures are
 distributed across the whole pipeline.
 
-## 7.8 Limits
+## 7.9 Limits
 
-- **182 test questions, 940 test steps.** The α-sweep gap (0.149 against a 0.05
-  target) is far too large to be sampling noise, but finer between-condition
-  differences are not resolvable.
+- **182 test questions, 925 test steps, 914 of them replayed.** The AUROCs are
+  over all 925; the pipeline rows are over the 914 the loop reaches, because
+  `max_steps=16` truncates 11 steps in solutions longer than that. Earlier drafts
+  of this section, of §9.2 and of two findings documents said "940 test steps",
+  which is neither number. The α-sweep gap (0.149 against a 0.05 target) is far
+  too large to be sampling noise; §7.7 is where the finer differences are checked
+  against it, and most of them do not survive.
 - **Uncertainty is recovered, not native.** Features come from teacher-forcing
   the sampled text rather than from the sampling pass. That measures how
   surprising the model finds the step, which is what the gate consumes, but it
