@@ -1,0 +1,32 @@
+[
+  {
+    "relation": "numeric equivalence",
+    "features": "runs\\uncertainty_qwen25_7b_sem.jsonl",
+    "n_steps": 2573,
+    "mean_divergence": 0.4239129157188488,
+    "unanimous": 1006,
+    "auroc_all": 0.548840511121628,
+    "auroc_test": 0.5739664480278545,
+    "auroc_composite_test": 0.5742170327254822
+  },
+  {
+    "relation": "exact string match",
+    "features": "runs\\uncertainty_qwen25_7b_exactmatch.jsonl",
+    "n_steps": 2573,
+    "mean_divergence": 0.6467575853325576,
+    "unanimous": 524,
+    "auroc_all": 0.4903742875367806,
+    "auroc_test": 0.5287029384352964,
+    "auroc_composite_test": 0.5612393831220216
+  },
+  {
+    "relation": "bidirectional entailment",
+    "features": "runs\\uncertainty_qwen25_7b_entail.jsonl",
+    "n_steps": 2573,
+    "mean_divergence": 0.1205473712460706,
+    "unanimous": 1854,
+    "auroc_all": 0.5174206259388053,
+    "auroc_test": 0.5625450612833455,
+    "auroc_composite_test": 0.5805212161710658
+  }
+]

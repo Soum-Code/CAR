@@ -24,9 +24,10 @@ reproducing.
 | A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed, attributably** | 0.6968 measured, learning curve still climbing at 670 training steps |
 | The verifier needs a score "well above 0.70" | this thesis, ch. 7 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65; the probe already clears it |
 | AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
+| The cheap equivalence relation was hiding the signal | the obvious objection to §7.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
 
-The second-to-last row is the thesis. The last is the correction the oracle
-baseline forced: of the three failure points, only two are separate. The
+The row refuting *selective verification with a calibrated gate controls risk*
+is the thesis. The row below it is the correction the oracle baseline forced: of the three failure points, only two are separate. The
 verifier's net-negative result is a consequence of aiming it with a near-chance
 score, and disappears when the score is perfect. What remains genuinely
 independent is the **signal** and the **budget**.
@@ -75,7 +76,7 @@ one is wrong in a direction that makes the allocation conclusions
 alarms; the direction is isolated by the FA = 0 ablation, the magnitude is not
 robust.
 
-**Sample size in the end-to-end run.** 182 test questions, 940 test steps. The
+**Sample size in the end-to-end run.** 182 test questions, 925 test steps. The
 headline gap is far outside sampling noise; the between-condition differences
 are not.
 
@@ -166,10 +167,22 @@ highly, because that is the only one a repair can rescue. A signal evaluated on
 AUROC alone can improve on that metric while getting worse at the thing the
 system is for — which is what the probe did.
 
-**Bidirectional entailment clustering.** Semantic divergence was measured under
-one equivalence relation. The raw K = 5 samples are committed, so a
-entailment-based relation can be evaluated with no GPU at all — and Chapter 7
-shows the relation is load-bearing, so this is not a detail.
+**Bidirectional entailment clustering — run, and it closed negatively.** This
+was listed here as the cheapest untested alternative, on the grounds that
+Chapter 7 shows the relation is load-bearing. §7.2 now reports it: the
+reference relation scores **0.5625** on test, 95% CI [0.512, 0.614], on the
+same 12,865 generations. It does not find signal the cheap relation missed. The
+0.0114 gap to numeric equivalence is *not* a ranking — its interval spans zero
+— and the claim worth making is the other one: the three relations nest on a
+single permissiveness axis, calling 0.1%, 31.9% and 78.0% of pairs equal, and
+across that entire range the measurement does not move.
+
+The relation is also the wrong tool, which is worth recording separately from
+the result. An MNLI model judges 86.6% of pairs entailing and merges steps
+asserting different quantities — it checks whether two sentences are about the
+same thing, not whether they compute the same number. A relation that *is*
+sensitive to the asserted quantity, and that also handles the 59% of steps
+carrying no arithmetic, remains unbuilt.
 
 **Verifier calibration rather than verifier reach.** §7.4 no longer merely
 suggests this, it measures it. The score quality a 90.3%-scope verifier needs

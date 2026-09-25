@@ -124,7 +124,7 @@ class EntailmentEquivalence:
             self._load_cache()
 
     def _load_cache(self) -> None:
-        """Resume. 28k pairs at 2/s on CPU is nearly four hours of work.
+        """Resume. 27,936 pairs measured 19.6 hours on 16 CPU cores.
 
         Losing that to a reboot, a sleeping laptop or a stray Ctrl-C is the
         same failure that cost this project a GPU session once already, so the

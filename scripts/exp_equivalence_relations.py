@@ -17,7 +17,9 @@ is now `EntailmentEquivalence`, and
         --equivalence entailment \
         --out runs/uncertainty_qwen25_7b_entail.jsonl
 
-re-clusters the committed K=5 samples with it, on CPU, in about half an hour.
+re-clusters the committed K=5 samples with it. That pass is 27,936 NLI pairs
+and took 19.6 hours on 16 CPU cores, so the verdicts are cached in
+runs/entailment_cache.jsonl and committed; this script only reads the result.
 
 The comparison is clean in a way a fresh sampling run would not be: all three
 relations see the *same* 12,865 generations, so nothing here is confounded with
@@ -153,13 +155,19 @@ def main():
                       f"  identical on {same:>6.1%} of steps,  r = {r:+.4f}")
 
     best = max(rows, key=lambda r: r["auroc_test"])
+    spread = best["auroc_test"] - min(r["auroc_test"] for r in rows)
     print()
-    print(f"Best relation on test: {best['relation']} at "
-          f"{best['auroc_test']:.4f}.")
+    print(f"Highest on test: {best['relation']} at {best['auroc_test']:.4f}; "
+          f"spread across relations {spread:.4f}.")
+    # Deliberately not phrased as a ranking. A solution-clustered bootstrap puts
+    # the entailment-minus-numeric gap at 95% CI [-0.087, +0.059], so ordering
+    # these three by a fourth decimal would be reading noise.
     if best["auroc_test"] < 0.60:
-        print("Every relation lands near chance. The negative result in ch. 7")
-        print("is a property of sampling-based step uncertainty on this corpus,")
-        print("not of the equivalence function used to cluster the samples.")
+        print("No relation reaches 0.60. Differences of this size are inside")
+        print("the sampling error on 925 test steps, so the result to take is")
+        print("that none of them ranks step error -- not which ranks it least")
+        print("badly. The ch. 7 negative is a property of sampling-based step")
+        print("uncertainty on this corpus, not of the clustering function.")
     else:
         print("A relation clears 0.60, so the ch. 7 number was relation-limited")
         print("and the chapter needs revisiting.")

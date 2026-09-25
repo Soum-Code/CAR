@@ -206,6 +206,15 @@ where a synthetic score of identical AUROC reaches 0.8206, because only the
 > *below* chance, because Qwen writes one computation three ways. The
 > equivalence relation is part of the measurement, not an implementation
 > detail — see [docs/FINDINGS-PIPELINE.md](docs/FINDINGS-PIPELINE.md).
+>
+> **The reference relation does not rescue it.** Bidirectional entailment under
+> an NLI model — what Kuhn et al. and Farquhar et al. use — scores **0.5625**
+> on test, 95% CI [0.512, 0.614], on the same 12,865 generations. The 0.0114 gap
+> to numeric equivalence is not a ranking (CI [−0.087, +0.059]); what matters is
+> that the interval's optimistic end is still unusable. The three relations nest
+> on one permissiveness axis — 0.1%, 31.9% and 78.0% of pairs called equal — so
+> across that whole range the answer does not move. See
+> [docs/FINDINGS-ENTAILMENT.md](docs/FINDINGS-ENTAILMENT.md).
 
 **So calibration certifies nothing useful.** Base risk is 0.1578, meaning any
 α ≥ 0.20 is met by verifying nothing. At the α values that actually bind:
@@ -261,6 +270,7 @@ breadth.
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
 | 7 | Probe on frozen internal states | **done** — AUROC 0.6968; the signal exists and does not close the gap |
 | 8 | Locate the score quality the verifier needs | **done** — AUROC ~0.65, and AUROC is the wrong metric |
+| 9 | Re-cluster semantic divergence by bidirectional entailment | **done** — 0.5625, CI [0.512, 0.614]; the reference relation does not rescue it |
 
 ---
 
@@ -274,7 +284,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-256 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+317 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 

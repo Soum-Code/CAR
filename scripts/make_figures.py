@@ -401,7 +401,7 @@ def fig6_roc():
     ax.set_title("Generator uncertainty does not rank\nglobal step error", loc="left",
                  pad=10)
     ax.legend(loc="lower right")
-    note(fig, "940 held-out steps. The dashed control is the same construction as "
+    note(fig, "925 held-out steps. The dashed control is the same construction as "
               "--synthetic-signal 1.0 in ch. 7, which scores 0.8668 on its own draw; "
               "the harness finds a signal when one is there.")
     save(fig, "fig6-roc")

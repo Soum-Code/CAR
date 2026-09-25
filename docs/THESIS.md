@@ -83,7 +83,7 @@ generator improves.
 | C5b — the floor is generator-dependent | μ 0.3908 -> 0.1221; no floor at α=0.20 | Qwen2.5-7B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
-| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 940 test steps | **measured** |
+| C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 925 test steps | **measured** |
 | C8b — the gate misses every binding alpha | risk 0.147 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
 | C8c — the verifier result is DOWNSTREAM of the score | 0.7637 behind the real score, 0.9780 behind an oracle, same verifier | end-to-end run | **measured** |
 | C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining buys 0.0002 | 12,865 generations | **measured** |
@@ -95,6 +95,9 @@ generator improves.
 | C10b — that threshold is made entirely of false alarms | at FA=0 the same PRM is net-positive down to AUROC 0.55 | ablation | **measured** |
 | C10c — no score quality holds a binding alpha | best is 0.0956 at AUROC 0.99, 1.9x the alpha=0.05 target | sweep | **measured** |
 | C10d — AUROC is not a sufficient figure of merit | equal-AUROC scores differ by 0.04 proj. acc; corr(position, probe)=+0.18 vs composite -0.28 | matched-budget sweep | **measured** |
+| C11 — the reference clustering relation does not rescue semantic divergence | entailment 0.5625, 95% CI [0.512, 0.614]; the 0.0114 gap to numeric is NOT a ranking (CI spans zero) | 27,936 NLI pairs | **measured** |
+| C11b — the three relations nest rather than corroborate | 0.1% / 31.9% / 78.0% of pairs called equal; 100% and 93.0% containment | re-clustering | **measured** |
+| C11c — entailment is the MOST permissive relation, not the strictest | 86.6% of directed pairs entailing; it merges 52% of the pairs asserting CONFLICTING numbers | NLI cache | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |
 
 Everything marked *simulated* rests on the propagation model in

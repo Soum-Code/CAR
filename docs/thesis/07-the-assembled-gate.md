@@ -125,6 +125,73 @@ divergence is anti-predictive.** That is a different conclusion, a wrong one,
 and it would have been entirely believable: a clean sub-chance AUROC reads as
 "this signal is actively misleading" rather than "your clustering is broken."
 
+### So the obvious objection is that the relation is the result
+
+If AUROC over all steps moves from 0.5488 to 0.4904 when the relation changes
+— 0.5740 to 0.5287 on the test split — then `numeric_equivalence`, a cheap
+stand-in for the relation the literature actually uses, might be the thing
+being measured. Kuhn et al. and Farquhar et al. cluster by **bidirectional
+entailment** under an NLI model, so that is the relation the objection points
+at, and the committed K = 5 samples make it answerable without regenerating
+anything.
+
+> Reproduce: `python scripts/exp_equivalence_relations.py`
+> Full writeup: [docs/FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md)
+
+| relation | mean divergence | unanimous | AUROC all | AUROC test | composite |
+|---|---|---|---|---|---|
+| numeric equivalence | 0.4239 | 1,006 / 2,573 | 0.5488 | **0.5740** | 0.5742 |
+| exact string match | 0.6468 | 524 / 2,573 | 0.4904 | 0.5287 | 0.5612 |
+| **bidirectional entailment** | **0.1205** | **1,854 / 2,573** | 0.5174 | **0.5625** | **0.5805** |
+
+**The reference relation does not rescue the signal.** Its test AUROC is 0.5625
+against numeric equivalence's 0.5740, and that 0.0114 gap is *not* a ranking —
+a solution-clustered bootstrap over the 182 test solutions puts it at 95% CI
+[−0.087, +0.059]. What does survive the interval is entailment's own:
+**0.5625, CI [0.512, 0.614]**. Even the optimistic end is a signal nobody would
+gate on.
+
+How much three relations corroborate each other is worth being careful about,
+because the overclaim is easy. They are not three independent probes — they are
+three points on one permissiveness knob, and they nest: exact match calls 0.1%
+of pairs equal, numeric equivalence 31.9%, entailment 78.0%, with **100%** of
+exact-equal pairs numeric-equal and **93.0%** of numeric-equal pairs mutually
+entailing. They share the generations, K, temperature, the clustering algorithm
+and the entropy map too. So the claim they support is narrower and still
+sufficient: *across the full usable range of cluster permissiveness, from
+merging 0.1% of pairs to merging 78%, step-level sampling divergence does not
+rank step error on this corpus.*
+
+**Entailment turns out to be the most permissive relation, not the strictest.**
+86.6% of the 27,936 directed pairs are judged entailment and 72% of steps come
+out unanimous, against 39% under numeric equivalence. Most of that gap is not
+NLI error: **61.7%** of pairs have no extractable number on one side, so
+`numeric_equivalence` falls back to string equality and calls them distinct.
+Those are the narration and algebra-rearrangement steps, which §9.2 notes are
+59% of what Qwen writes — the relations differ most exactly where neither is
+well defined. On the 5,343 pairs where both sides assert a number they agree
+85.5% of the time.
+
+That pooled rate conceals the asymmetry that matters:
+
+| comparable pairs | count | judged mutually entailing |
+|---|---|---|
+| numeric equivalence **agrees** | 4,453 | 4,141 — **93.0%** |
+| numeric equivalence **disagrees** | 890 | 463 — **52.0%** |
+
+**On the pairs carrying an arithmetic disagreement, the reference relation
+erases half of it.** An MNLI model checks whether two sentences are about the
+same thing, not whether they compute the same quantity, and on arithmetic those
+come apart — it calls a step asserting an 80%-of-$40 increase and a step
+asserting the resulting total mutually entailing.
+
+Whether that leniency props the AUROC up or drags it down is measurable rather
+than arguable. Re-clustering with an **arithmetic veto** that undoes exactly
+those 463 merges (changing 134 of 2,573 steps) moves test AUROC 0.5625 → 0.5577,
+paired difference −0.0048, CI [−0.018, +0.011]: no measurable direction either
+way. The relation is a poor fit for arithmetic steps, and fixing that does not
+recover a signal.
+
 ## 7.3 So the calibration certifies nothing useful
 
 Base risk on test steps is **0.1578**. Any α above that is satisfied by
@@ -497,17 +564,19 @@ distributed across the whole pipeline.
 
 ## 7.8 Limits
 
-- **182 test questions, 940 test steps.** The α-sweep gap (0.149 against a 0.05
+- **182 test questions, 925 test steps.** The α-sweep gap (0.149 against a 0.05
   target) is far too large to be sampling noise, but finer between-condition
   differences are not resolvable.
 - **Uncertainty is recovered, not native.** Features come from teacher-forcing
   the sampled text rather than from the sampling pass. That measures how
   surprising the model finds the step, which is what the gate consumes, but it
   is not identical to the generation-time distribution.
-- **One equivalence relation.** Numeric equivalence fits arithmetic steps;
-  bidirectional entailment might cluster differently on the 59% of steps that
-  are prose. The raw samples are committed
-  (`runs/semantic_samples.jsonl`) so another relation can be tried with no GPU.
+- **Three equivalence relations, one family.** §7.2 now reports bidirectional
+  entailment alongside numeric equivalence and exact match, but the three nest
+  on a single permissiveness axis and share the generations, K, temperature and
+  clustering algorithm. A relation sensitive to the *asserted quantity* on
+  arithmetic steps while still handling the 59% that carry none would be a
+  genuinely different probe, and does not exist here.
 - **The probe is trained on 670 steps.** ReProbe trains on far more, and the
   learning curve has not plateaued, so 0.6968 is a floor on what this signal
   class can do here rather than an estimate of it. Every statement about what

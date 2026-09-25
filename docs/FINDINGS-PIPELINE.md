@@ -197,12 +197,13 @@ is a claim about the *design space* rather than about one system.
   the sampled text, not from the sampling pass. That measures how surprising
   the model finds the step, which is what the gate consumes, but it is not
   identical to the generation-time distribution.
-- **Semantic divergence is measured but only under one equivalence relation.**
+- **Semantic divergence is measured under three equivalence relations** (see
+  [FINDINGS-ENTAILMENT.md](FINDINGS-ENTAILMENT.md)) **but they nest.**
   Numeric equivalence fits arithmetic steps; bidirectional entailment might
   cluster differently on the prose steps, which are 59% of the corpus. The raw
   samples are committed (`runs/semantic_samples.jsonl`) so another relation can
   be tried with no GPU at all.
-- **182 test questions, 940 test steps.** Small. The α-sweep gap (0.147 vs a
+- **182 test questions, 925 test steps.** Small. The α-sweep gap (0.147 vs a
   0.05 target) is far too large to be sampling noise, but the finer
   between-condition differences are not resolvable.
 - **Chain topology.** Replay assumes each step depends on the previous one.

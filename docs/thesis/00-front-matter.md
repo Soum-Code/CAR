@@ -111,7 +111,7 @@ Apache 2.0.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                    # 267 tests, no GPU, no network
+python -m pytest                    # 317 tests, no GPU, no network
 python scripts/download_data.py     # GSM8K, StrategyQA, Math-Shepherd sample
 ```
 

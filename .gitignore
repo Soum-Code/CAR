@@ -35,6 +35,7 @@ runs/*
 # rerun or a different relation compared without repeating the pass.
 !runs/entailment_cache.jsonl
 !runs/uncertainty_qwen25_7b_entail.jsonl
+!runs/equivalence_relations.json
 outputs/
 # Thesis figures are build products, but they are the paper's figures --
 # committed so the draft renders on GitHub without a build step.
