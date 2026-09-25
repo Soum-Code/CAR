@@ -1,0 +1,179 @@
+{
+ "n_steps": 2573,
+ "n_first_bad": 108,
+ "n_first_bad_test": 40,
+ "budget_rate": 0.191,
+ "learning_curve_pooled": [
+  [
+   136,
+   0.658299189336522
+  ],
+  [
+   340,
+   0.6901102572669562
+  ],
+  [
+   680,
+   0.6811419628255403
+  ],
+  [
+   1020,
+   0.7042573021260133
+  ],
+  [
+   1361,
+   0.6895651256440467
+  ]
+ ],
+ "reference": {
+  "token + semantic": 0.5742,
+  "probe as published": 0.6968,
+  "ch.5 task PRM scope": 0.9033
+ },
+ "variants": [
+  {
+   "variant": "A global, dev",
+   "layer": 25,
+   "C": 0.1,
+   "n_train": 670,
+   "auroc_test": 0.6968013083158949,
+   "auroc_ci": [
+    0.631036261891948,
+    0.7555824897944462
+   ],
+   "auroc_vs_firstbad": 0.6158757062146892,
+   "first_bad_recall": 0.3,
+   "gate_safe": true,
+   "note": "reproduces ch. 7.6",
+   "score_position_corr": 0.23271517444664042
+  },
+  {
+   "variant": "B global, dev+cal",
+   "layer": 28,
+   "C": 0.1,
+   "n_train": 1361,
+   "auroc_test": 0.6895651256440466,
+   "auroc_ci": [
+    0.5896513935782655,
+    0.7681970270911904
+   ],
+   "auroc_vs_firstbad": 0.5691525423728814,
+   "first_bad_recall": 0.225,
+   "gate_safe": false,
+   "note": "saw the calibration split",
+   "score_position_corr": 0.16303644171423368
+  },
+  {
+   "variant": "C first-bad target",
+   "layer": 11,
+   "C": 0.001,
+   "n_train": 1361,
+   "auroc_test": 0.5735400144196107,
+   "auroc_ci": [
+    0.5128044893931557,
+    0.6364982294451608
+   ],
+   "auroc_vs_firstbad": 0.6956214689265536,
+   "first_bad_recall": 0.45,
+   "gate_safe": false,
+   "note": "only 49 positives to train on",
+   "score_position_corr": -0.4716709108325004
+  },
+  {
+   "variant": "D position-residualised",
+   "layer": 28,
+   "C": 0.1,
+   "n_train": 1361,
+   "auroc_test": 0.6810892081523555,
+   "auroc_ci": [
+    0.5913669729982073,
+    0.7563564997048529
+   ],
+   "auroc_vs_firstbad": 0.6255084745762712,
+   "first_bad_recall": 0.275,
+   "gate_safe": false,
+   "note": "position projected out before fitting",
+   "score_position_corr": -0.0661461713532655
+  },
+  {
+   "variant": "E selected on 1st-bad",
+   "layer": 17,
+   "C": 0.1,
+   "n_train": 1361,
+   "auroc_test": 0.7060421685687657,
+   "auroc_ci": [
+    0.6386806686630184,
+    0.7664859070243325
+   ],
+   "auroc_vs_firstbad": 0.6137853107344633,
+   "first_bad_recall": 0.35,
+   "gate_safe": false,
+   "note": "layer and C chosen by first-bad recall, not AUROC",
+   "score_position_corr": 0.20759640040736066
+  }
+ ],
+ "gate_safe": {
+  "note": "dev-only training, so the calibration split stays clean and these may be quoted in ch. 7; the pooled variants B-E may not.",
+  "global": {
+   "layer": 25,
+   "C": 0.1,
+   "auroc_test": 0.6968,
+   "first_bad_recall": 0.3
+  },
+  "firstbad": {
+   "layer": 10,
+   "C": 0.001,
+   "auroc_test": 0.5151,
+   "first_bad_recall": 0.375,
+   "n_pos_train": 27
+  },
+  "first_bad_recall_diff": {
+   "mean": 0.0812,
+   "ci": [
+    -0.1081,
+    0.2778
+   ],
+   "p_better": 0.76
+  }
+ },
+ "pooled_first_bad_recall_diff": {
+  "mean": 0.2232,
+  "ci": [
+   0.0555,
+   0.3929
+  ],
+  "p_better": 0.99
+ },
+ "gate": {
+  "baseline_no_gate": 0.8022,
+  "split_conformal": {
+   "verify": 0.218,
+   "calls_q": 1.09,
+   "sel_risk": 0.1538,
+   "first_bad_recall": 0.359,
+   "proj_acc": 0.7912
+  },
+  "probe_global": {
+   "verify": 0.191,
+   "calls_q": 0.96,
+   "sel_risk": 0.1394,
+   "first_bad_recall": 0.3077,
+   "proj_acc": 0.7802
+  },
+  "probe_firstbad": {
+   "verify": 0.234,
+   "calls_q": 1.18,
+   "sel_risk": 0.16,
+   "first_bad_recall": 0.3846,
+   "proj_acc": 0.7912
+  },
+  "oracle": {
+   "verify": 0.073,
+   "calls_q": 0.37,
+   "sel_risk": 0.0885,
+   "first_bad_recall": 0.9231,
+   "proj_acc": 0.978
+  }
+ },
+ "published_learning_curve_was_on_selection_split": true
+}

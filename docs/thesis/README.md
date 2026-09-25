@@ -27,7 +27,7 @@ discarded, not only what worked.
 | 4 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 4, [FINDINGS-GENERATOR.md](../FINDINGS-GENERATOR.md) |
 | 5 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 5 |
 | 6 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 1–3, [FINDINGS-DEPGRAPH.md](../FINDINGS-DEPGRAPH.md) |
-| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md) |
+| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md) |
 | 8 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 2–3 |
 | 2, 9 | [POSITIONING.md](../POSITIONING.md) |
 
@@ -54,7 +54,7 @@ python scripts/make_figures.py
 | 7.3 | 7 | the accuracy–cost curve against Kotte's impossibility floor |
 | 7.4 | 7 | same verifier, three scores — the verifier is downstream of the score |
 | 7.5 | 7 | where the verifier turns net-positive, and why AUROC does not predict it |
-| 7.6 | 7 | probe AUROC by layer, and a learning curve that has not plateaued |
+| 7.6 | 7 | probe AUROC by layer, and a held-out learning curve that stays flat |
 | 7.7 | 7 | selective risk against score AUROC, with both α targets |
 
 Figures 7.1–7.3 are computed from the committed corpus at render time, so they
@@ -95,9 +95,9 @@ Known gaps, in the order they would matter to an examiner:
 2. **A score selected on first-bad-step recall.** §7.4 shows AUROC is the wrong
    target — two scores of equal AUROC differ by 0.04 projected accuracy — but
    nothing here trains a score against the right one.
-3. **The probe, trained properly.** §7.6 reaches AUROC 0.6968 on 670 training
-   steps with the learning curve still climbing. Where it plateaus is unknown,
-   and it is cheap to settle.
+3. **A non-linear probe.** §7.6 settles the training-data question negatively —
+   doubling it does not move the held-out AUROC — so what is untested is the
+   instrument. ReProbe's probes are not linear; this thesis's are.
 4. **A third generator** would settle which of the per-generator quantities
    (μ, absorption) are monotone in model strength and which are idiosyncratic.
 5. **ARES-style conditioning under a budget** is the clearest scientific gap —

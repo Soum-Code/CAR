@@ -58,7 +58,8 @@ Two controls separate cause from consequence. An **oracle score** takes
 selective risk 0.154 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
 the calls, so the verifier was never the problem — it was being aimed badly. A
 **probe on the generator's own frozen hidden states** reaches AUROC 0.6968, so
-the signal is not absent either. Neither rescues the gate: the probe misses
+the signal is not absent either — and doubling its training data leaves it at
+0.6896, so that is what the instrument gives rather than a floor. Neither rescues the gate: the probe misses
 α = 0.05 by 2.9× and the oracle by 1.8×, because at two verification calls per
 question the budget binds regardless of ranking.
 
@@ -111,7 +112,7 @@ Apache 2.0.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                    # 317 tests, no GPU, no network
+python -m pytest                    # 329 tests, no GPU, no network
 python scripts/download_data.py     # GSM8K, StrategyQA, Math-Shepherd sample
 ```
 

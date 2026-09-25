@@ -36,12 +36,13 @@ Framing lives in `README.md` and `docs/THESIS.md`. The draft is
 ## 2. Status
 
 **The draft is complete.** Every chapter written, every number measured and
-reproducible, every refuted claim carrying a regression test. 317 tests pass.
+reproducible, every refuted claim carrying a regression test. 329 tests pass.
 
 Experiments finished, most recent first:
 
 | # | experiment | result | writeup |
 |---|---|---|---|
+| 10 | Probe round two (more data + first-bad target) | more data does NOT help (C9c refuted); the right target doubles first-bad recall | `docs/FINDINGS-PROBE2.md` |
 | 9 | Bidirectional entailment clustering | 0.5625, CI [0.512, 0.614] — reference relation does NOT rescue the signal | `docs/FINDINGS-ENTAILMENT.md` |
 | 8 | Score-quality sweep | verifier turns net-positive at AUROC ≈ 0.65; AUROC is the wrong metric | `docs/FINDINGS-SCORE-QUALITY.md` |
 | 7 | Internal-state probe | AUROC 0.6968 vs 0.5742; better, still not enough | `docs/FINDINGS-PROBE.md` |
@@ -125,6 +126,24 @@ real job and should start well before the deadline. The user has not said.
 
 ---
 
+## 4b. One artifact lives outside git
+
+`runs/probe_states.npz` is **535 MB** — over GitHub's 100 MB file limit, so it
+is gitignored and exists only on this machine. It holds the frozen hidden
+states for all 2,573 steps (29 layers, fp16) plus labels, roles, solution ids
+and step positions. Every probe question is CPU-only while it exists.
+
+Regenerate with:
+
+```bash
+python scripts/gpu_probe_states.py --save-states runs/probe_states.npz
+```
+
+GPU, ~15 min. Kaggle kernel `somnath26/car-probe2` does it end to end and also
+runs the variants; the source dataset is `somnath26/car-source-verifier-scope`
+and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
+(without `--dir-mode zip` it silently uploads only the top-level files).
+
 ## 5. Traps — these cost real time
 
 **Environment**
@@ -159,6 +178,10 @@ real job and should start well before the deadline. The user has not said.
   pipe buffers and the output file stays empty. Run it unpiped with `python -u`.
 - **Check figure numbering after inserting a figure.** Chapter 7's figures went
   out of reading order twice; captions are numbered by hand.
+- **Check which split a curve is evaluated on.** C9c ("0.6968 is a floor") stood
+  for weeks on a learning curve scored on the *selection* split — the data the
+  layer and C were chosen on. Held out, the curve is flat. Any curve, CI or
+  score computed on data that was used for selection is not evidence.
 - **Always add a harness-validation gate before reporting a model-derived
   measurement** — verify the model reproduces labels it was trained on. This
   caught a fake headline result once.
@@ -168,7 +191,7 @@ real job and should start well before the deadline. The user has not said.
 ## 6. Useful commands
 
 ```bash
-python -m pytest -q                                  # 317 tests
+python -m pytest -q                                  # 329 tests
 python scripts/check_citations.py --all              # every cited arXiv id has an entry
 python scripts/make_figures.py                       # all 12 figures, png + pdf
 python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json

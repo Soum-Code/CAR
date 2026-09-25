@@ -163,6 +163,8 @@ BASELINE_ACC = 0.8022
 PROBE = Path("runs/probe_qwen25_7b.json")
 # scripts/exp_score_quality_threshold.py
 SCORE_QUALITY = Path("runs/score_quality_threshold.json")
+# scripts/exp_probe_variants.py -- the held-out learning curve
+PROBE_VARIANTS = Path("runs/probe_variants.json")
 
 # scripts/exp_gate_pipeline.py --probe : selective risk by score quality
 SCORE_VS_RISK = [
@@ -552,7 +554,14 @@ def fig9_verifier_value():
 
 
 def fig10_probe_layers():
-    """The signal is real: a coherent depth profile, and a curve still climbing."""
+    """A real depth profile, and a learning curve that does NOT climb.
+
+    The right panel used to plot the round-one curve, which was evaluated on
+    the SELECTION split -- the same data the layer and C were chosen on. That
+    made it both optimistically biased and measured on the wrong population,
+    and it read as "still climbing" when the held-out curve is flat. Round two
+    re-measured it on test at up to 2x the training data; this plots that.
+    """
     import json
 
     if not PROBE.exists():
@@ -560,6 +569,9 @@ def fig10_probe_layers():
         return
     d = json.loads(PROBE.read_text(encoding="utf-8"))
     per = {int(k): v for k, v in d["per_layer_select"].items()}
+    curve = None
+    if PROBE_VARIANTS.exists():
+        curve = json.loads(PROBE_VARIANTS.read_text(encoding="utf-8"))["learning_curve_pooled"]
 
     fig, (ax, ax2) = plt.subplots(1, 2, figsize=(9.2, 3.2),
                                   gridspec_kw={"width_ratios": [2.1, 1]})
@@ -579,13 +591,28 @@ def fig10_probe_layers():
     ax.set_ylim(0.55, 0.92)
     ax.set_title("Internal states encode step soundness", loc="left", pad=10)
 
-    ns = [n for n, _ in d["learning_curve"]]
-    ax2.plot(ns, [a for _, a in d["learning_curve"]], color=S3, marker="o", zorder=3)
+    if curve:
+        ns = [n for n, _ in curve]
+        ax2.plot(ns, [a for _, a in curve], color=S3, marker="o", zorder=3)
+        ax2.axhline(0.6968, color=INK_3, ls=(0, (4, 4)), lw=1.2, zorder=2)
+        ax2.text(ns[0], 0.699, "as published, 0.6968", color=INK_2, fontsize=7.5,
+                 va="bottom")
+        ax2.set_ylim(0.62, 0.74)
+        ax2.set_title("and more data does not move it", loc="left", pad=10)
+        src = ("Right: evaluated on the HELD-OUT split at up to 2x the training "
+               "data. An earlier version plotted the round-one curve, which\n"
+               "was scored on the selection split the layer and C were chosen "
+               "on; that read as climbing and this does not.")
+    else:
+        ns = [n for n, _ in d["learning_curve"]]
+        ax2.plot(ns, [a for _, a in d["learning_curve"]], color=S3, marker="o",
+                 zorder=3)
+        ax2.set_title("selection-split curve (biased)", loc="left", pad=10)
+        src = ("Right: the round-one curve, scored on the selection split -- run "
+               "scripts/exp_probe_variants.py for the held-out one.")
     ax2.set_xlabel("probe training steps")
-    ax2.set_ylabel("AUROC")
-    ax2.set_title("and it is still climbing", loc="left", pad=10)
-    note(fig, "Left: every layer tried, not just the winner. Right: no plateau, so "
-              "the reported AUROC is a floor, not a ceiling.")
+    ax2.set_ylabel("AUROC on TEST" if curve else "AUROC on selection")
+    note(fig, "Left: every layer tried, not just the winner. " + src, y=-0.12)
     save(fig, "fig10-probe-layers")
 
 

@@ -490,9 +490,9 @@ the same hash splits — so the AUROCs compare step for step.
 
 **AUROC 0.6968 on test**, against 0.5742 for the best of the measured signals.
 
-![Left: AUROC by hidden layer, every layer tried. Right: the learning curve, still climbing.](figures/fig10-probe-layers.png)
+![Left: AUROC by hidden layer, every layer tried. Right: the held-out learning curve, which stays flat.](figures/fig10-probe-layers.png)
 
-**Figure 7.6.** The probe's layer profile and learning curve. A smooth rise through the network, peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates.
+**Figure 7.6.** The probe's layer profile and learning curve. Left: a smooth rise through the network peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates. Right: the held-out curve at up to 2× the training data, flat. An earlier version plotted the selection-split curve here, which read as climbing.
 
 ![Selective risk against score AUROC, with the alpha targets and the no-gate line.](figures/fig11-score-vs-risk.png)
 
@@ -509,21 +509,78 @@ ch. 5 PRM. `select_and_fit` does not take test indices as a parameter, and a
 test asserts its signature cannot grow one; the discipline is worth 0.18 AUROC
 of wrongness here.
 
-**The probe is data-starved, so 0.6968 is a floor.** The learning curve climbs
-0.7374 → 0.8748 across 167 → 670 training steps with no sign of a plateau, and
-ReProbe trains on far more. Every conclusion above should be read as "at this
-level of probe training". The one that does not depend on it is the oracle's:
-even a perfect score misses α = 0.05 by 1.8×, because at two calls per question
-over 5.15 steps the budget binds regardless of ranking.
+**An earlier draft called 0.6968 a floor, and that was wrong.** It read a
+learning curve climbing 0.7374 → 0.8748 across 167 → 670 training steps as
+evidence the probe was starved. That curve was evaluated on the *selection*
+split — the same data the layer and the regularisation strength were chosen on
+— so it was both biased by the selection and measured on the wrong population.
+Re-measured on held-out test data at up to twice the training set:
+
+| training steps | 136 | 340 | 680 | 1020 | 1361 |
+|---|---|---|---|---|---|
+| test AUROC | 0.6583 | 0.6901 | 0.6811 | 0.7043 | 0.6896 |
+
+Flat, final slope −0.043 AUROC per 1000 steps, and the head-to-head is 0.6968
+on 670 training steps against **0.6896** on 1,361. Doubling the data does not
+move it. So 0.6968 is roughly what a linear probe on this model's frozen states
+gives for this target on this corpus — not a placeholder pending more data.
+
+> Reproduce: `python scripts/exp_probe_variants.py`
+> Full writeup: [docs/FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md)
+
+### AUROC was also the wrong thing to train it on
+
+§7.4 showed the projection only pays for the **first** globally-wrong step in a
+solution, and that this probe's score correlates +0.18 with step position — it
+spends its ranking power on late steps no repair can rescue. That is a
+diagnosis; it can be acted on. Retraining on the first-bad label instead, with
+first-bad recall measured at a fixed 19.1% verification rate so no variant wins
+by flagging more:
+
+| trained on | AUROC | **first-bad recall** | score–position corr |
+|---|---|---|---|
+| the global label | 0.6896 | 0.2250 | +0.163 |
+| **the first-bad label** | 0.5735 | **0.4500** | −0.472 |
+| the global label, position projected out | 0.6811 | 0.2750 | −0.066 |
+
+**Training on the right target doubles the quantity that pays** — +0.2232,
+95% CI [+0.056, +0.393] by a solution-clustered bootstrap — and costs global
+AUROC, 0.6896 → 0.5735. That trade is the chapter's own point made concrete:
+ranked by AUROC the first-bad probe is the worst of the three, and it is the
+one that best does the job the system is for.
+
+In the gate, with the gate-safe probes (dev-only training, so the calibration
+split stays clean), it moves both quantities in the predicted direction and
+still does not pay for itself:
+
+| score | calls/q | selective risk | first-bad recall | PROJ accuracy |
+|---|---|---|---|---|
+| no gate | 0.00 | 0.1554 | — | **0.8022** |
+| probe, global target | 0.96 | **0.1394** | 0.3077 | 0.7802 |
+| **probe, first-bad target** | 1.18 | 0.1600 | **0.3846** | **0.7912** |
+
+Projected accuracy rises 0.7802 → 0.7912 and selective risk *worsens*
+0.1394 → 0.1600, because a score tuned for first-bad steps is near chance on
+the global label and selective risk is defined over every accepted step. 0.7912
+is still below the 0.8022 baseline.
+
+**The limit is the label, and it was known before the run.** The corpus holds
+108 first-bad steps, 40 of them in test. The significant result above trains on
+68 positives and saw the calibration split; the gate-safe version trains on 27
+and gives +0.0812 with CI [−0.108, +0.278]. The effect is real at 68 positives
+and unproven at 27, and settling it needs more *first-bad* steps — which is the
+one thing §7.6's flat learning curve says extra data would be good for.
 
 ### What it changes
 
 Chapter 9 predicted, before the run, that a probe here would land near the
 ch. 5 PRM's 0.9033 rather than above it — reasoning that ReProbe's margin is
 largest out of domain while strong PRMs reach parity on GSM8K. The measured
-0.6968 is **below** that, with the training curve still climbing, so the miss is
-attributable to probe-scale training on 670 steps rather than to the reasoning.
-The prediction is worth re-running with proper training data, not retracting.
+0.6968 is **below** that, and the flat learning curve removes the excuse an
+earlier draft offered: this is not probe-scale training holding the number
+down. Either the prediction was wrong about this setting, or a *linear* probe
+on frozen states is the wrong instrument for it. ReProbe's probes are not
+linear, and that is the untested half.
 
 ## 7.7 What this chapter establishes
 
@@ -577,11 +634,15 @@ distributed across the whole pipeline.
   clustering algorithm. A relation sensitive to the *asserted quantity* on
   arithmetic steps while still handling the 59% that carry none would be a
   genuinely different probe, and does not exist here.
-- **The probe is trained on 670 steps.** ReProbe trains on far more, and the
-  learning curve has not plateaued, so 0.6968 is a floor on what this signal
-  class can do here rather than an estimate of it. Every statement about what
-  AUROC 0.70 fails to buy is sound; statements about what internal states
-  *cannot* do are not available from this run.
+- **The probe is linear, and that is now the open variable.** Training data is
+  not: §7.6 doubles it and the held-out AUROC does not move. ReProbe's probes
+  are not linear, so statements here about what internal states *cannot* encode
+  are statements about what a logistic probe on one layer cannot read off them.
+  Every statement about what AUROC 0.70 fails to buy is unaffected.
+- **108 first-bad steps in the corpus, 40 in test.** The first-bad-target result
+  is significant at 68 training positives and not at the 27 a gate-safe probe
+  gets. That is the binding constraint on §7.6's constructive half, and more
+  solutions would relieve it — the one purpose extra data would serve here.
 - **Chain topology.** Replay assumes each step depends on the previous one.
   Influence weighting is off by default, having lost to uniform five times, so
   this affects little — but it is an assumption.

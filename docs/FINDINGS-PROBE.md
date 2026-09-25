@@ -131,21 +131,25 @@ That is the entire reason `select_and_fit` does not take test indices as a
 parameter, and why a test asserts its signature cannot grow one. The discipline
 is not ceremony: it is worth 0.18 AUROC of wrongness here.
 
-### The probe is data-starved, so 0.6968 is a floor
+### The probe looked data-starved, and was not — see round two
 
-| training steps | AUROC (selection split) |
+> **This section's conclusion was wrong, and is kept for the record.**
+> [FINDINGS-PROBE2.md](FINDINGS-PROBE2.md) refutes it. The curve below is
+> scored on the SELECTION split — the same data the layer and C were chosen on
+> — so it is both biased by that selection and measured on the wrong
+> population. On held-out test data, doubling the training set moves AUROC
+> 0.6968 → 0.6896.
+
+| training steps | AUROC (selection split — BIASED) |
 |---|---|
 | 167 | 0.7374 |
 | 335 | 0.8090 |
 | 502 | 0.8453 |
 | 670 | 0.8748 |
 
-Monotone, steep, and **nowhere near a plateau**. ReProbe trains on far more than
-670 steps. A better-trained probe on this corpus would score higher, and how
-much higher is unknown.
-
-So **0.6968 is a lower bound on what this signal class can do**, and every
-conclusion in §2 and §3 should be read as "at this level of probe training."
+Monotone and steep, which is what a curve scored on the data used to pick the
+model looks like. The claim drawn from it — that 0.6968 is a lower bound
+pending more training data — did not survive being measured properly.
 The one conclusion that does *not* depend on it is the oracle's: even a perfect
 score misses α = 0.05 by 1.8×, because at two calls per question over 5.15
 steps the budget binds regardless of ranking.
@@ -158,11 +162,12 @@ steps the budget binds regardless of ranking.
 risk" becomes "the signals *measured there* do not; a probe on internal states
 does, by +0.12 AUROC, and the gate still misses every binding α."
 
-**Chapter 9's prediction was wrong in a specific, useful direction.** It
-predicted ~0.9033; the measured value is 0.6968 with the training curve still
-climbing. The prediction assumed ReProbe-scale training and got probe-scale
-evidence from 670 steps, so the miss is attributable and the prediction is worth
-re-running rather than retracting.
+**Chapter 9's prediction was wrong.** It predicted ~0.9033; the measured value
+is 0.6968. This document originally attributed the miss to probe-scale training
+on 670 steps and called the prediction worth re-running. Round two removed that
+excuse: doubling the training data leaves the held-out AUROC at 0.6896. What is
+left untested is the *instrument* — ReProbe's probes are not linear and these
+are. See [FINDINGS-PROBE2.md](FINDINGS-PROBE2.md).
 
 **The bottleneck ordering is unchanged and better evidenced.** Signal first,
 budget second, verifier downstream of both.

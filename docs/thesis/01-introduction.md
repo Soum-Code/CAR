@@ -148,8 +148,14 @@ generator's own frozen hidden states reaches **AUROC 0.6968** against 0.5742 for
 everything else measured — so the failure is not that step-level uncertainty is
 unreadable. It improves selective risk at every α on fewer calls, and still
 misses α = 0.05 by 2.9× and leaves the task PRM net-negative. The probe is
-trained on 670 steps with a learning curve that has not plateaued, so this is a
-floor on the signal class, not a ceiling. (Chapter 7.6)
+trained on 670 steps, and doubling that moves it to 0.6896 — an earlier draft
+called 0.6968 a floor on the strength of a learning curve that turned out to
+have been scored on the selection split. It is not a floor; it is roughly what
+a linear probe on frozen states gives here. What *does* respond is the training
+target: fitting the same probe to the FIRST globally-wrong step in a solution,
+the only one a repair can rescue, doubles first-bad recall (0.2250 → 0.4500)
+while halving its AUROC advantage — two objectives that trade against each
+other, and only one of them is what the system is paid on. (Chapter 7.6)
 
 **C10. The score quality the verifier needs is lower than assumed, and AUROC is
 the wrong way to measure it.** Sweeping a synthetic score of controlled AUROC

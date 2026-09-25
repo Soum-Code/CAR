@@ -36,6 +36,12 @@ runs/*
 !runs/entailment_cache.jsonl
 !runs/uncertainty_qwen25_7b_entail.jsonl
 !runs/equivalence_relations.json
+# probe_variants.json is small and the tests read it.
+!runs/probe_variants.json
+# runs/probe_states.npz is 535 MB -- over GitHub's 100 MB file limit, so
+# it stays local. Regenerate with:
+#   python scripts/gpu_probe_states.py --save-states runs/probe_states.npz
+# (GPU, ~15 min; Kaggle kernel somnath26/car-probe2 does it end to end.)
 outputs/
 # Thesis figures are build products, but they are the paper's figures --
 # committed so the draft renders on GitHub without a build step.

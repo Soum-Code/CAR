@@ -188,8 +188,18 @@ works.
 **A probe on internal states does rank it — and still is not enough.** A
 logistic probe on the generator's own frozen hidden states reaches **0.6968**,
 and improves selective risk at every α on fewer calls. It still misses α = 0.05
-by 2.9×, and still leaves the task PRM net-negative. See
-[docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md).
+by 2.9×, and still leaves the task PRM net-negative. Doubling its training data
+does not help — 0.6896 on held-out steps — so this is what a linear probe on
+frozen states gives here, not a floor. See
+[docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md) and
+[docs/FINDINGS-PROBE2.md](docs/FINDINGS-PROBE2.md).
+
+**Training it on the right target doubles the quantity that pays.** Because
+only the *first* wrong step in a solution can be repaired, first-bad recall is
+what the objective rewards — and refitting the probe to that label takes it
+from 0.2250 to **0.4500** (CI [+0.056, +0.393]) while dropping global AUROC to
+0.5735. Two objectives that trade against each other, and AUROC is not the one
+the system is paid on. It still does not lift the gate above baseline.
 
 **And AUROC turns out to be the wrong target.** Sweeping a synthetic score of
 controlled AUROC through the same gate puts the crossing — where the task PRM
@@ -269,6 +279,7 @@ breadth.
 | 5 | Full gate pipeline end-to-end on GSM8K | **done** — negative: AUROC 0.56, target missed 3x |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
 | 7 | Probe on frozen internal states | **done** — AUROC 0.6968; the signal exists and does not close the gap |
+| 10 | Probe round two: more data, and a first-bad-step target | **done** — more data does not help; the right target doubles first-bad recall |
 | 8 | Locate the score quality the verifier needs | **done** — AUROC ~0.65, and AUROC is the wrong metric |
 | 9 | Re-cluster semantic divergence by bidirectional entailment | **done** — 0.5625, CI [0.512, 0.614]; the reference relation does not rescue it |
 
@@ -284,7 +295,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-317 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+329 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 
