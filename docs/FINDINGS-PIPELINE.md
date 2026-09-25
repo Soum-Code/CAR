@@ -70,21 +70,31 @@ whole-answer level.
 
 The same samples, re-clustered by string equality instead of numeric value:
 
-| clustering | mean divergence | unanimous steps | AUROC |
-|---|---|---|---|
-| numeric equivalence | 0.4239 | 1006 / 2573 | **0.5488** |
-| exact string match | 0.6468 | 524 / 2573 | **0.4904** |
+| clustering | mean divergence | unanimous steps | AUROC | 95% CI |
+|---|---|---|---|---|
+| numeric equivalence | 0.4239 | 1006 / 2573 | **0.5488** | [0.5081, 0.5910] |
+| exact string match | 0.6468 | 524 / 2573 | **0.4904** | [0.4379, 0.5459] |
 
-Exact match inflates divergence by half and drives AUROC *below chance*. Qwen
-writes one computation as `<<48/2=24>>`, `\( 48 / 2 = 24 \)` and `48 / 2 = 24`;
-string equality calls those three meanings, so measured "disagreement" tracks
-notational variety, which is a property of verbosity rather than of doubt.
+Exact match inflates divergence by half. Qwen writes one computation as
+`<<48/2=24>>`, `\( 48 / 2 = 24 \)` and `48 / 2 = 24`; string equality calls
+those three meanings, so measured "disagreement" tracks notational variety,
+which is a property of verbosity rather than of doubt.
+
+**Corrected after the fact.** This section originally read the 0.4904 as driving
+AUROC *below chance*, and read the pair of point estimates as showing the
+relation determines the result. Neither survives an interval. 0.4904's CI covers
+0.5, so exact-match clustering is indistinguishable from chance rather than below
+it, and the paired difference between the relations is +0.0453 [−0.0138,
++0.0949], p = 0.124. See [FINDINGS-SIGNIFICANCE.md](FINDINGS-SIGNIFICANCE.md).
 
 Had the default equivalence been used, this experiment would have reported that
 semantic divergence is anti-predictive — a different conclusion, and a wrong
-one. The ablation is free because it re-clusters the stored samples rather than
-resampling, which is also the sounder comparison: it isolates the relation
-instead of confounding it with a fresh draw.
+one. That still stands, and it is the better lesson now: what would have
+prevented it is not the better relation but the interval, because a point
+estimate under either relation was going to be over-read. The ablation is free
+because it re-clusters the stored samples rather than resampling, which is also
+the sounder comparison: it isolates the relation instead of confounding it with
+a fresh draw.
 
 ---
 
