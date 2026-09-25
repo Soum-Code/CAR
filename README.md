@@ -2,6 +2,10 @@
 
 A measurement study of selective verification in multi-step LLM reasoning.
 
+> Picking this up mid-stream? [HANDOFF.md](HANDOFF.md) has the current state:
+> what the last session changed, which claims were withdrawn and why, what is
+> blocked and how to unblock it, and what to do next.
+
 **The finding, in one line:**
 
 > Conformal verification certifies that a reasoning step is *locally valid*.
