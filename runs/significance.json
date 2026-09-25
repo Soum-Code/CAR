@@ -1,0 +1,194 @@
+{
+  "n_boot": 4000,
+  "seed": 0,
+  "unit": "solution",
+  "n_steps": 2573,
+  "n_solutions": 500,
+  "test": {
+    "token-level composite": {
+      "auroc": 0.5589005926108288,
+      "lo": 0.47797702598029845,
+      "hi": 0.6328046581314625,
+      "se": 0.04038635559215005,
+      "deff": 2.1269587119554876,
+      "se_iid_steps": 0.027692051781971143,
+      "excludes_chance": false
+    },
+    "both signals": {
+      "auroc": 0.5742170327254823,
+      "lo": 0.4914815892316311,
+      "hi": 0.6504124488049392,
+      "se": 0.041079019501393255,
+      "deff": 2.212120509563421,
+      "se_iid_steps": 0.027619491457572823,
+      "excludes_chance": false
+    },
+    "semantic divergence (numeric)": {
+      "auroc": 0.5739664480278545,
+      "lo": 0.5054368392760051,
+      "hi": 0.6432823305401205,
+      "se": 0.03517959271144136,
+      "deff": 1.8019866720016287,
+      "se_iid_steps": 0.026206861885425866,
+      "excludes_chance": true
+    },
+    "semantic divergence (exact match)": {
+      "auroc": 0.5287029384352964,
+      "lo": 0.4586314728860595,
+      "hi": 0.5950147960696872,
+      "se": 0.034838565575165806,
+      "deff": 1.864742132197192,
+      "se_iid_steps": 0.025512374042837946,
+      "excludes_chance": false
+    },
+    "probe on hidden states": {
+      "auroc": 0.6968013083158949,
+      "lo": 0.6302128685162801,
+      "hi": 0.7568995600746055,
+      "se": 0.03233753436030115,
+      "deff": 1.8323570191206247,
+      "se_iid_steps": 0.023889213682612376,
+      "excludes_chance": true
+    }
+  },
+  "all_steps": {
+    "token-level composite": {
+      "auroc": 0.5276764954011399,
+      "lo": 0.483833586552084,
+      "hi": 0.5759890318776825,
+      "se": 0.02369073103020665,
+      "deff": 2.125194919016563,
+      "se_iid_steps": 0.01625096210506133,
+      "excludes_chance": false
+    },
+    "both signals": {
+      "auroc": 0.5427477931644684,
+      "lo": 0.49832834783384405,
+      "hi": 0.592041410571444,
+      "se": 0.024187088588798276,
+      "deff": 2.2684902997718055,
+      "se_iid_steps": 0.01605887553179676,
+      "excludes_chance": false
+    },
+    "semantic divergence (numeric)": {
+      "auroc": 0.548840511121628,
+      "lo": 0.5080718849367543,
+      "hi": 0.5910378045464747,
+      "se": 0.021358865135601174,
+      "deff": 2.1591151317352066,
+      "se_iid_steps": 0.014535844654114968,
+      "excludes_chance": true
+    },
+    "semantic divergence (exact match)": {
+      "auroc": 0.4903742875367806,
+      "lo": 0.4379393142447896,
+      "hi": 0.5458517501101684,
+      "se": 0.02734960761936824,
+      "deff": 3.2702986844040525,
+      "se_iid_steps": 0.015123676884156534,
+      "excludes_chance": false
+    }
+  },
+  "paired": [
+    {
+      "comparison": "numeric vs exact match (ch. 7: relation-dependent)",
+      "baseline": "semantic divergence (exact match)",
+      "contender": "semantic divergence (numeric)",
+      "delta": 0.04526350959255809,
+      "lo": -0.013842392391374532,
+      "hi": 0.09487122154284977,
+      "se": 0.027249268411510125,
+      "p": 0.124,
+      "excludes_zero": false
+    },
+    {
+      "comparison": "both vs token-level (ch. 7: changed AUROC by 0.015)",
+      "baseline": "token-level composite",
+      "contender": "both signals",
+      "delta": 0.015316440114653496,
+      "lo": -0.006806306520305769,
+      "hi": 0.03693118022636073,
+      "se": 0.010952739085931284,
+      "p": 0.1485,
+      "excludes_zero": false
+    },
+    {
+      "comparison": "both vs divergence alone (ch. 7: buys 0.0002)",
+      "baseline": "semantic divergence (numeric)",
+      "contender": "both signals",
+      "delta": 0.0002505846976278425,
+      "lo": -0.039000807179027035,
+      "hi": 0.0444892969764262,
+      "se": 0.021136905476385106,
+      "p": 0.955,
+      "excludes_zero": false
+    },
+    {
+      "comparison": "probe vs best measured signal (ch. 7: +0.12)",
+      "baseline": "both signals",
+      "contender": "probe on hidden states",
+      "delta": 0.12258427559041263,
+      "lo": 0.02873536816194455,
+      "hi": 0.22882058680732345,
+      "se": 0.05153265621019904,
+      "p": 0.004,
+      "excludes_zero": true
+    },
+    {
+      "comparison": "probe vs token-level",
+      "baseline": "token-level composite",
+      "contender": "probe on hidden states",
+      "delta": 0.13790071570506612,
+      "lo": 0.04280242176401665,
+      "hi": 0.24266670534920595,
+      "se": 0.051759781314971394,
+      "p": 0.002,
+      "excludes_zero": true
+    }
+  ],
+  "power": {
+    "paired_se_between_relations": 0.027249268411510125,
+    "minimum_detectable_delta_80pct": 0.0763411475860794,
+    "auroc_a_new_relation_must_reach": 0.6503075956139339,
+    "verifier_crossing_auroc": 0.65
+  },
+  "resolution": {
+    "n_levels": 7,
+    "levels": [
+      -0.0,
+      0.31091750708257115,
+      0.4181656600790517,
+      0.5904362833084089,
+      0.6554587535412857,
+      0.8277293767706428,
+      1.0000000000000002
+    ],
+    "level_share": {
+      "-0.000000": 0.3621621621621622,
+      "1.000000": 0.17621621621621622,
+      "0.827729": 0.13405405405405404,
+      "0.310918": 0.11567567567567567,
+      "0.590436": 0.10378378378378378,
+      "0.418166": 0.055135135135135134,
+      "0.655459": 0.05297297297297297
+    },
+    "coarsened": [
+      {
+        "score": "probe on hidden states",
+        "auroc_continuous": 0.6968013083158949,
+        "auroc_on_grid": 0.6836741871384107,
+        "resolution_cost": 0.013127121177484269,
+        "n_levels": 7,
+        "n_tied_pairs_in_scores": 0
+      },
+      {
+        "score": "token-level composite",
+        "auroc_continuous": 0.5589005926108288,
+        "auroc_on_grid": 0.5663082279705277,
+        "resolution_cost": -0.007407635359698905,
+        "n_levels": 7,
+        "n_tied_pairs_in_scores": 0
+      }
+    ]
+  }
+}

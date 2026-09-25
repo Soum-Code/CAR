@@ -1,5 +1,14 @@
 """Evaluation metrics and analysis."""
 
+from car.eval.inference import (
+    Interval,
+    auroc_ci,
+    auroc_resolution_ceiling,
+    bootstrap_p_value,
+    design_effect,
+    minimum_detectable_delta,
+    paired_auroc_delta_ci,
+)
 from car.eval.metrics import (
     accuracy_per_tool_call,
     cost_per_question,
@@ -16,7 +25,14 @@ from car.eval.metrics import (
 )
 
 __all__ = [
+    "Interval",
     "accuracy_per_tool_call",
+    "auroc_ci",
+    "auroc_resolution_ceiling",
+    "bootstrap_p_value",
+    "design_effect",
+    "minimum_detectable_delta",
+    "paired_auroc_delta_ci",
     "cost_per_question",
     "empirical_coverage",
     "expected_calibration_error",
