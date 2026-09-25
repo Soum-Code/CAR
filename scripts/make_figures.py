@@ -163,6 +163,7 @@ BASELINE_ACC = 0.8022
 PROBE = Path("runs/probe_qwen25_7b.json")
 # scripts/exp_score_quality_threshold.py
 SCORE_QUALITY = Path("runs/score_quality_threshold.json")
+SIGNIFICANCE = Path("runs/significance.json")
 
 # scripts/exp_gate_pipeline.py --probe : selective risk by score quality
 SCORE_VS_RISK = [
@@ -711,6 +712,93 @@ def fig12_score_quality():
     save(fig, "fig12-score-quality")
 
 
+def fig13_intervals():
+    """What the corpus resolves: five AUROCs and five differences, with intervals.
+
+    A forest plot, because that is the shape of the claim. The left panel is what
+    each score measures; the right is what chapter 7 asserts about the gaps
+    between them, and the right panel is the one worth looking at -- four of the
+    five comparisons cross zero.
+    """
+    import json
+
+    blob = json.loads(SIGNIFICANCE.read_text(encoding="utf-8"))
+    rows = list(blob["test"].items())
+    diffs = blob["paired"]
+
+    # Wide wspace on purpose: the left panel's value labels sit past the end of
+    # its intervals and the right panel's tick labels are two lines of quoted
+    # claim, so the default gutter puts one on top of the other.
+    fig, axes = plt.subplots(1, 2, figsize=(11.0, 3.8),
+                             gridspec_kw={"width_ratios": [1.0, 1.1],
+                                          "wspace": 0.62})
+
+    # ---- left: AUROC per score -------------------------------------------
+    ax = style(axes[0], grid_axis="x")
+    labels = [k.replace("semantic divergence", "divergence")
+               .replace(" on hidden states", "") for k, _ in rows]
+    ys = np.arange(len(rows))[::-1]
+    for y, (_, v) in zip(ys, rows, strict=True):
+        # Colour carries the verdict and the printed value repeats it, because
+        # a reader should not have to resolve two greys to read the answer.
+        col = S1 if v["excludes_chance"] else INK_3
+        ax.plot([v["lo"], v["hi"]], [y, y], color=col, lw=2.2, zorder=3,
+                solid_capstyle="butt")
+        ax.plot([v["auroc"]], [y], marker="D", ms=5.5, color=col, zorder=4)
+        ax.annotate(f"{v['auroc']:.4f}", (v["hi"], y), textcoords="offset points",
+                    xytext=(6, -3), fontsize=8, color=INK)
+
+    ax.axvline(0.5, color=CRITICAL, ls=(0, (5, 3)), lw=1.2, zorder=2)
+    # Below the last row, not above the first: above collides with the title.
+    ax.text(0.5, -0.62, " chance", color=CRITICAL, fontsize=8,
+            ha="left", va="center")
+    ax.set_yticks(ys, labels)
+    ax.set_ylim(-0.9, len(rows) - 0.4)
+    ax.set_xlim(0.42, 0.88)
+    ax.set_xlabel("AUROC for detecting a globally-wrong step")
+    ax.set_title("Two of five signals clear chance", loc="left", pad=10)
+
+    # ---- right: the paired differences -----------------------------------
+    ax = style(axes[1], grid_axis="x")
+    short = {
+        "numeric vs exact match (ch. 7: relation-dependent)":
+            'numeric − exact match\n"relation-dependent"',
+        "both vs token-level (ch. 7: changed AUROC by 0.015)":
+            'both − token-level\n"changed AUROC by 0.015"',
+        "both vs divergence alone (ch. 7: buys 0.0002)":
+            'both − divergence\n"buys 0.0002"',
+        "probe vs best measured signal (ch. 7: +0.12)":
+            'probe − best signal\n"+0.12"',
+        "probe vs token-level": "probe − token-level",
+    }
+    ys = np.arange(len(diffs))[::-1]
+    for y, d in zip(ys, diffs, strict=True):
+        col = S2 if d["excludes_zero"] else INK_3
+        ax.plot([d["lo"], d["hi"]], [y, y], color=col, lw=2.2, zorder=3,
+                solid_capstyle="butt")
+        ax.plot([d["delta"]], [y], marker="D", ms=5.5, color=col, zorder=4)
+        ax.annotate(f"p = {d['p']:.3f}", (d["hi"], y), textcoords="offset points",
+                    xytext=(6, -3), fontsize=8, color=INK)
+
+    ax.axvline(0.0, color=CRITICAL, ls=(0, (5, 3)), lw=1.2, zorder=2)
+    ax.set_yticks(ys, [short.get(d["comparison"], d["comparison"]) for d in diffs])
+    ax.set_ylim(-0.9, len(diffs) - 0.4)
+    ax.set_xlim(-0.09, 0.33)
+    ax.set_xlabel("paired Δ AUROC")
+    ax.set_title("One of five differences is resolved", loc="left", pad=10)
+
+    note(fig,
+         "925 test steps, 4,000 percentile bootstrap replicates resampling "
+         "SOLUTIONS, not steps: the design effect is 1.8-3.3, so a step-level\n"
+         "bootstrap would have made every interval 1.3-1.8x too narrow. The "
+         "right panel is paired on the same resamples, which is why its\n"
+         "intervals are narrower than the left panel's would imply. Quoted text "
+         "is the claim each comparison was written to support.\n"
+         "scripts/exp_significance.py",
+         y=-0.12)
+    save(fig, "fig13-intervals")
+
+
 def main():
     print("writing figures to", OUT)
     fig1_gap()
@@ -732,6 +820,10 @@ def main():
         fig12_score_quality()
     else:
         print("  (skipping fig 12: run scripts/exp_score_quality_threshold.py)")
+    if SIGNIFICANCE.exists():
+        fig13_intervals()
+    else:
+        print("  (skipping fig 13: run scripts/exp_significance.py)")
     return 0
 
 

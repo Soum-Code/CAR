@@ -524,6 +524,12 @@ nothing in the results above could tell those apart.
 the same steps, so every comparison is paired on the same resamples and the
 corpus variability the two scores share cancels.
 
+![Left: AUROC per score with 95% intervals; only divergence and the probe clear chance. Right: the five paired differences chapter 7 asserts, of which only the probe's clears zero.](figures/fig13-intervals.png)
+
+**Figure 7.8.** What this corpus resolves. Left, each score's AUROC with a 95%
+interval; right, the five differences the chapter argues from. Four of the five
+cross zero.
+
 ### The resampling unit is the solution, for a reason that is not the obvious one
 
 The obvious argument is this thesis's own: Chapter 4 measures that 49.6% of wrong
