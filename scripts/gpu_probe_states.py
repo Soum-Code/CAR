@@ -155,6 +155,12 @@ def main():
     ap.add_argument("--select-frac", type=float, default=0.3,
                     help="share of the DEV split held out to choose layer and C")
     ap.add_argument("--limit", type=int, default=None)
+    ap.add_argument("--save-states", type=Path, default=None,
+                    help="write the hidden states, labels and per-step metadata "
+                         "to an .npz. ~535 MB in fp16 for the 500-solution "
+                         "corpus, and it makes every later probe question -- "
+                         "more training data, a different target, a different "
+                         "layer -- answerable without a GPU.")
     args = ap.parse_args()
 
     for p in (args.corpus, TRAIN):
@@ -182,25 +188,61 @@ def main():
     model, tok = load_model(args.model)
 
     states, labels, which = [], [], []
+    sol_id, position, n_in_sol = [], [], []
     for i, sol in enumerate(sols):
         texts = [s.text for s in sol.steps]
         texts[-1] = strip_answer_tail(texts[-1]) or texts[-1]
         got = step_states(model, tok, generation_prompt(fewshot, sol.question), texts)
         if got is None:
             continue
-        for st, vec in zip(sol.steps, got, strict=True):
+        kept = 0
+        for j, (st, vec) in enumerate(zip(sol.steps, got, strict=True)):
             if vec is None:
                 continue
             states.append(vec.astype(np.float32))
             labels.append(not st.global_ok)          # True = globally WRONG
             which.append(role[f"qwen_{i}"])
+            sol_id.append(i)
+            position.append(j)
+            kept += 1
+        n_in_sol.extend([kept] * kept)
         if i % 50 == 0:
             print(f"  {i}/{len(sols)}", flush=True)
 
     S = np.stack(states)                              # (n_steps, n_layers+1, hidden)
     y = np.asarray(labels, dtype=bool)
     which = np.asarray(which)
+    sol_id = np.asarray(sol_id)
+    position = np.asarray(position)
+    n_in_sol = np.asarray(n_in_sol)
+
+    # The FIRST globally-wrong step of each solution. Ch. 7.4 measured that this
+    # is the only one a repair can rescue -- everything after it inherits
+    # corruption a later fix does not undo -- so it is the target a step score
+    # should arguably be trained against, and AUROC on `y` is not.
+    # Computed over the KEPT steps so it matches exactly what the probe sees.
+    first_bad = np.zeros_like(y)
+    for s in np.unique(sol_id):
+        rows = np.where(sol_id == s)[0]
+        bad = rows[y[rows]]
+        if len(bad):
+            first_bad[bad[0]] = True
+
     print(f"\nstates {S.shape}, wrong-step rate {y.mean():.4f}", flush=True)
+    print(f"first-bad steps {int(first_bad.sum())} "
+          f"({first_bad.mean():.2%}) -- the scarcer target", flush=True)
+
+    if args.save_states:
+        # Last time only the scores were written out, which is why answering any
+        # follow-up question needed another GPU session. fp16 halves the file and
+        # costs nothing: the probe standardises before fitting anyway.
+        args.save_states.parent.mkdir(parents=True, exist_ok=True)
+        np.savez(args.save_states, states=S.astype(np.float16), global_wrong=y,
+                 first_bad=first_bad, role=which, solution_id=sol_id,
+                 position=position, n_steps_in_solution=n_in_sol)
+        mb = args.save_states.stat().st_size / 1e6
+        print(f"saved states -> {args.save_states} ({mb:.0f} MB); "
+              f"every probe variant from here is CPU-only", flush=True)
 
     dev = np.where(which == "dev")[0]
     rng = np.random.default_rng(args.seed)
