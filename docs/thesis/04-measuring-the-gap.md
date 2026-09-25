@@ -139,11 +139,24 @@ One definition applied to both corpora, within wrong-answer solutions:
 | **C1 (checkable)** | **0.7848** | **0.9040** |
 | n globally-wrong checkable steps | 46,555 | 125 |
 | 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.840, 0.944] |
+| 95% CI on C1, resampling solutions | not recomputable | [0.8430, 0.9531] |
 
 
 ![Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.](figures/fig1-the-gap.png)
 
 **Figure 4.1.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
+
+Both published intervals are Wilson intervals, which assume every step is an
+independent draw, and the steps are nested in solutions. On the Qwen side that
+correction has now been made — resampling solutions gives [0.8430, 0.9531], only
+5% wider, because a wrong-answer solution contributes about two globally-wrong
+checkable steps and there is almost nothing for the within-solution correlation
+to act on (ρ = 0.68, mean cluster 1.98, design effect 1.13). The Mistral side
+cannot be recomputed here without re-downloading Math-Shepherd, so it is bounded
+instead: for the two intervals to touch, Math-Shepherd's design effect would have
+to be **243**, which at this ρ means 356 globally-wrong checkable steps per
+solution against an overall mean near 3.6. No correction for clustering can make
+them overlap.
 
 The intervals do not overlap. **The gap does not close on a stronger
 generator — it widens.**

@@ -205,6 +205,72 @@ and nobody should read one as vindication.
 
 ---
 
+## The rates, where the same question has the opposite answer
+
+`python scripts/exp_rate_intervals.py` (CPU, ~1 min, writes
+`runs/rate_intervals.json`).
+
+C1 — the headline rate, "most globally-wrong steps are arithmetically perfect" —
+carries the project's only published interval, and it is a **Wilson** interval,
+which assumes every step is an independent Bernoulli draw. The steps are nested
+in solutions. The prediction going in was that this interval must be badly too
+narrow, and for a strong reason: C2 measures corruption as near-absorbing, so
+once a premise is wrong every step below it is globally wrong *and* locally
+valid, which is precisely the event C1 counts.
+
+That prediction is wrong, and the four rates together say why.
+
+| rate | k / n | ρ | mean cluster | Wilson | clustered | ratio |
+|---|---|---|---|---|---|---|
+| C1 (checkable), wrong-answer sols | 113 / 125 | 0.68 | 1.98 | [0.8397, 0.9442] | [0.8430, 0.9531] | **1.05×** |
+| local error, wrong-answer sols | 17 / 209 | 0.37 | 2.68 | [0.0514, 0.1264] | [0.0460, 0.1237] | **1.04×** |
+| inherited corruption, all steps | 113 / 2,573 | 0.45 | 5.15 | [0.0367, 0.0525] | [0.0316, 0.0578] | **1.65×** |
+| global error, wrong-answer sols | 445 / 771 | 0.38 | 7.71 | [0.5420, 0.6116] | [0.5005, 0.6613] | **2.31×** |
+
+Rank those by ρ and by what clustering costs them and the two orderings are
+**reversed**. The most correlated rate needs the smallest correction; the least
+correlated needs the largest. A design effect for a rate is roughly
+1 + (m − 1)ρ, and it needs both terms: a wrong-answer solution contributes about
+two globally-wrong checkable steps — most contribute one — so there is almost
+nothing there for a ρ of 0.68 to act on.
+
+> **Cluster size decides the cost, not how dependent the data is.**
+
+Two consequences.
+
+**C1's published interval stands.** [0.8397, 0.9442] against [0.8430, 0.9531] is
+not a difference anyone should act on. The transfer claim — C1 higher on the
+stronger generator, intervals disjoint — survives.
+
+**The global error rate's does not.** 0.5772 was quoted as [0.5420, 0.6116] and
+should be [0.5005, 0.6613]. Nothing in the thesis turns on its third decimal,
+but the number is now stated with the right interval.
+
+### The Mistral side, bounded rather than left open
+
+Only the Qwen corpus is committed here; Math-Shepherd lives on `huggingface.co`
+and this environment's network policy denies that host, so the Mistral interval
+cannot be recomputed. Rather than leave the transfer claim half-checked, the
+script bounds it: for the two intervals to touch, Math-Shepherd's design effect
+would have to be **243**, which at ρ = 0.68 means **356** globally-wrong
+checkable steps per solution, against an overall mean near 3.6.
+
+No correction for within-solution dependence can produce that. The transfer
+claim holds regardless of what the Mistral side's cluster sizes turn out to be —
+which is a stronger statement than recomputing one number would have given.
+
+### The pair, which is the methodological point
+
+| statistic | the intuition | what was measured |
+|---|---|---|
+| AUROC | clustered labels widen it — premise propagation makes step labels dependent | they do not. A two-sample rank statistic barely feels them; the inflation comes from per-solution shifts in the **score**. deff 1.8–3.3 |
+| C1 | near-absorbing corruption widens it a great deal | it does not. ρ is 0.68 and the clusters hold two steps. deff 1.13 |
+
+Both intuitions are wrong, in opposite directions, on the same corpus, for
+different reasons. Neither could have been settled by argument.
+
+---
+
 ## Corrections to the record
 
 - **"940 test steps"** appeared in §7.9, §9.2, `FINDINGS-PIPELINE.md` and

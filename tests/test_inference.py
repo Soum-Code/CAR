@@ -19,7 +19,12 @@ from car.eval.inference import (
     auroc_resolution_ceiling,
     bootstrap_p_value,
     design_effect,
+    intra_cluster_correlation,
     paired_auroc_delta_ci,
+    proportion_ci,
+    proportion_delta_ci,
+    proportion_design_effect,
+    wilson,
 )
 from car.eval.metrics import step_detection_auroc
 
@@ -240,3 +245,117 @@ def test_the_grid_must_cover_every_step():
     y = np.array([True, False, True])
     with pytest.raises(ValueError):
         auroc_resolution_ceiling(np.arange(3.0), y, np.array([0.0, 1.0]))
+
+
+# -- rates, where clustering acts through a different mechanism -------------
+
+def test_a_rate_interval_brackets_the_rate_and_shrinks_with_n():
+    rng = np.random.default_rng(31)
+    wide = proportion_ci(rng.random(80) < 0.6, np.arange(80), n_boot=BOOT)
+    narrow = proportion_ci(rng.random(2000) < 0.6, np.arange(2000), n_boot=BOOT)
+    for ci in (wide, narrow):
+        assert ci.lo <= ci.point <= ci.hi
+    assert narrow.width < wide.width
+
+
+def test_an_empty_denominator_is_nan_not_a_crash():
+    ci = proportion_ci([], [], n_boot=BOOT)
+    assert np.isnan(ci.point) and ci.n_boot == 0
+
+
+def test_clustering_costs_a_rate_nothing_when_the_clusters_are_singletons():
+    """The C1 case. Dependence can be near-total and still not widen anything.
+
+    Every solution contributes ONE step to the denominator, so there is nothing
+    for the within-solution correlation to act on. This is the shape the real
+    C1 denominator has (mean 1.98 steps per wrong-answer solution) and the
+    reason its published Wilson interval turned out to be very nearly right.
+    """
+    rng = np.random.default_rng(32)
+    y = rng.random(300) < 0.9
+    d = proportion_design_effect(y, np.arange(300), n_boot=BOOT)
+    assert 0.7 < d["deff"] < 1.4
+    assert d["mean_cluster_size"] == pytest.approx(1.0)
+
+
+def test_clustering_costs_a_rate_a_great_deal_when_the_clusters_are_large():
+    """Same dependence, bigger clusters: now the interval has to widen.
+
+    Eight steps per solution all sharing one outcome -- the absorbing case. The
+    denominator says 480 and the information says 60.
+    """
+    rng = np.random.default_rng(33)
+    groups = np.repeat(np.arange(60), 8)
+    y = (rng.random(60) < 0.9)[groups]
+    d = proportion_design_effect(y, groups, n_boot=BOOT)
+    assert d["deff"] > 4.0
+    assert d["rho"] > 0.9
+    assert d["mean_cluster_size"] == pytest.approx(8.0)
+
+
+def test_the_predicted_design_effect_tracks_the_bootstrap_one():
+    """1 + (m-1)*rho against the resampled answer, on equal-sized clusters.
+
+    They agree where the formula's assumptions hold, which is what makes a
+    DISagreement on real data informative rather than alarming.
+    """
+    rng = np.random.default_rng(34)
+    groups = np.repeat(np.arange(120), 4)
+    base = (rng.random(120) < 0.7)[groups]
+    flip = rng.random(base.size) < 0.15
+    y = np.where(flip, ~base, base)
+
+    d = proportion_design_effect(y, groups, n_boot=2000)
+    assert d["deff"] == pytest.approx(d["deff_predicted"], rel=0.35)
+
+
+def test_rho_is_one_for_perfectly_absorbing_clusters_and_zero_for_none():
+    groups = np.repeat(np.arange(50), 4)
+    rng = np.random.default_rng(35)
+    absorbing = (rng.random(50) < 0.5)[groups]
+    assert intra_cluster_correlation(absorbing, groups) > 0.95
+
+    independent = rng.random(200) < 0.5
+    assert abs(intra_cluster_correlation(independent, groups)) < 0.25
+
+
+def test_rho_needs_at_least_two_clusters():
+    assert np.isnan(intra_cluster_correlation([True, False], [0, 0]))
+
+
+def test_two_corpora_are_resampled_separately():
+    """An unpaired difference: no step is shared, so nothing may cancel."""
+    rng = np.random.default_rng(36)
+    a, b = rng.random(400) < 0.50, rng.random(400) < 0.80
+    d = proportion_delta_ci(a, np.arange(400), b, np.arange(400), n_boot=BOOT)
+    assert d.point == pytest.approx(b.mean() - a.mean())
+    assert d.lo > 0
+    assert bootstrap_p_value(d) < 0.05
+
+
+def test_two_corpora_with_the_same_rate_give_a_difference_through_zero():
+    rng = np.random.default_rng(37)
+    a, b = rng.random(400) < 0.6, rng.random(400) < 0.6
+    d = proportion_delta_ci(a, np.arange(400), b, np.arange(400), n_boot=BOOT)
+    assert not d.excludes(0.0)
+
+
+def test_wilson_matches_the_published_c1_interval():
+    """The interval this project published for Qwen C1: 113 of 125.
+
+    Pinned because the clustered interval is quoted against it, and a number
+    that moves would make that comparison meaningless.
+    """
+    lo, hi = wilson(113, 125)
+    assert (round(lo, 3), round(hi, 3)) == (0.840, 0.944)
+
+
+def test_wilson_is_defined_at_the_edges():
+    """An empty denominator, and a rate of exactly 1 -- where a normal
+    approximation would return a zero-width interval and Wilson does not."""
+    assert all(np.isnan(v) for v in wilson(0, 0))
+
+    lo, hi = wilson(10, 10)
+    assert 0.0 <= lo < 1.0
+    assert hi == pytest.approx(1.0)
+    assert lo > 0.6                      # not a degenerate [0, 1]

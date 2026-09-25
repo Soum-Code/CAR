@@ -73,7 +73,7 @@ generator improves.
 | claim | evidence | source | status |
 |---|---|---|---|
 | C1 — 69.8% of wrong steps are locally valid | 93,129 steps, stratified | Math-Shepherd | measured |
-| C1b — C1 STRENGTHENS on a better generator | 0.7848 -> 0.9040, CIs disjoint | Qwen2.5-7B, 500 solutions | **measured** |
+| C1b — C1 STRENGTHENS on a better generator | 0.7848 -> 0.9040; disjoint under Wilson AND under a solution-clustered interval ([0.8430, 0.9531]); Mistral would need deff 243 to touch | Qwen2.5-7B, 500 solutions | **measured** |
 | C2 — corruption is near-absorbing | 95.9% persistence; 0/25,971 recovered | Math-Shepherd | measured |
 | C2b — local risk does not track final error | local pinned ~0.15, final 0.73→0.27 | simulation | simulated |
 | C3 — reach needs independence AND task-training | same-model 0.00, judge 0.23, PRM 0.90 | Math-Shepherd + 3 verifiers | **measured** |
@@ -97,6 +97,7 @@ generator improves.
 | C10d — AUROC is not a sufficient figure of merit | equal-AUROC scores differ by 0.04 proj. acc; corr(position, probe)=+0.18 vs composite -0.28 | matched-budget sweep | **measured** |
 | C11 — the corpus resolves one of ch. 7's comparisons, not four | design effect 1.8-3.3; the probe's +0.1226 survives, numeric-vs-exact (+0.0453) and both-vs-token (+0.0153) do not | 925 test steps, 4,000 solution-clustered resamples | **measured** |
 | C11b — exact-match clustering is not sub-chance | 0.4904 [0.4379, 0.5459] covers 0.5 | 2,573 steps | **withdrawn claim** |
+| C11e — clustering costs a RATE only when the clusters are large | C1 deff 1.13 at rho 0.68 (m=1.98); global error deff 5.59 at rho 0.38 (m=7.71); the orderings by rho and by cost are reversed | 2,573 steps, 500 solutions | **measured** |
 | C11c — divergence's 7-value grid is not why it fails | quantising the probe onto it costs 0.0131 AUROC | 925 test steps | **measured** |
 | C11d — a fourth equivalence relation needs AUROC > 0.6503 to register | paired SE 0.0272, 80% power; ch. 7.4's crossing is ~0.65 | 925 test steps | **measured** |
 | local error rate ≈ 0.10 | post-stratified, robust 0.091–0.108 | Math-Shepherd | measured |

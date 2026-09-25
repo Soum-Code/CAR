@@ -1,0 +1,81 @@
+{
+  "n_boot": 4000,
+  "seed": 0,
+  "rates": [
+    {
+      "name": "C1 (checkable), wrong-answer solutions",
+      "k": 113,
+      "n": 125,
+      "rate": 0.904,
+      "wilson_lo": 0.8396789770994196,
+      "wilson_hi": 0.9442293258089579,
+      "clustered_lo": 0.8429534580252284,
+      "clustered_hi": 0.953125,
+      "width_ratio": 1.0537654186199814,
+      "rho": 0.6803622417892259,
+      "mean_cluster_size": 1.9841269841269842,
+      "deff": 1.131103390045327,
+      "deff_predicted": 1.669562841125905,
+      "n_solutions": 63,
+      "n_steps": 125
+    },
+    {
+      "name": "global error rate, wrong-answer solutions",
+      "k": 445,
+      "n": 771,
+      "rate": 0.5771725032425421,
+      "wilson_lo": 0.5420034227990086,
+      "wilson_hi": 0.6115763540224733,
+      "clustered_lo": 0.5005147835269271,
+      "clustered_hi": 0.6613264764432648,
+      "width_ratio": 2.3114117816858775,
+      "rho": 0.38238482722149514,
+      "mean_cluster_size": 7.71,
+      "deff": 5.592265853022642,
+      "deff_predicted": 3.5658021906562323,
+      "n_solutions": 100,
+      "n_steps": 771
+    },
+    {
+      "name": "local error rate, wrong-answer solutions",
+      "k": 17,
+      "n": 209,
+      "rate": 0.08133971291866028,
+      "wilson_lo": 0.05140224754975594,
+      "wilson_hi": 0.12639006372773867,
+      "clustered_lo": 0.04602510460251046,
+      "clustered_hi": 0.12371134020618557,
+      "width_ratio": 1.035984771436572,
+      "rho": 0.36663053391823075,
+      "mean_cluster_size": 2.6794871794871793,
+      "deff": 1.1122391459605767,
+      "deff_predicted": 1.6157512813242079,
+      "n_solutions": 78,
+      "n_steps": 209
+    },
+    {
+      "name": "inherited corruption, all steps",
+      "k": 113,
+      "n": 2573,
+      "rate": 0.04391760590750097,
+      "wilson_lo": 0.03665650777644192,
+      "wilson_hi": 0.052538575072267134,
+      "clustered_lo": 0.03158737734024584,
+      "clustered_hi": 0.05780919551227229,
+      "width_ratio": 1.6510330603446797,
+      "rho": 0.45261053062453793,
+      "mean_cluster_size": 5.146,
+      "deff": 2.657591332983059,
+      "deff_predicted": 2.8765232599693342,
+      "n_solutions": 500,
+      "n_steps": 2573
+    }
+  ],
+  "mistral_sensitivity": {
+    "se_iid_mistral": 0.0019046600174252371,
+    "gap": 0.05815345802522831,
+    "deff_needed": 242.66325354108966,
+    "mean_cluster_needed": 356.1979206041187,
+    "n_mistral": 46555
+  }
+}

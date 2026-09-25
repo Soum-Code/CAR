@@ -72,8 +72,10 @@ freshly generated test solutions:
 | globally-wrong steps that are locally valid | 0.7848 | **0.9040** |
 
 The stronger model halves its arithmetic slips without halving its inherited
-corruption, so more of what remains is invisible to a calculator. Wilson
-intervals do not overlap. See [docs/FINDINGS-GENERATOR.md](docs/FINDINGS-GENERATOR.md).
+corruption, so more of what remains is invisible to a calculator. The intervals
+do not overlap — under Wilson, and under a solution-clustered bootstrap that does
+not assume steps are independent draws ([0.8430, 0.9531] on the Qwen side). See
+[docs/FINDINGS-GENERATOR.md](docs/FINDINGS-GENERATOR.md).
 
 > A deterministic verifier gets *less* useful as the generator improves.
 
@@ -330,7 +332,11 @@ python scripts/exp_gate_pipeline.py
 python scripts/exp_significance.py
 ```
 
-The last one is the one to run before quoting any AUROC from this project. It
+```bash
+python scripts/exp_rate_intervals.py
+```
+
+The last two are the ones to run before quoting any number from this project. It
 puts a 95% interval on every headline number, pairs every comparison on the same
 resamples, and reports which of them the corpus can actually support. Three
 claims in earlier drafts did not survive it, and they are listed in

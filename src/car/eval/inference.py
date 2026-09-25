@@ -272,6 +272,155 @@ def bootstrap_p_value(interval: Interval, null: float = 0.0) -> float:
     return float(min(1.0, max(2 * frac, 1.0 / vals.size)))
 
 
+def proportion_ci(
+    successes,
+    groups,
+    *,
+    n_boot: int = 4000,
+    alpha: float = 0.05,
+    seed: int = 0,
+    unit: str = "solution",
+) -> Interval:
+    """Clustered interval for a rate measured over steps nested in solutions.
+
+    Unlike an AUROC, a proportion feels clustered labels directly, and this
+    project's rates are the worst case for it. C2 measures that corruption is
+    near-absorbing: once a premise is wrong, every step below it is globally
+    wrong AND locally valid, which is precisely the event C1 counts. The
+    intra-cluster correlation is therefore close to 1 by the thesis's own
+    finding, and the design effect for a proportion runs at roughly
+    1 + (m - 1) * rho for mean cluster size m -- so a Wilson or normal interval,
+    which assumes m = 1, is too narrow by a factor that grows with how many
+    steps each solution contributes.
+
+    `successes` is one boolean per step (the numerator's event) and `groups` the
+    solution id. Steps outside the denominator are simply not passed in.
+    """
+    y = np.asarray(successes, dtype=bool)
+    g = np.arange(y.size) if unit == "step" else np.asarray(groups)
+    if unit not in ("solution", "step"):
+        raise ValueError("unit must be 'solution' or 'step'")
+    if y.size == 0:
+        return Interval(float("nan"), float("nan"), float("nan"), float("nan"),
+                        0, 0, 0)
+
+    res = _resampler(g, n_boot, seed)
+    reps = [float(y[idx].mean()) for idx in res]
+    return _percentile(reps, float(y.mean()), alpha, res.n_units)
+
+
+def proportion_delta_ci(
+    successes_a,
+    groups_a,
+    successes_b,
+    groups_b,
+    *,
+    n_boot: int = 4000,
+    alpha: float = 0.05,
+    seed: int = 0,
+) -> Interval:
+    """Interval for rate(b) - rate(a) across two INDEPENDENT corpora.
+
+    Unpaired, unlike `paired_auroc_delta_ci`, because the two corpora are
+    different generators on different solutions and share no steps. Each side is
+    resampled within itself -- its own solutions, with replacement -- and the
+    difference taken per replicate.
+
+    This is the interval to read when asking whether a rate transfers. Comparing
+    two separately-quoted intervals and checking whether they overlap is a
+    weaker and differently-shaped test: non-overlapping intervals imply a
+    significant difference, but overlapping ones do not imply the absence of
+    one.
+    """
+    ya, yb = np.asarray(successes_a, dtype=bool), np.asarray(successes_b, dtype=bool)
+    ra = _resampler(np.asarray(groups_a), n_boot, seed)
+    # A different seed for the second corpus: reusing one would correlate two
+    # samples that are independent, and narrow the difference for no reason.
+    rb = _resampler(np.asarray(groups_b), n_boot, seed + 1_000_003)
+    reps = [float(yb[jb].mean()) - float(ya[ja].mean())
+            for ja, jb in zip(ra, rb, strict=True)]
+    return _percentile(reps, float(yb.mean()) - float(ya.mean()), alpha,
+                       min(ra.n_units, rb.n_units))
+
+
+def intra_cluster_correlation(successes, groups) -> float:
+    """ANOVA estimate of rho for a binary outcome over unequal clusters.
+
+    Reported alongside a design effect because the two say different things: the
+    design effect is what the interval costs, rho is the property of the data
+    that causes it. A rho near 1 on C1 is the numerical form of "corruption is
+    near-absorbing" -- knowing one bad step's local validity tells you the rest
+    of that solution's.
+    """
+    y = np.asarray(successes, dtype=float)
+    g = np.asarray(groups)
+    _, inv = np.unique(g, return_inverse=True)
+    k = int(inv.max()) + 1 if inv.size else 0
+    n = y.size
+    if k < 2 or n <= k:
+        return float("nan")
+
+    sizes = np.bincount(inv, minlength=k).astype(float)
+    means = np.bincount(inv, weights=y, minlength=k) / sizes
+    grand = y.mean()
+
+    msb = float((sizes * (means - grand) ** 2).sum()) / (k - 1)
+    msw = float(((y - means[inv]) ** 2).sum()) / (n - k)
+    # The unequal-cluster correction; with equal sizes it reduces to m.
+    m0 = (n - (sizes**2).sum() / n) / (k - 1)
+    denom = msb + (m0 - 1) * msw
+    if denom <= 0:
+        return float("nan")
+    return float(np.clip((msb - msw) / denom, -1.0, 1.0))
+
+
+def proportion_design_effect(
+    successes, groups, *, n_boot: int = 4000, seed: int = 0
+) -> dict[str, float]:
+    """What clustering costs a rate, measured and predicted side by side.
+
+    `deff` is the bootstrap answer: clustered variance over independent-step
+    variance. `deff_predicted` is 1 + (m - 1) * rho, the textbook formula, which
+    is here as a check -- when the two disagree badly the cluster sizes are too
+    skewed for the formula and the bootstrap is the one to believe.
+    """
+    clustered = proportion_ci(successes, groups, n_boot=n_boot, seed=seed)
+    iid = proportion_ci(successes, groups, n_boot=n_boot, seed=seed, unit="step")
+    rho = intra_cluster_correlation(successes, groups)
+    m = iid.n_units / max(1, clustered.n_units)
+    deff = ((clustered.se / iid.se) ** 2
+            if np.isfinite(iid.se) and iid.se > 0 else float("nan"))
+    return {
+        "rate": clustered.point,
+        "se_clustered": clustered.se,
+        "se_iid_steps": iid.se,
+        "deff": deff,
+        "se_inflation": float(np.sqrt(deff)) if np.isfinite(deff) else float("nan"),
+        "rho": rho,
+        "mean_cluster_size": m,
+        "deff_predicted": 1 + (m - 1) * rho if np.isfinite(rho) else float("nan"),
+        "n_solutions": clustered.n_units,
+        "n_steps": iid.n_units,
+    }
+
+
+def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """Wilson interval, kept so the clustered one can be compared against it.
+
+    Correct for n INDEPENDENT Bernoulli draws and wrong for steps nested in
+    solutions, which is every rate in this project. It stays in the codebase
+    because "the old interval was this much too narrow" is a number worth
+    printing, not because anything should quote it.
+    """
+    if n == 0:
+        return (float("nan"), float("nan"))
+    p = k / n
+    d = 1 + z * z / n
+    c = (p + z * z / (2 * n)) / d
+    h = z * np.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
+    return (max(0.0, c - h), min(1.0, c + h))
+
+
 def minimum_detectable_delta(
     se: float, *, alpha: float = 0.05, power: float = 0.80
 ) -> float:

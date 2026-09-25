@@ -38,14 +38,17 @@ Run: python scripts/exp_generator_transfer.py
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+# `wilson` has one definition, shared with exp_rate_intervals.py, which prints
+# the clustered interval beside this one. Two copies would eventually disagree,
+# and the point of that comparison is that both are computed the same way.
 from car.data.generated import local_validity, notation_breakdown  # noqa: E402
 from car.data.math_shepherd import load_solutions  # noqa: E402
+from car.eval.inference import wilson  # noqa: E402
 
 SHEPHERD = Path("data/raw/mathshepherd/strided.jsonl")
 QWEN = Path("runs/generated_qwen25_7b.jsonl")
@@ -68,18 +71,6 @@ def rows_for(path, notation):
     return sols, out
 
 
-def wilson(k, n, z=1.96):
-    """Wilson interval. The Qwen bad-step count is ~125, where the normal
-    approximation is not trustworthy near a proportion of 0.9."""
-    if n == 0:
-        return (float("nan"), float("nan"))
-    p = k / n
-    d = 1 + z * z / n
-    c = (p + z * z / (2 * n)) / d
-    h = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / d
-    return (max(0.0, c - h), min(1.0, c + h))
-
-
 def stats(rows):
     n = len(rows)
     checkable = [r for r in rows if r["local_ok"] is not None]
@@ -96,6 +87,10 @@ def stats(rows):
         "c1_all": len(inherited) / max(1, len(bad)),
         "c1_checkable": k / max(1, len(bad_checkable)),
         "n_bad_checkable": len(bad_checkable),
+        # Wilson assumes independent steps; these are nested in solutions.
+        # exp_rate_intervals.py reports the clustered interval beside it, and
+        # measures that the correction here is 1.05x -- small because a
+        # wrong-answer solution contributes about two of these steps.
         "ci": wilson(k, len(bad_checkable)),
     }
 

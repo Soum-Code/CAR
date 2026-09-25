@@ -34,6 +34,8 @@ runs/*
 # The intervals every AUROC in the thesis is quoted with. CPU, ~3 min, but
 # committed because the chapters cite the numbers in it.
 !runs/significance.json
+# The same for the rates, ch. 4's included. CPU, ~1 min.
+!runs/rate_intervals.json
 # ~4h of CPU NLI. The per-pair verdicts, so the clustering can be
 # rerun or a different relation compared without repeating the pass.
 !runs/entailment_cache.jsonl

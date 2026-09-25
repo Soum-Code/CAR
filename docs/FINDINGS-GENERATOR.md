@@ -32,8 +32,15 @@ Within wrong-answer solutions, one definition applied to both corpora:
 | **C1 — globally-wrong steps that are locally valid** | **0.7848** | **0.9040** |
 | n globally-wrong checkable steps | 46,555 | 125 |
 | 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.840, 0.944] |
+| 95% CI on C1, resampling solutions | not recomputable | [0.8430, 0.9531] |
 
-The intervals do not overlap.
+The intervals do not overlap, and that survives the correction Wilson needs.
+Wilson assumes every step is an independent draw; these are nested in solutions.
+Resampling solutions moves the Qwen interval to [0.8430, 0.9531] — only 5% wider,
+design effect 1.13 — and for the Mistral side to reach it, its own design effect
+would have to be 243. See [FINDINGS-SIGNIFICANCE.md](FINDINGS-SIGNIFICANCE.md),
+and note that the global error rate two rows above does **not** survive the same
+check: its interval widens by 2.31×.
 
 The mechanism is straightforward once stated: **the stronger model halves its
 arithmetic slips** (0.171 → 0.081) without halving its inherited corruption, so
