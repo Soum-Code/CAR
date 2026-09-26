@@ -279,7 +279,7 @@ breadth.
 | 5 | Full gate pipeline end-to-end on GSM8K | **done** — negative: AUROC 0.56, target missed 3x |
 | 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
 | 7 | Probe on frozen internal states | **done** — AUROC 0.6968; the signal exists and does not close the gap |
-| 10 | Probe round two: more data, and a first-bad-step target | **done** — more data does not help; the right target doubles first-bad recall |
+| 10 | Probe round two: more data, and a first-bad-step target | **done** — more data buys ~+0.01; the right target raises first-bad recall 0.30 → 0.45 |
 | 8 | Locate the score quality the verifier needs | **done** — AUROC ~0.65, and AUROC is the wrong metric |
 | 9 | Re-cluster semantic divergence by bidirectional entailment | **done** — 0.5625, CI [0.512, 0.614]; the reference relation does not rescue it |
 
@@ -295,7 +295,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-333 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+335 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 

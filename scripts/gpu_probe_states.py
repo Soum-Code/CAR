@@ -289,6 +289,12 @@ def main():
         "layer": best.layer, "C": best.C, "n_layers": S.shape[1] - 1,
         "auroc_select": best.auroc_select, "auroc_test": float(test_auroc),
         "per_layer_select": {str(k): v for k, v in best.per_layer.items()},
+        # NAMED for what it is: scored on the SELECTION split, the same data
+        # the layer and C were chosen on. It is therefore biased and is NOT
+        # evidence about training size -- a claim in ch. 7.6 rested on it
+        # until round two caught that. exp_probe_variants.py produces the
+        # held-out version.
+        "learning_curve_on_selection_split": [[int(n), float(a)] for n, a in curve],
         "learning_curve": [[int(n), float(a)] for n, a in curve],
         "n_train": int(len(train_idx)), "n_select": int(len(sel_idx)),
         "n_test": int(len(test_idx)),

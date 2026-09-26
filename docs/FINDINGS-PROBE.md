@@ -134,11 +134,13 @@ is not ceremony: it is worth 0.18 AUROC of wrongness here.
 ### The probe looked data-starved, and was not — see round two
 
 > **This section's conclusion was wrong, and is kept for the record.**
-> [FINDINGS-PROBE2.md](FINDINGS-PROBE2.md) refutes it. The curve below is
-> scored on the SELECTION split — the same data the layer and C were chosen on
-> — so it is both biased by that selection and measured on the wrong
-> population. On held-out test data, doubling the training set moves AUROC
-> 0.6968 → 0.6896.
+> The curve below is scored on the SELECTION split — the same data the layer
+> and C were chosen on — so it is biased by that selection and measured on the
+> wrong population. It is not evidence about training size.
+> [FINDINGS-PROBE2.md](FINDINGS-PROBE2.md) does not *refute* the starvation
+> claim; it records it as **unsupported**, because measuring it properly (at
+> fixed layer and C) gives 0.6968 → 0.7086, **+0.0105** with a 95% interval of
+> [−0.035, +0.057]. More data helps a little, and not significantly.
 
 | training steps | AUROC (selection split — BIASED) |
 |---|---|
@@ -164,10 +166,12 @@ does, by +0.12 AUROC, and the gate still misses every binding α."
 
 **Chapter 9's prediction was wrong.** It predicted ~0.9033; the measured value
 is 0.6968. This document originally attributed the miss to probe-scale training
-on 670 steps and called the prediction worth re-running. Round two removed that
-excuse: doubling the training data leaves the held-out AUROC at 0.6896. What is
-left untested is the *instrument* — ReProbe's probes are not linear and these
-are. See [FINDINGS-PROBE2.md](FINDINGS-PROBE2.md).
+on 670 steps and called the prediction worth re-running. Round two measures that
+excuse and finds it small: doubling the training data at fixed layer and C is
+worth +0.0105, CI [−0.035, +0.057] — positive, and nowhere near the ~0.2 the
+prediction would need. What is left untested is the *instrument*: ReProbe's
+probes are not linear and these are. See
+[FINDINGS-PROBE2.md](FINDINGS-PROBE2.md).
 
 **The bottleneck ordering is unchanged and better evidenced.** Signal first,
 budget second, verifier downstream of both.

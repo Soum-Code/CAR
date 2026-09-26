@@ -366,7 +366,10 @@ def main():
         model, scaler = fit_one(X[sub], y[sub], b_res.C)
         a = auroc(model, scaler, X[test_idx], y[test_idx])
         cal_share = float(np.isin(sub, cal).mean())
-        curve.append((int(k), float(a)))
+        # Stored, not just printed: the constant calibration share IS the
+        # evidence that this curve measures size rather than composition, and
+        # an unstored number cannot be checked from the artifact.
+        curve.append((int(k), float(a), cal_share, float(y[sub].mean())))
         print(f"    n={k:>5}   test AUROC {a:.4f}   (calibration share "
               f"{cal_share:.2f}, wrong-rate {y[sub].mean():.3f})")
     # End to end rather than the last segment: a two-point slope at the noisy

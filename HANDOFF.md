@@ -36,13 +36,13 @@ Framing lives in `README.md` and `docs/THESIS.md`. The draft is
 ## 2. Status
 
 **The draft is complete.** Every chapter written, every number measured and
-reproducible, every refuted claim carrying a regression test. 333 tests pass.
+reproducible, every refuted claim carrying a regression test. 335 tests pass.
 
 Experiments finished, most recent first:
 
 | # | experiment | result | writeup |
 |---|---|---|---|
-| 10 | Probe round two (more data + first-bad target) | more data does NOT help (C9c refuted); the right target doubles first-bad recall | `docs/FINDINGS-PROBE2.md` |
+| 10 | Probe round two (more data + first-bad target) | more data buys ~+0.01 (C9c unsupported, not refuted); the right target raises first-bad recall 0.30 -> 0.45 | `docs/FINDINGS-PROBE2.md` |
 | 9 | Bidirectional entailment clustering | 0.5625, CI [0.512, 0.614] — reference relation does NOT rescue the signal | `docs/FINDINGS-ENTAILMENT.md` |
 | 8 | Score-quality sweep | verifier turns net-positive at AUROC ≈ 0.65; AUROC is the wrong metric | `docs/FINDINGS-SCORE-QUALITY.md` |
 | 7 | Internal-state probe | AUROC 0.6968 vs 0.5742; better, still not enough | `docs/FINDINGS-PROBE.md` |
@@ -108,13 +108,17 @@ Before committing: `python -m pytest -q`, the broken-link check (§7), and
 
 **Open experiments, cheapest first:**
 
-3. **Train the probe properly.** Its learning curve was still climbing at 670
-   training steps (0.7374 → 0.8748), so 0.6968 is a floor and nobody knows
-   where it plateaus. Needs more generated solutions plus another hidden-state
-   pass on Kaggle.
-4. **A score selected on first-bad-step recall.** §7.4 shows AUROC is the wrong
-   target — equal-AUROC scores differ by 0.04 projected accuracy — but nothing
-   here trains a score against the right one.
+3. **A non-linear probe.** Training data is settled as a *small* lever: §7.6
+   measures the doubling at **+0.0105**, CI [−0.035, +0.057]. (The old
+   0.7374 → 0.8748 curve was scored on the selection split and is not
+   evidence — see the traps below.) What is untested is the instrument:
+   ReProbe's probes are not linear, this thesis's are. The states are already
+   saved, so this is CPU work.
+4. **More first-bad-step labels.** §7.6 *does* train a score against first-bad
+   recall and it works (0.30 → 0.45), but on 49 training positives and 40 test
+   ones, and the gain is significant against one comparator and not the other.
+   108 such steps exist in the whole corpus — that is the binding constraint,
+   and generating more solutions is the one thing that would relieve it.
 5. **A third generator** would settle which per-generator quantities (μ,
    absorption) are monotone in model strength and which are idiosyncratic.
 6. **ARES-style conditioning under a budget** — the clearest remaining
@@ -187,8 +191,9 @@ and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
   as well as size and the slope read negative for that reason.
 - **Check which split a curve is evaluated on.** C9c ("0.6968 is a floor") stood
   for weeks on a learning curve scored on the *selection* split — the data the
-  layer and C were chosen on. Held out, the curve is flat. Any curve, CI or
-  score computed on data that was used for selection is not evidence.
+  layer and C were chosen on, so it was biased and measured on the wrong
+  population. Any curve, CI or score computed on data used for selection is not
+  evidence.
 - **Always add a harness-validation gate before reporting a model-derived
   measurement** — verify the model reproduces labels it was trained on. This
   caught a fake headline result once.
@@ -198,7 +203,7 @@ and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
 ## 6. Useful commands
 
 ```bash
-python -m pytest -q                                  # 333 tests
+python -m pytest -q                                  # 335 tests
 python scripts/check_citations.py --all              # every cited arXiv id has an entry
 python scripts/make_figures.py                       # all 12 figures, png + pdf
 python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json

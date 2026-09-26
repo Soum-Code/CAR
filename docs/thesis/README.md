@@ -54,7 +54,7 @@ python scripts/make_figures.py
 | 7.3 | 7 | the accuracy–cost curve against Kotte's impossibility floor |
 | 7.4 | 7 | same verifier, three scores — the verifier is downstream of the score |
 | 7.5 | 7 | where the verifier turns net-positive, and why AUROC does not predict it |
-| 7.6 | 7 | probe AUROC by layer, and a held-out learning curve that stays flat |
+| 7.6 | 7 | probe AUROC by layer, and what more training data is worth |
 | 7.7 | 7 | selective risk against score AUROC, with both α targets |
 
 Figures 7.1–7.3 are computed from the committed corpus at render time, so they
@@ -96,9 +96,10 @@ Known gaps, in the order they would matter to an examiner:
    and it works, but on 49 training positives and 40 test ones; the gain is
    significant against one comparator and not the other. 108 such steps exist
    in the whole corpus, and that is the binding constraint.
-3. **A non-linear probe.** §7.6 settles the training-data question negatively —
-   doubling it does not move the held-out AUROC — so what is untested is the
-   instrument. ReProbe's probes are not linear; this thesis's are.
+3. **A non-linear probe.** §7.6 measures what more training data buys and it is
+   about +0.01, interval spanning zero — so scale is a small lever and the
+   untested variable is the instrument. ReProbe's probes are not linear; this
+   thesis's are.
 4. **A third generator** would settle which of the per-generator quantities
    (μ, absorption) are monotone in model strength and which are idiosyncratic.
 5. **ARES-style conditioning under a budget** is the clearest scientific gap —

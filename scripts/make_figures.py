@@ -554,13 +554,15 @@ def fig9_verifier_value():
 
 
 def fig10_probe_layers():
-    """A real depth profile, and a learning curve that does NOT climb.
+    """A real depth profile, and what more training data is actually worth.
 
-    The right panel used to plot the round-one curve, which was evaluated on
-    the SELECTION split -- the same data the layer and C were chosen on. That
-    made it both optimistically biased and measured on the wrong population,
-    and it read as "still climbing" when the held-out curve is flat. Round two
-    re-measured it on test at up to 2x the training data; this plots that.
+    The right panel has been wrong twice. It first plotted the round-one curve,
+    scored on the SELECTION split -- the same data the layer and C were chosen
+    on, so biased and measured on the wrong population. The replacement walked
+    an UNSHUFFLED pool, so its composition drifted with its size and it read as
+    flat. This plots the held-out curve over a shuffled pool: it rises, and at
+    fixed layer and C the doubling is worth +0.0105 with the interval spanning
+    zero.
     """
     import json
 
@@ -592,8 +594,8 @@ def fig10_probe_layers():
     ax.set_title("Internal states encode step soundness", loc="left", pad=10)
 
     if curve:
-        ns = [n for n, _ in curve]
-        ax2.plot(ns, [a for _, a in curve], color=S3, marker="o", zorder=3)
+        ns = [row[0] for row in curve]
+        ax2.plot(ns, [row[1] for row in curve], color=S3, marker="o", zorder=3)
         ax2.axhline(0.6968, color=INK_3, ls=(0, (4, 4)), lw=1.2, zorder=2)
         ax2.text(ns[0], 0.699, "as published, 0.6968", color=INK_2, fontsize=7.5,
                  va="bottom")

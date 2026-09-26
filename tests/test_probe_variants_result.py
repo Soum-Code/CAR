@@ -162,3 +162,31 @@ def test_gate_score_files_exist_for_reproducing_the_gate_table():
         d = json.loads(p.read_text(encoding="utf-8"))
         assert len(d["scores"]) == n_steps
         assert d["target"] == tag
+
+
+@needs_run
+def test_the_learning_curve_records_its_own_composition():
+    """The second correction's evidence, checkable from the artifact.
+
+    The curve is only a size sweep if every prefix is the same mixture. An
+    earlier version concatenated the calibration split unshuffled, so the
+    share ran 0.00 -> 0.51 and the slope measured composition drift. Storing
+    the share is what lets that be verified rather than asserted.
+    """
+    curve = blob()["learning_curve_pooled"]
+    assert all(len(row) == 4 for row in curve), (
+        "rows must carry (n, auroc, calibration_share, wrong_rate)")
+    shares = [row[2] for row in curve]
+    assert max(shares) - min(shares) < 0.10, (
+        f"calibration share drifts across the sweep ({min(shares):.2f}"
+        f"-{max(shares):.2f}); the pool is not being sampled")
+    rates = [row[3] for row in curve]
+    assert max(rates) - min(rates) < 0.05, "label rate drifts across the sweep"
+
+
+def test_round_one_learning_curve_is_labelled_as_selection_scored():
+    """The field that produced the invalid C9c evidence must say so where it is
+    written, not only in the prose that later caught it."""
+    src = Path("scripts/gpu_probe_states.py").read_text(encoding="utf-8")
+    assert "learning_curve_on_selection_split" in src
+    assert "SELECTION split" in src

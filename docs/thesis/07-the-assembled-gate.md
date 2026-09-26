@@ -490,9 +490,9 @@ the same hash splits — so the AUROCs compare step for step.
 
 **AUROC 0.6968 on test**, against 0.5742 for the best of the measured signals.
 
-![Left: AUROC by hidden layer, every layer tried. Right: the held-out learning curve, which stays flat.](figures/fig10-probe-layers.png)
+![Left: AUROC by hidden layer, every layer tried. Right: the held-out learning curve over a shuffled pool.](figures/fig10-probe-layers.png)
 
-**Figure 7.6.** The probe's layer profile and learning curve. Left: a smooth rise through the network peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates. Right: the held-out curve at up to 2× the training data, flat. An earlier version plotted the selection-split curve here, which read as climbing.
+**Figure 7.6.** The probe's layer profile and learning curve. Left: a smooth rise through the network peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates. Right: the held-out curve over a shuffled pooled training set; it rises, and at fixed layer and C the doubling is worth +0.0105 with the interval spanning zero. This panel has been wrong twice — first plotting the selection-split curve, then an unshuffled pool whose composition drifted with its size.
 
 ![Selective risk against score AUROC, with the alpha targets and the no-gate line.](figures/fig11-score-vs-risk.png)
 
@@ -539,17 +539,19 @@ about a hundredth of AUROC — nothing like the trajectory the leaked curve
 implied. So C9c is recorded as **unsupported**, not refuted: its evidence was
 invalid, and the honest measurement neither establishes nor rules it out.
 
-> Reproduce: `python scripts/exp_probe_variants.py`
-> Full writeup: [docs/FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md)
-
-> Reproduce: `python scripts/exp_probe_variants.py`
+> Reproduce: `python scripts/exp_probe_variants.py`, then for the gate table
+> below, `python scripts/exp_gate_pipeline.py --probe runs/gate_probe_global.json`
+> and the same with `runs/gate_probe_firstbad.json`
 > Full writeup: [docs/FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md)
 
 ### AUROC was also the wrong thing to train it on
 
 §7.4 showed the projection only pays for the **first** globally-wrong step in a
-solution, and that this probe's score correlates +0.18 with step position — it
-spends its ranking power on late steps no repair can rescue. That is a
+solution, and that this probe's score correlates positively with step position
+— it spends its ranking power on late steps no repair can rescue. (§7.4 reports
++0.1813 and the table below +0.2327: the same probe's score under two monotone
+transforms, with Spearman 1.0 between them. Pearson is not invariant to that,
+AUROC and first-bad recall are, and every comparison here rests on those.) That is a
 diagnosis; it can be acted on. Retraining on the first-bad label instead, with
 first-bad recall measured at a fixed 19.1% verification rate so no variant wins
 by flagging more:
@@ -561,10 +563,11 @@ by flagging more:
 | **the first-bad label** | 0.5735 | **0.4500** | −0.472 |
 | the global label, position projected out | 0.6811 | 0.2750 | −0.066 |
 
-Training on the right target raises the quantity that pays and **eliminates**
-the probe's AUROC advantage rather than merely reducing it — 0.5735 sits below
-the 0.5742 token+semantic baseline whose failure is this chapter's central
-negative result. That trade is the chapter's own point made concrete: ranked by
+Training on the right target raises the quantity that pays and **removes the
+probe's AUROC advantage**: 0.5735 sits level with the 0.5742 token+semantic
+baseline whose failure is this chapter's central negative result. The 0.0007
+gap is far inside the interval on either number, so "level with" is as far as
+it goes — §7.2 declines to rank a 0.0114 gap for the same reason. That trade is the chapter's own point made concrete: ranked by
 AUROC the first-bad probe is the worst of the four, and it is the one that best
 does the job the system is for.
 
@@ -585,17 +588,18 @@ is not robust to the comparator.
 In the gate, each score chooses its own operating point, so the verification
 rate is not matched and recall per call is reported with it:
 
-| score | calls/q | selective risk | first-bad recall | per call | PROJ accuracy |
+| score | calls (calls/q) | selective risk | first-bad recall | per call | PROJ accuracy |
 |---|---|---|---|---|---|
-| no gate | 0.00 | 0.1554 | — | — | **0.8022** |
-| split conformal (token+semantic) | 1.09 | 0.1538 | 0.3590 | **0.3294** | 0.7912 |
-| probe, global target | 0.96 | **0.1394** | 0.3077 | 0.3205 | 0.7802 |
-| probe, first-bad target | 1.18 | 0.1600 | **0.3846** | 0.3259 | 0.7912 |
+| no gate | 0 (0.00) | 0.1554 | — | — | **0.8022** |
+| split conformal (token+semantic) | 199 (1.0934) | 0.1538 | 0.3590 | **0.3283** | 0.7912 |
+| probe, global target | 175 (0.9615) | **0.1394** | 0.3077 | 0.3200 | 0.7802 |
+| probe, first-bad target | 214 (1.1758) | 0.1600 | **0.3846** | 0.3271 | 0.7912 |
 
 The first-bad probe has the highest raw first-bad recall and spends 23% more
-calls to get it; **per call the ordering reverses and the chapter's existing
-token+semantic baseline is best**, reaching the same 0.7912 projected accuracy
-on fewer calls. Selective risk also *worsens* 0.1394 → 0.1600, because a score
+calls to get it. Per call the ordering reverses and the chapter's existing
+token+semantic baseline comes out top, but by 0.0012 — about one verification
+call, so a tie rather than a result. What is not a tie is that the baseline
+reaches the same 0.7912 projected accuracy on fewer calls, 199 against 214. Selective risk also *worsens* 0.1394 → 0.1600, because a score
 tuned for first-bad steps is near chance on the global label. Against what the
 chapter already had, this is not an improvement.
 
@@ -618,7 +622,8 @@ probes are not linear, and that is the untested half.
 
 ## 7.7 What this chapter establishes
 
-Three independent failures, each with a number and a regression test:
+Three failure points, each with a number and a regression test — and, as the
+oracle run below shows, not three *independent* ones:
 
 | failure point | measurement | what the oracle and the probe say about it |
 |---|---|---|
