@@ -90,10 +90,10 @@ generator improves.
 | C8e — a perfect score still misses a binding alpha | oracle risk 0.0885 vs alpha=0.05; the budget binds | end-to-end run | **measured** |
 | C9 — a probe on internal states DOES rank step error | AUROC 0.6968 vs 0.5742; +0.12 | 925 test steps | **measured** |
 | C9b — and it still does not close the gap | risk 0.1432 at alpha=0.05 (2.9x target); PRM still net-negative at 0.7802 | end-to-end run | **measured** |
-| C9c — 0.6968 is a floor, not a ceiling | REFUTED in round two: that curve was scored on the SELECTION split; on held-out data 670 -> 1361 steps gives 0.6968 -> 0.6896, slope -0.043/1000 | probe round two | **refuted** |
-| C12 — training on first-bad steps doubles the quantity that pays | first-bad recall 0.2250 -> 0.4500, diff +0.2232 CI [+0.056, +0.393]; global AUROC falls 0.6896 -> 0.5735 | 1361 train steps | **measured** |
-| C12b — and it still does not make the gate pay | PROJ acc 0.7802 -> 0.7912 against a 0.8022 baseline; selective risk worsens 0.1394 -> 0.1600 | gate run | **measured** |
-| C12c — the binding limit is the label, not the model | 108 first-bad steps exist, 40 in test; gate-safe variant trains on 27 and its CI spans zero | corpus | **measured** |
+| C9c — 0.6968 is a floor, not a ceiling | UNSUPPORTED: its curve was scored on the SELECTION split. Clean fixed-config test gives +0.0105, CI [-0.035,+0.057]; directionally positive, far short of what the leaked curve implied | probe round two | **unsupported** |
+| C12 — training on first-bad steps raises the quantity that pays | +0.2216 CI [+0.051,+0.390] vs the pooled probe, but +0.1412 CI [-0.065,+0.333] vs the PUBLISHED one; global AUROC falls 0.6896 -> 0.5735, below the 0.5742 baseline | 1361 train steps | **measured, comparator-dependent** |
+| C12b — and it still does not make the gate pay | PROJ acc 0.7802 -> 0.7912 against a 0.8022 baseline; selective risk worsens 0.1394 -> 0.1600; per verification call the token+semantic baseline is best | gate run | **measured** |
+| C12c — the binding limit is the label, not the model | 108 first-bad steps exist, 40 in test; pooled trains on 49, gate-safe on 27 and its CI spans zero | corpus | **measured** |
 | C10 — the verifier turns net-positive at AUROC ~0.65 | net- to 0.625, net+ from 0.700; below the probe's own 0.6968 | 13 x 64 sweep | **measured** |
 | C10b — that threshold is made entirely of false alarms | at FA=0 the same PRM is net-positive down to AUROC 0.55 | ablation | **measured** |
 | C10c — no score quality holds a binding alpha | best is 0.0956 at AUROC 0.99, 1.9x the alpha=0.05 target | sweep | **measured** |

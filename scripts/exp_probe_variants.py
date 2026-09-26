@@ -119,6 +119,54 @@ def select_by(states_by_layer, y, train_idx, select_idx, score_fn, Cs=DEFAULT_CS
             "model": model, "scaler": scaler, "per_layer": per_layer}
 
 
+def paired_bootstrap(stat, a_scores, b_scores, y_or_fb, sol_id, seed=0, n=2000):
+    """CI on (stat(b) - stat(a)) resampling SOLUTIONS, not steps.
+
+    Paired, because both scores are evaluated on the same resampled questions --
+    the comparison is between scores, and letting the question sample differ
+    between arms would swamp it. Solution-clustered because steps inside a
+    solution are not independent.
+    """
+    rng = np.random.default_rng(seed)
+    sols = np.unique(sol_id)
+    idx_by_sol = [np.where(sol_id == s)[0] for s in sols]
+    diffs = []
+    for _ in range(n):
+        pick = rng.integers(0, len(sols), len(sols))
+        idx = np.concatenate([idx_by_sol[p] for p in pick])
+        try:
+            d = stat(b_scores[idx], y_or_fb[idx]) - stat(a_scores[idx], y_or_fb[idx])
+        except (ValueError, ZeroDivisionError):
+            continue
+        if d == d:
+            diffs.append(d)
+    d = np.asarray(diffs)
+    lo, hi = np.percentile(d, [2.5, 97.5])
+    return {"mean": float(d.mean()), "ci": [float(lo), float(hi)],
+            "p_better": float((d > 0).mean())}
+
+
+def fixed_config_doubling(X, y, small_idx, big_idx, test_idx, C, sol_id, seed=0):
+    """Does MORE DATA help, holding layer and C fixed?
+
+    The only clean form of the question. Comparing two independently *selected*
+    probes confounds training size with re-running layer selection -- which is
+    how an earlier version of this script concluded that doubling the data made
+    the probe slightly worse, when the two arms had landed on different layers.
+    """
+    m1, s1 = fit_one(X[small_idx], y[small_idx], C)
+    m2, s2 = fit_one(X[big_idx], y[big_idx], C)
+    a1 = m1.decision_function(s1.transform(X[test_idx]))
+    a2 = m2.decision_function(s2.transform(X[test_idx]))
+    return {
+        "n_small": int(len(small_idx)), "n_big": int(len(big_idx)),
+        "auroc_small": plain_auroc(a1, y[test_idx]),
+        "auroc_big": plain_auroc(a2, y[test_idx]),
+        "delta": paired_bootstrap(plain_auroc, a1, a2, y[test_idx],
+                                  sol_id[test_idx], seed=seed),
+    }
+
+
 def bootstrap_auroc(scores, y, sol_id, seed=0, n=2000):
     """Solution-clustered CI. Steps inside a solution are not independent, and
     a step-level bootstrap would report an interval several times too narrow."""
@@ -160,6 +208,10 @@ def main():
     ap.add_argument("--budget-rate", type=float, default=0.191,
                     help="verification rate at which first-bad recall is "
                          "compared; the probe's measured rate in ch. 7.4")
+    ap.add_argument("--emit-gate-scores", type=Path, default=Path("runs"),
+                    help="write per-step scores for the gate-safe probes so "
+                         "the section-3 gate table can be reproduced with "
+                         "exp_gate_pipeline.py --probe")
     ap.add_argument("--seed", type=int, default=0)
     args = ap.parse_args()
 
@@ -189,9 +241,15 @@ def main():
 
     n_sel = max(1, int(len(dev) * args.select_frac))
     sel_dev, train_dev = dev[:n_sel], dev[n_sel:]
-    # Pooled: same selection slice, so only the TRAINING size changes between
-    # the two. Anything else would confound size with selection.
-    train_pool = np.concatenate([train_dev, cal])
+    # SHUFFLED. An earlier version concatenated the calibration split unshuffled
+    # onto the end, so walking prefixes of it for the learning curve changed the
+    # training POPULATION as well as its size: the calibration share went
+    # 0.0 -> 0.0 -> 0.015 -> 0.34 -> 0.51 and the wrong-step rate drifted
+    # 0.213 -> 0.177 (dev is 22.1% wrong, calibration 14.9%). The "slope" over
+    # the last segment was therefore measured exactly where composition moves
+    # most, and it read negative for that reason. Shuffling makes every prefix
+    # an unbiased sample of the pool, which is what a size sweep needs.
+    train_pool = rng.permutation(np.concatenate([train_dev, cal]))
 
     print("=" * 96)
     print("PROBE VARIANTS: is it starved, and is AUROC the right target?")
@@ -209,7 +267,8 @@ def main():
 
     def evaluate(name, res, gate_safe, note):
         X = res["_X"]
-        s_test = res["model"].decision_function(res["scaler"].transform(X[test_idx]))
+        s_full = res["model"].decision_function(res["scaler"].transform(X))
+        s_test = s_full[test_idx]
         a = plain_auroc(s_test, y[test_idx])
         lo, hi = bootstrap_auroc(s_test, y[test_idx], sol_id[test_idx], seed=args.seed)
         fbr = first_bad_recall(s_test, fb[test_idx], args.budget_rate)
@@ -220,6 +279,11 @@ def main():
                "first_bad_recall": fbr, "gate_safe": gate_safe, "note": note,
                "score_position_corr": float(
                    np.corrcoef(s_test, norm_pos[test_idx])[0, 1])}
+        # Every variant here is scored at the SAME verification rate, so
+        # first-bad recall is already budget-matched and needs no per-call
+        # normalisation. The gate table in section 3 is the one where the rates
+        # differ, and that is where per-call numbers belong.
+        row["_scores"] = s_full
         rows.append(row)
         print(f"  {name:<26}{a:>8.4f}  [{lo:.3f},{hi:.3f}]"
               f"{a_fb:>9.4f}{fbr:>11.4f}{row['score_position_corr']:>+9.3f}"
@@ -270,9 +334,30 @@ def main():
     evaluate("E selected on 1st-bad", e_res, False,
              "layer and C chosen by first-bad recall, not AUROC")
 
-    # --- learning curve on the pooled set, the direct answer to gap 1 ------
+    # --- GAP 1 done properly: hold the configuration fixed -----------------
+    # Variants A and B each re-run layer selection, so their difference is not
+    # a measurement of data quantity. These are.
     print()
-    print("  learning curve, global label, pooled training set:")
+    print("  data doubling at FIXED layer and C (the clean test):")
+    doubling = {}
+    for tag, layer, C in (("A-config", a_res.layer, a_res.C),
+                          ("B-config", b_res.layer, b_res.C)):
+        r = fixed_config_doubling(by_layer[layer], y, train_dev, train_pool,
+                                  test_idx, C, sol_id, seed=args.seed)
+        r["layer"], r["C"] = int(layer), float(C)
+        doubling[tag] = r
+        d = r["delta"]
+        print(f"    layer {layer:>2} C={C:<6} {r['n_small']} -> {r['n_big']}:  "
+              f"{r['auroc_small']:.4f} -> {r['auroc_big']:.4f}   "
+              f"{d['mean']:+.4f}  95% CI [{d['ci'][0]:+.4f},{d['ci'][1]:+.4f}]")
+    pos = all(v["delta"]["mean"] > 0 for v in doubling.values())
+    spans = any(v["delta"]["ci"][0] < 0 < v["delta"]["ci"][1] for v in doubling.values())
+    print(f"    -> sign is {'positive' if pos else 'mixed'} at every configuration; "
+          f"interval{'s span zero' if spans else 's exclude zero'}")
+
+    # --- learning curve, on a SHUFFLED pool so size is the only thing moving
+    print()
+    print("  learning curve, global label, shuffled pooled training set:")
     curve = []
     X = by_layer[b_res.layer]
     for frac in (0.1, 0.25, 0.5, 0.75, 1.0):
@@ -280,23 +365,112 @@ def main():
         sub = train_pool[:k]
         model, scaler = fit_one(X[sub], y[sub], b_res.C)
         a = auroc(model, scaler, X[test_idx], y[test_idx])
+        cal_share = float(np.isin(sub, cal).mean())
         curve.append((int(k), float(a)))
-        print(f"    n={k:>5}   test AUROC {a:.4f}")
-    slope = (curve[-1][1] - curve[-2][1]) / max(1, curve[-1][0] - curve[-2][0]) * 1000
-    print(f"    slope over the last segment: {slope:+.4f} AUROC per 1000 steps")
-    print(f"    -> {'STILL CLIMBING: 0.6968 is a floor' if slope > 0.005 else 'FLATTENING: near what this signal gives'}")
+        print(f"    n={k:>5}   test AUROC {a:.4f}   (calibration share "
+              f"{cal_share:.2f}, wrong-rate {y[sub].mean():.3f})")
+    # End to end rather than the last segment: a two-point slope at the noisy
+    # end of a flat-ish curve can be given either sign by the pair chosen.
+    slope = (curve[-1][1] - curve[0][1]) / max(1, curve[-1][0] - curve[0][0]) * 1000
+    print(f"    slope end to end: {slope:+.4f} AUROC per 1000 steps")
+
+    # --- GAP 2 done properly: against BOTH global-target comparators -------
+    # B has the lowest first-bad recall of any global-target probe here, so
+    # quoting C against B alone picks the flattering baseline. A is the
+    # published, gate-safe probe and is the one a reader will have in mind.
+    print()
+    print("  first-bad recall gain, by comparator (paired, solution-clustered):")
+    fbr_stat = lambda s, f: first_bad_recall(s, f, args.budget_rate)  # noqa: E731
+    score_of = {r["variant"][0]: r["_scores"] for r in rows}
+    gains = {}
+    for base in ("A", "B"):
+        g = paired_bootstrap(fbr_stat, score_of[base][test_idx],
+                             score_of["C"][test_idx], fb[test_idx],
+                             sol_id[test_idx], seed=args.seed)
+        gains[f"C_vs_{base}"] = g
+        verdict = "excludes zero" if g["ci"][0] > 0 else "SPANS ZERO"
+        print(f"    C vs {base}:  {g['mean']:+.4f}  95% CI "
+              f"[{g['ci'][0]:+.4f},{g['ci'][1]:+.4f}]  P={g['p_better']:.2f}  "
+              f"-- {verdict}")
+
+    # --- winner's curse on variant C, which section 1 quantifies for A -----
+    # C is the best of 29 layers x 5 Cs chosen on a selection split holding
+    # only 19 first-bad positives. Reporting its test number without the
+    # selection-to-test gap is the same omission this project caught once.
+    c_sel = fbr_stat(score_of["C"][sel_dev], fb[sel_dev])
+    c_test = fbr_stat(score_of["C"][test_idx], fb[test_idx])
+    print()
+    print(f"  variant C winner's curse: first-bad recall {c_sel:.4f} on the "
+          f"selection split vs {c_test:.4f} on test")
+    print(f"    (chosen from {n_layers * 5} configurations on "
+          f"{int(fb[sel_dev].sum())} selection positives)")
+
+    # --- gate-safe probes, fitted HERE so the numbers have committed code ---
+    # An earlier version hand-wrote this block into the JSON from a throwaway
+    # shell snippet, which meant the thesis quoted figures no script produced.
+    print()
+    print("  gate-safe probes (dev-only training, calibration split untouched):")
+    gs = {}
+    for tag, target in (("global", y), ("firstbad", fb)):
+        r = select_and_fit(by_layer, target, train_dev, sel_dev)
+        s = r.model.decision_function(r.scaler.transform(by_layer[r.layer]))
+        gs[tag] = {"layer": int(r.layer), "C": float(r.C),
+                   "auroc_test": plain_auroc(s[test_idx], y[test_idx]),
+                   "first_bad_recall": fbr_stat(s[test_idx], fb[test_idx]),
+                   "n_pos_train": int(target[train_dev].sum()), "_scores": s}
+        print(f"    {tag:<9} layer {gs[tag]['layer']:>2} C={gs[tag]['C']:<7} "
+              f"AUROC {gs[tag]['auroc_test']:.4f}  "
+              f"first-bad recall {gs[tag]['first_bad_recall']:.4f}")
+    gs_diff = paired_bootstrap(fbr_stat, gs["global"]["_scores"][test_idx],
+                               gs["firstbad"]["_scores"][test_idx], fb[test_idx],
+                               sol_id[test_idx], seed=args.seed)
+    print(f"    gain {gs_diff['mean']:+.4f}  95% CI "
+          f"[{gs_diff['ci'][0]:+.4f},{gs_diff['ci'][1]:+.4f}]  "
+          f"P={gs_diff['p_better']:.2f}  "
+          f"-- {'excludes zero' if gs_diff['ci'][0] > 0 else 'SPANS ZERO'}")
+
+    if args.emit_gate_scores:
+        # So the section-3 gate table is reproducible rather than asserted:
+        #   python scripts/exp_gate_pipeline.py --probe runs/gate_probe_<tag>.json
+        args.emit_gate_scores.mkdir(parents=True, exist_ok=True)
+        for tag, r in gs.items():
+            path = args.emit_gate_scores / f"gate_probe_{tag}.json"
+            path.write_text(json.dumps({
+                "layer": r["layer"], "C": r["C"],
+                "auroc_test": r["auroc_test"], "auroc_select": 0.0,
+                "target": tag,
+                "scores": [float(v) for v in r["_scores"]],
+            }), encoding="utf-8")
+            print(f"    wrote {path}")
 
     print()
     print("  reference points:")
     for k, v in REFERENCE.items():
         print(f"    {k:<24}{v:.4f}")
 
+    for r in rows:
+        r.pop("_scores", None)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps({
         "n_steps": int(len(y)), "n_first_bad": int(fb.sum()),
         "n_first_bad_test": int(fb[test_idx].sum()),
+        "n_first_bad_train_dev": int(fb[train_dev].sum()),
+        "n_first_bad_train_pool": int(fb[train_pool].sum()),
+        "n_first_bad_select": int(fb[sel_dev].sum()),
         "budget_rate": args.budget_rate,
+        "fixed_config_doubling": doubling,
         "learning_curve_pooled": curve,
+        "first_bad_gain_by_comparator": gains,
+        "variant_c_winners_curse": {"selection": c_sel, "test": c_test,
+                                    "n_select_positives": int(fb[sel_dev].sum()),
+                                    "n_configurations": n_layers * 5},
+        "gate_safe": {
+            "note": "dev-only training, so the calibration split stays clean "
+                    "and ch. 7 may quote these; variants B-E may not.",
+            **{k: {kk: vv for kk, vv in v.items() if not kk.startswith("_")}
+               for k, v in gs.items()},
+            "first_bad_recall_diff": gs_diff,
+        },
         "reference": REFERENCE,
         "variants": rows,
     }, indent=1), encoding="utf-8")

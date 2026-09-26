@@ -1,10 +1,14 @@
-"""Pins probe round two, including the claim it refuted.
+"""Pins probe round two — and the two corrections it went through.
 
-C9c said 0.6968 was "a floor, not a ceiling", on the strength of a learning
-curve that turned out to have been scored on the selection split. The
-correction matters more than the original claim did, so it gets the test: if a
-future change makes the held-out curve climb again, that is either a real
-finding or a reintroduced leak, and either way it should fail loudly.
+The first version of this experiment concluded "doubling the data does not move
+it, C9c refuted". Both halves were artifacts: the two arms had selected
+different layers, so the comparison was not about data quantity, and the
+learning curve walked an unshuffled pool whose composition drifted with its
+size. The corrected answer has the opposite sign and is not significant.
+
+So these tests guard the method as much as the numbers. A comparison that
+claims to isolate training size must hold the configuration fixed; a learning
+curve must sample its pool; a gain must name its comparator.
 """
 
 import json
@@ -26,78 +30,135 @@ def by_variant():
     return {r["variant"][0]: r for r in blob()["variants"]}
 
 
-@needs_run
-def test_more_training_data_does_not_rescue_the_probe():
-    """C9c refuted. Doubling the training set leaves the held-out AUROC alone."""
-    v = by_variant()
-    assert v["A"]["auroc_test"] == pytest.approx(0.6968, abs=0.002)
-    assert v["B"]["n_train"] > 2 * v["A"]["n_train"] * 0.9   # roughly doubled
-    assert v["B"]["auroc_test"] < v["A"]["auroc_test"] + 0.02, (
-        "if more data now helps materially, C9c may be back -- check whether "
-        "the curve is being scored on held-out data before believing it")
+# ---- gap 1: what more data is actually worth ------------------------------
 
 
 @needs_run
-def test_the_held_out_learning_curve_is_flat():
-    """The evidence behind the refutation, not just its conclusion."""
-    curve = blob()["learning_curve_pooled"]
+def test_data_quantity_is_measured_at_fixed_configuration():
+    """The correction. A and B select different layers (25 vs 28), so their
+    difference is not a measurement of training size."""
+    b = blob()
+    d = b["fixed_config_doubling"]
+    assert set(d) == {"A-config", "B-config"}
+    assert d["A-config"]["layer"] != d["B-config"]["layer"], (
+        "if both arms now pick the same layer the confound is gone, but the "
+        "prose explaining it needs updating")
+    for r in d.values():
+        assert r["n_big"] > 1.9 * r["n_small"]
+
+
+@needs_run
+def test_more_data_helps_slightly_and_not_significantly():
+    """C9c is UNSUPPORTED, not refuted: the sign is positive everywhere and
+    every interval spans zero. Either half flipping changes the chapter."""
+    for tag, r in blob()["fixed_config_doubling"].items():
+        d = r["delta"]
+        assert d["mean"] > 0, f"{tag}: sign went negative"
+        assert d["mean"] < 0.05, f"{tag}: gain got large enough to support C9c"
+        assert d["ci"][0] < 0 < d["ci"][1], f"{tag}: interval no longer spans zero"
+
+
+@needs_run
+def test_the_learning_curve_pool_is_sampled_not_concatenated():
+    """The second artifact: an unshuffled pool made the curve's composition
+    drift with its size, so 'size' was confounded with 'which split'."""
+    b = blob()
+    curve = b["learning_curve_pooled"]
     assert len(curve) >= 4
-    aurocs = [a for _, a in curve]
-    assert max(aurocs) - min(aurocs) < 0.08, "a flat curve, not a climbing one"
-    slope = ((curve[-1][1] - curve[-2][1])
-             / max(1, curve[-1][0] - curve[-2][0])) * 1000
-    assert slope < 0.005, "the last segment must not be climbing"
+    # Rising end to end, which the confounded version reported as falling.
+    assert curve[-1][1] > curve[0][1]
+
+
+# ---- gap 2: the training target -------------------------------------------
 
 
 @needs_run
-def test_training_on_first_bad_steps_doubles_first_bad_recall():
-    """C12. The constructive half of 7.6, and the direction is the claim."""
-    v = by_variant()
-    assert v["C"]["first_bad_recall"] > 1.7 * v["B"]["first_bad_recall"]
-    d = blob()["pooled_first_bad_recall_diff"]
-    assert d["ci"][0] > 0, "the interval must exclude zero for this to be a result"
-    assert d["p_better"] >= 0.95
+def test_the_first_bad_gain_is_reported_against_both_comparators():
+    """The pooled global probe has the lowest first-bad recall here, so quoting
+    the gain against it alone picks the flattering baseline."""
+    g = blob()["first_bad_gain_by_comparator"]
+    assert {"C_vs_A", "C_vs_B"} <= set(g)
+    assert g["C_vs_B"]["ci"][0] > 0, "the favourable comparison should exclude zero"
+    assert g["C_vs_A"]["ci"][0] < 0, (
+        "against the published probe the interval spans zero; if that changes "
+        "the chapter can drop its comparator caveat")
+    assert g["C_vs_A"]["mean"] > 0, "direction should still be positive"
 
 
 @needs_run
-def test_the_right_target_costs_auroc():
-    """The trade is the point: ranked by AUROC, variant C is the worst of them,
-    and it is the one that best does the job the system is paid for."""
+def test_the_right_target_eliminates_the_auroc_advantage():
+    """Not 'halves'. 0.5735 is below the 0.5742 token+semantic baseline whose
+    failure is chapter 7's central negative result."""
     v = by_variant()
-    assert v["C"]["auroc_test"] < v["B"]["auroc_test"] - 0.05
-    assert v["C"]["auroc_test"] == min(r["auroc_test"] for r in blob()["variants"])
+    baseline = blob()["reference"]["token + semantic"]
+    assert v["C"]["auroc_test"] < baseline
     assert v["C"]["first_bad_recall"] == max(
         r["first_bad_recall"] for r in blob()["variants"])
 
 
 @needs_run
-def test_residualising_position_reduces_the_positional_component():
-    """Variant D isolates 7.4's mechanism rather than asserting it."""
+def test_variant_c_shows_no_winners_curse():
+    """It is the best of 145 configurations chosen on 19 positives, so the gap
+    is worth recording even though it came out clean."""
+    w = blob()["variant_c_winners_curse"]
+    assert w["n_configurations"] == 145
+    assert w["n_select_positives"] < 25
+    assert w["test"] >= w["selection"] - 0.05
+
+
+@needs_run
+def test_residualising_position_moves_the_positional_component():
     v = by_variant()
     assert abs(v["D"]["score_position_corr"]) < abs(v["B"]["score_position_corr"])
-    assert v["D"]["first_bad_recall"] > v["B"]["first_bad_recall"]
+
+
+# ---- the limit, and reproducibility ---------------------------------------
 
 
 @needs_run
-def test_the_gate_safe_result_is_reported_as_underpowered():
-    """C12c. The significant variant saw the calibration split; the deployable
-    one trains on 27 positives and its interval spans zero. Both must stay in
-    the artifact so neither can be quoted as the other."""
+def test_first_bad_positive_counts_are_recorded():
+    """49 pooled, not 68: the other 19 sit in the selection split. The wrong
+    number was in the thesis once."""
     b = blob()
-    gs = b["gate_safe"]
-    assert gs["firstbad"]["n_pos_train"] < 40
-    assert gs["first_bad_recall_diff"]["ci"][0] < 0 < gs["first_bad_recall_diff"]["ci"][1]
-    assert b["pooled_first_bad_recall_diff"]["ci"][0] > 0
+    assert b["n_first_bad"] == 108
     assert b["n_first_bad_test"] == 40
+    assert b["n_first_bad_train_pool"] == 49
+    assert b["n_first_bad_train_dev"] == 27
+    assert (b["n_first_bad_train_pool"] + b["n_first_bad_select"]
+            + b["n_first_bad_test"] == b["n_first_bad"])
 
 
 @needs_run
-def test_the_first_bad_probe_does_not_make_the_gate_pay():
-    """It moves PROJ accuracy the right way and still sits under the baseline.
-    Reporting the gain without this would overstate the finding."""
-    g = blob()["gate"]
-    assert g["probe_firstbad"]["first_bad_recall"] > g["probe_global"]["first_bad_recall"]
-    assert g["probe_firstbad"]["proj_acc"] > g["probe_global"]["proj_acc"]
-    assert g["probe_firstbad"]["proj_acc"] < g["baseline_no_gate"]
-    # and it costs selective risk, which a summary could quietly drop
-    assert g["probe_firstbad"]["sel_risk"] > g["probe_global"]["sel_risk"]
+def test_the_gate_safe_result_is_null_and_says_so():
+    gs = blob()["gate_safe"]
+    assert gs["firstbad"]["n_pos_train"] == 27
+    d = gs["first_bad_recall_diff"]
+    assert d["mean"] > 0 and d["ci"][0] < 0 < d["ci"][1]
+    assert gs["firstbad"]["first_bad_recall"] > gs["global"]["first_bad_recall"]
+
+
+@needs_run
+def test_every_quoted_block_is_produced_by_the_script():
+    """An earlier version hand-wrote the gate-safe and bootstrap blocks into
+    this artifact from a throwaway shell snippet, so the thesis quoted numbers
+    no committed code produced. Each key here must come from exp_probe_variants.py."""
+    src = Path("scripts/exp_probe_variants.py").read_text(encoding="utf-8")
+    for key in ("fixed_config_doubling", "learning_curve_pooled",
+                "first_bad_gain_by_comparator", "variant_c_winners_curse",
+                "gate_safe", "n_first_bad_train_pool"):
+        assert key in blob(), f"{key} missing from the artifact"
+        assert f'"{key}"' in src, f"{key} is in the artifact but no code writes it"
+
+
+@needs_run
+def test_gate_score_files_exist_for_reproducing_the_gate_table():
+    """section 3's table is reproduced with
+    `exp_gate_pipeline.py --probe runs/gate_probe_<tag>.json`, so the inputs
+    have to be committed rather than described."""
+    n_steps = blob()["n_steps"]
+    for tag in ("global", "firstbad"):
+        p = Path(f"runs/gate_probe_{tag}.json")
+        assert p.exists(), f"{p} missing -- rerun with --emit-gate-scores"
+        d = json.loads(p.read_text(encoding="utf-8"))
+        assert len(d["scores"]) == n_steps
+        assert d["target"] == tag

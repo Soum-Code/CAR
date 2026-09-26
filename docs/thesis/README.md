@@ -92,9 +92,10 @@ Known gaps, in the order they would matter to an examiner:
 
 1. **No related-work chapter separate from background.** For a paper
    submission these would split.
-2. **A score selected on first-bad-step recall.** §7.4 shows AUROC is the wrong
-   target — two scores of equal AUROC differ by 0.04 projected accuracy — but
-   nothing here trains a score against the right one.
+2. **More first-bad-step labels.** §7.6 trains a score against the right target
+   and it works, but on 49 training positives and 40 test ones; the gain is
+   significant against one comparator and not the other. 108 such steps exist
+   in the whole corpus, and that is the binding constraint.
 3. **A non-linear probe.** §7.6 settles the training-data question negatively —
    doubling it does not move the held-out AUROC — so what is untested is the
    instrument. ReProbe's probes are not linear; this thesis's are.

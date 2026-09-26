@@ -21,8 +21,8 @@ reproducing.
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at every binding α |
 | The three failures are independent | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
 | Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
-| A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed** | 0.6968 measured; the flat held-out learning curve removes the training-scale excuse |
-| 0.6968 is a floor, pending more training data | this thesis, ch. 7.6 first draft | **refuted** | that curve was scored on the selection split; doubling the data gives 0.6896 |
+| A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed** | 0.6968 measured; doubling the training data recovers ~0.01, not the gap |
+| 0.6968 is a floor, pending more training data | this thesis, ch. 7.6 | **unsupported** | its curve was scored on the selection split; a clean test gives +0.0105, CI [−0.035, +0.057] |
 | The verifier needs a score "well above 0.70" | this thesis, ch. 7 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65; the probe already clears it |
 | AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
 | The cheap equivalence relation was hiding the signal | the obvious objection to §7.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
@@ -133,13 +133,14 @@ and the result is recorded below alongside the prediction it missed.
 reports AUROC **0.6968**, +0.12 over everything else measured here, improving
 selective risk at every α on fewer calls. The prediction that it would land near
 0.9033 was wrong, and an earlier draft excused it as probe-scale training on
-670 steps against ReProbe's far larger sets. That excuse is gone: §7.6 doubles
-the training data and the held-out AUROC does not move (0.6968 → 0.6896, final
-slope −0.043 per 1000 steps). The first curve had been scored on the selection
-split. So either the prediction was wrong about this setting, or a *linear*
-probe on frozen states is the wrong instrument — ReProbe's are not linear, and
-that is the untested half. Ni et al. also find probe and PRM combine better
-than either alone, so the productive object may still be a hybrid.
+670 steps against ReProbe's far larger sets. §7.6 measures that excuse and
+finds it small: at fixed layer and C, doubling the training data moves the
+held-out AUROC by **+0.0105**, CI [−0.035, +0.057]. Positive, and nowhere near
+the 0.2 the prediction would need. So either the prediction was wrong about
+this setting, or a *linear* probe on frozen states is the wrong instrument —
+ReProbe's are not linear, and that is the untested half. Ni et al. also find
+probe and PRM combine better than either alone, so the productive object may
+still be a hybrid.
 
 The more useful finding is what 0.70 was *not* enough for. It did not make the
 gate hold any binding α, and it did not make the PRM worth having — projected

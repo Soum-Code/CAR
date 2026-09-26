@@ -597,12 +597,14 @@ def fig10_probe_layers():
         ax2.axhline(0.6968, color=INK_3, ls=(0, (4, 4)), lw=1.2, zorder=2)
         ax2.text(ns[0], 0.699, "as published, 0.6968", color=INK_2, fontsize=7.5,
                  va="bottom")
-        ax2.set_ylim(0.62, 0.74)
-        ax2.set_title("and more data does not move it", loc="left", pad=10)
-        src = ("Right: evaluated on the HELD-OUT split at up to 2x the training "
-               "data. An earlier version plotted the round-one curve, which\n"
-               "was scored on the selection split the layer and C were chosen "
-               "on; that read as climbing and this does not.")
+        ax2.set_ylim(0.54, 0.74)
+        ax2.set_title("and more data helps a little", loc="left", pad=10)
+        src = ("Right: held-out AUROC over a SHUFFLED pooled training set, so "
+               "size is the only thing changing. At fixed layer and C, doubling\n"
+               "the data is worth +0.0105 (CI [-0.035, +0.057]). Two earlier "
+               "versions of this panel were wrong: the first plotted the\n"
+               "selection-split curve, the second an unshuffled pool whose "
+               "composition drifted with its size.")
     else:
         ns = [n for n, _ in d["learning_curve"]]
         ax2.plot(ns, [a for _, a in d["learning_curve"]], color=S3, marker="o",

@@ -36,7 +36,7 @@ Framing lives in `README.md` and `docs/THESIS.md`. The draft is
 ## 2. Status
 
 **The draft is complete.** Every chapter written, every number measured and
-reproducible, every refuted claim carrying a regression test. 329 tests pass.
+reproducible, every refuted claim carrying a regression test. 333 tests pass.
 
 Experiments finished, most recent first:
 
@@ -178,6 +178,13 @@ and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
   pipe buffers and the output file stays empty. Run it unpiped with `python -u`.
 - **Check figure numbering after inserting a figure.** Chapter 7's figures went
   out of reading order twice; captions are numbered by hand.
+- **A comparison that claims to isolate one variable must hold the others
+  fixed.** "Doubling the data does not move it" was published from two probes
+  that had selected *different layers*; at fixed layer and C the sign reverses.
+  Re-running model selection is not a control.
+- **A learning curve must sample its pool.** The pooled training set was
+  `concat(dev_shuffled, cal_unshuffled)`, so prefixes of it changed composition
+  as well as size and the slope read negative for that reason.
 - **Check which split a curve is evaluated on.** C9c ("0.6968 is a floor") stood
   for weeks on a learning curve scored on the *selection* split — the data the
   layer and C were chosen on. Held out, the curve is flat. Any curve, CI or
@@ -191,7 +198,7 @@ and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
 ## 6. Useful commands
 
 ```bash
-python -m pytest -q                                  # 329 tests
+python -m pytest -q                                  # 333 tests
 python scripts/check_citations.py --all              # every cited arXiv id has an entry
 python scripts/make_figures.py                       # all 12 figures, png + pdf
 python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json

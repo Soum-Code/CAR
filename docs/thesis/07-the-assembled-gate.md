@@ -509,21 +509,38 @@ ch. 5 PRM. `select_and_fit` does not take test indices as a parameter, and a
 test asserts its signature cannot grow one; the discipline is worth 0.18 AUROC
 of wrongness here.
 
-**An earlier draft called 0.6968 a floor, and that was wrong.** It read a
-learning curve climbing 0.7374 → 0.8748 across 167 → 670 training steps as
-evidence the probe was starved. That curve was evaluated on the *selection*
-split — the same data the layer and the regularisation strength were chosen on
-— so it was both biased by the selection and measured on the wrong population.
-Re-measured on held-out test data at up to twice the training set:
+**An earlier draft called 0.6968 a floor on evidence that could not support
+it.** The claim rested on a learning curve climbing 0.7374 → 0.8748 across
+167 → 670 training steps. That curve was evaluated on the *selection* split —
+the same data the layer and the regularisation strength were chosen on — so it
+was biased by that selection and measured on the wrong population. The claim
+therefore had no evidence, which is not the same as being false.
+
+Measuring it properly needs the configuration held fixed: re-running layer
+selection on a larger training set can land somewhere else, and then the
+difference is partly the layer rather than the data. It does — the dev-only
+probe selects layer 25 and the pooled one layer 28.
+
+| configuration | 670 → 1,361 training steps | change | 95% CI |
+|---|---|---|---|
+| layer 25, C = 0.1 (the published probe) | 0.6968 → **0.7086** | **+0.0105** | [−0.035, +0.057] |
+| layer 28, C = 0.1 | 0.6817 → 0.6896 | +0.0072 | [−0.041, +0.055] |
+
+And the held-out learning curve, over a shuffled pool so that size is the only
+thing changing:
 
 | training steps | 136 | 340 | 680 | 1020 | 1361 |
 |---|---|---|---|---|---|
-| test AUROC | 0.6583 | 0.6901 | 0.6811 | 0.7043 | 0.6896 |
+| test AUROC | 0.5686 | 0.6691 | 0.6590 | 0.6856 | 0.6896 |
 
-Flat, final slope −0.043 AUROC per 1000 steps, and the head-to-head is 0.6968
-on 670 training steps against **0.6896** on 1,361. Doubling the data does not
-move it. So 0.6968 is roughly what a linear probe on this model's frozen states
-gives for this target on this corpus — not a placeholder pending more data.
+**More data helps, and it helps very little.** The sign is positive at every
+configuration, every interval spans zero, and doubling the training set buys
+about a hundredth of AUROC — nothing like the trajectory the leaked curve
+implied. So C9c is recorded as **unsupported**, not refuted: its evidence was
+invalid, and the honest measurement neither establishes nor rules it out.
+
+> Reproduce: `python scripts/exp_probe_variants.py`
+> Full writeup: [docs/FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md)
 
 > Reproduce: `python scripts/exp_probe_variants.py`
 > Full writeup: [docs/FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md)
@@ -539,48 +556,65 @@ by flagging more:
 
 | trained on | AUROC | **first-bad recall** | score–position corr |
 |---|---|---|---|
-| the global label | 0.6896 | 0.2250 | +0.163 |
+| the global label, dev only (published) | 0.6968 | 0.3000 | +0.233 |
+| the global label, pooled | 0.6896 | 0.2250 | +0.163 |
 | **the first-bad label** | 0.5735 | **0.4500** | −0.472 |
 | the global label, position projected out | 0.6811 | 0.2750 | −0.066 |
 
-**Training on the right target doubles the quantity that pays** — +0.2232,
-95% CI [+0.056, +0.393] by a solution-clustered bootstrap — and costs global
-AUROC, 0.6896 → 0.5735. That trade is the chapter's own point made concrete:
-ranked by AUROC the first-bad probe is the worst of the three, and it is the
-one that best does the job the system is for.
+Training on the right target raises the quantity that pays and **eliminates**
+the probe's AUROC advantage rather than merely reducing it — 0.5735 sits below
+the 0.5742 token+semantic baseline whose failure is this chapter's central
+negative result. That trade is the chapter's own point made concrete: ranked by
+AUROC the first-bad probe is the worst of the four, and it is the one that best
+does the job the system is for.
 
-In the gate, with the gate-safe probes (dev-only training, so the calibration
-split stays clean), it moves both quantities in the predicted direction and
-still does not pay for itself:
+**How large the gain is depends on which global-target probe it is measured
+against**, and both are reasonable:
 
-| score | calls/q | selective risk | first-bad recall | PROJ accuracy |
-|---|---|---|---|---|
-| no gate | 0.00 | 0.1554 | — | **0.8022** |
-| probe, global target | 0.96 | **0.1394** | 0.3077 | 0.7802 |
-| **probe, first-bad target** | 1.18 | 0.1600 | **0.3846** | **0.7912** |
+| comparison | gain | 95% CI | |
+|---|---|---|---|
+| vs the pooled global probe | +0.2216 | [+0.051, +0.390] | excludes zero |
+| vs the **published** probe (0.3000) | +0.1412 | [−0.065, +0.333] | **spans zero** |
 
-Projected accuracy rises 0.7802 → 0.7912 and selective risk *worsens*
-0.1394 → 0.1600, because a score tuned for first-bad steps is near chance on
-the global label and selective risk is defined over every accepted step. 0.7912
-is still below the 0.8022 baseline.
+The pooled probe has the lowest first-bad recall of any global-target variant
+here, so quoting only the first row picks the flattering baseline. Against the
+probe a reader actually has in mind the effect is +47% relative with an
+interval that includes no effect. The direction is consistent; the significance
+is not robust to the comparator.
 
-**The limit is the label, and it was known before the run.** The corpus holds
-108 first-bad steps, 40 of them in test. The significant result above trains on
-68 positives and saw the calibration split; the gate-safe version trains on 27
-and gives +0.0812 with CI [−0.108, +0.278]. The effect is real at 68 positives
-and unproven at 27, and settling it needs more *first-bad* steps — which is the
-one thing §7.6's flat learning curve says extra data would be good for.
+In the gate, each score chooses its own operating point, so the verification
+rate is not matched and recall per call is reported with it:
+
+| score | calls/q | selective risk | first-bad recall | per call | PROJ accuracy |
+|---|---|---|---|---|---|
+| no gate | 0.00 | 0.1554 | — | — | **0.8022** |
+| split conformal (token+semantic) | 1.09 | 0.1538 | 0.3590 | **0.3294** | 0.7912 |
+| probe, global target | 0.96 | **0.1394** | 0.3077 | 0.3205 | 0.7802 |
+| probe, first-bad target | 1.18 | 0.1600 | **0.3846** | 0.3259 | 0.7912 |
+
+The first-bad probe has the highest raw first-bad recall and spends 23% more
+calls to get it; **per call the ordering reverses and the chapter's existing
+token+semantic baseline is best**, reaching the same 0.7912 projected accuracy
+on fewer calls. Selective risk also *worsens* 0.1394 → 0.1600, because a score
+tuned for first-bad steps is near chance on the global label. Against what the
+chapter already had, this is not an improvement.
+
+**The limit is the label.** The corpus holds 108 first-bad steps, 40 in test.
+The significant comparison trains on 49 positives and saw the calibration
+split; the gate-safe version trains on 27 and gives +0.0805, CI [−0.119,
++0.262]. So: the target is demonstrably the right one to optimise, and this
+corpus is too small to show it buys anything deployable.
 
 ### What it changes
 
 Chapter 9 predicted, before the run, that a probe here would land near the
 ch. 5 PRM's 0.9033 rather than above it — reasoning that ReProbe's margin is
 largest out of domain while strong PRMs reach parity on GSM8K. The measured
-0.6968 is **below** that, and the flat learning curve removes the excuse an
-earlier draft offered: this is not probe-scale training holding the number
-down. Either the prediction was wrong about this setting, or a *linear* probe
-on frozen states is the wrong instrument for it. ReProbe's probes are not
-linear, and that is the untested half.
+0.6968 is **below** that, and doubling the training data recovers about
+0.01 — so probe-scale training is not what holds the number down, though it is
+worth a little. Either the prediction was wrong about this setting, or a
+*linear* probe on frozen states is the wrong instrument for it. ReProbe's
+probes are not linear, and that is the untested half.
 
 ## 7.7 What this chapter establishes
 
@@ -634,15 +668,17 @@ distributed across the whole pipeline.
   clustering algorithm. A relation sensitive to the *asserted quantity* on
   arithmetic steps while still handling the 59% that carry none would be a
   genuinely different probe, and does not exist here.
-- **The probe is linear, and that is now the open variable.** Training data is
-  not: §7.6 doubles it and the held-out AUROC does not move. ReProbe's probes
-  are not linear, so statements here about what internal states *cannot* encode
-  are statements about what a logistic probe on one layer cannot read off them.
-  Every statement about what AUROC 0.70 fails to buy is unaffected.
+- **The probe is linear, and that is the open variable.** Training data is a
+  small one: §7.6 doubles it for about +0.01, with the interval spanning zero.
+  ReProbe's probes are not linear, so statements here about what internal
+  states *cannot* encode are statements about what a logistic probe on one
+  layer cannot read off them. Every statement about what AUROC 0.70 fails to
+  buy is unaffected.
 - **108 first-bad steps in the corpus, 40 in test.** The first-bad-target result
-  is significant at 68 training positives and not at the 27 a gate-safe probe
-  gets. That is the binding constraint on §7.6's constructive half, and more
-  solutions would relieve it — the one purpose extra data would serve here.
+  trains on 49 positives pooled and 27 gate-safe, and its significance depends
+  on which global-target probe it is compared against. That is the binding
+  constraint on §7.6's constructive half, and more solutions would relieve it —
+  the one purpose extra data would clearly serve here.
 - **Chain topology.** Replay assumes each step depends on the previous one.
   Influence weighting is off by default, having lost to uniform five times, so
   this affects little — but it is an assumption.

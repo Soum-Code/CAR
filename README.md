@@ -189,17 +189,17 @@ works.
 logistic probe on the generator's own frozen hidden states reaches **0.6968**,
 and improves selective risk at every α on fewer calls. It still misses α = 0.05
 by 2.9×, and still leaves the task PRM net-negative. Doubling its training data
-does not help — 0.6896 on held-out steps — so this is what a linear probe on
-frozen states gives here, not a floor. See
-[docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md) and
+buys about **+0.01**, interval spanning zero — a small lever, not the one an
+earlier draft claimed. See [docs/FINDINGS-PROBE.md](docs/FINDINGS-PROBE.md) and
 [docs/FINDINGS-PROBE2.md](docs/FINDINGS-PROBE2.md).
 
-**Training it on the right target doubles the quantity that pays.** Because
-only the *first* wrong step in a solution can be repaired, first-bad recall is
-what the objective rewards — and refitting the probe to that label takes it
-from 0.2250 to **0.4500** (CI [+0.056, +0.393]) while dropping global AUROC to
-0.5735. Two objectives that trade against each other, and AUROC is not the one
-the system is paid on. It still does not lift the gate above baseline.
+**Training it on the right target raises the quantity that pays.** Because only
+the *first* wrong step in a solution can be repaired, first-bad recall is what
+the objective rewards — refitting the probe to that label takes it from 0.3000
+to **0.4500** and **eliminates** its AUROC advantage (0.5735, below the 0.5742
+baseline). Two objectives that trade against each other, and AUROC is not the
+one the system is paid on. The gain is significant against one comparator and
+not the other, and per verification call the existing baseline still wins.
 
 **And AUROC turns out to be the wrong target.** Sweeping a synthetic score of
 controlled AUROC through the same gate puts the crossing — where the task PRM
@@ -295,7 +295,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-329 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+333 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 

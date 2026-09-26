@@ -2,29 +2,115 @@
  "n_steps": 2573,
  "n_first_bad": 108,
  "n_first_bad_test": 40,
+ "n_first_bad_train_dev": 27,
+ "n_first_bad_train_pool": 49,
+ "n_first_bad_select": 19,
  "budget_rate": 0.191,
+ "fixed_config_doubling": {
+  "A-config": {
+   "n_small": 670,
+   "n_big": 1361,
+   "auroc_small": 0.6968013083158949,
+   "auroc_big": 0.70861835510929,
+   "delta": {
+    "mean": 0.010500975483152418,
+    "ci": [
+     -0.03532236646549282,
+     0.05669399620282392
+    ],
+    "p_better": 0.6735
+   },
+   "layer": 25,
+   "C": 0.1
+  },
+  "B-config": {
+   "n_small": 670,
+   "n_big": 1361,
+   "auroc_small": 0.6817398491216347,
+   "auroc_big": 0.6895651256440466,
+   "delta": {
+    "mean": 0.007227824646390515,
+    "ci": [
+     -0.0409639382698087,
+     0.055174172040325785
+    ],
+    "p_better": 0.6185
+   },
+   "layer": 28,
+   "C": 0.1
+  }
+ },
  "learning_curve_pooled": [
   [
    136,
-   0.658299189336522
+   0.5685898675857703
   ],
   [
    340,
-   0.6901102572669562
+   0.6691226897849366
   ],
   [
    680,
-   0.6811419628255403
+   0.65904654720664
   ],
   [
    1020,
-   0.7042573021260133
+   0.6855997327096558
   ],
   [
    1361,
    0.6895651256440467
   ]
  ],
+ "first_bad_gain_by_comparator": {
+  "C_vs_A": {
+   "mean": 0.1411814276038423,
+   "ci": [
+    -0.06453366058906031,
+    0.33333333333333326
+   ],
+   "p_better": 0.9005
+  },
+  "C_vs_B": {
+   "mean": 0.2215626260487882,
+   "ci": [
+    0.05124999999999998,
+    0.39027041357370085
+   ],
+   "p_better": 0.991
+  }
+ },
+ "variant_c_winners_curse": {
+  "selection": 0.42105263157894735,
+  "test": 0.45,
+  "n_select_positives": 19,
+  "n_configurations": 145
+ },
+ "gate_safe": {
+  "note": "dev-only training, so the calibration split stays clean and ch. 7 may quote these; variants B-E may not.",
+  "global": {
+   "layer": 25,
+   "C": 0.1,
+   "auroc_test": 0.6968013083158949,
+   "first_bad_recall": 0.3,
+   "n_pos_train": 138
+  },
+  "firstbad": {
+   "layer": 10,
+   "C": 0.001,
+   "auroc_test": 0.5151317987585067,
+   "first_bad_recall": 0.375,
+   "n_pos_train": 27
+  },
+  "first_bad_recall_diff": {
+   "mean": 0.08045599945301507,
+   "ci": [
+    -0.11912020905923347,
+    0.26190476190476186
+   ],
+   "p_better": 0.764
+  }
+ },
  "reference": {
   "token + semantic": 0.5742,
   "probe as published": 0.6968,
@@ -45,7 +131,7 @@
    "first_bad_recall": 0.3,
    "gate_safe": true,
    "note": "reproduces ch. 7.6",
-   "score_position_corr": 0.23271517444664042
+   "score_position_corr": 0.23271517444575499
   },
   {
    "variant": "B global, dev+cal",
@@ -61,7 +147,7 @@
    "first_bad_recall": 0.225,
    "gate_safe": false,
    "note": "saw the calibration split",
-   "score_position_corr": 0.16303644171423368
+   "score_position_corr": 0.16303636415909878
   },
   {
    "variant": "C first-bad target",
@@ -77,7 +163,7 @@
    "first_bad_recall": 0.45,
    "gate_safe": false,
    "note": "only 49 positives to train on",
-   "score_position_corr": -0.4716709108325004
+   "score_position_corr": -0.47167091083249907
   },
   {
    "variant": "D position-residualised",
@@ -93,7 +179,7 @@
    "first_bad_recall": 0.275,
    "gate_safe": false,
    "note": "position projected out before fitting",
-   "score_position_corr": -0.0661461713532655
+   "score_position_corr": -0.06614607077651374
   },
   {
    "variant": "E selected on 1st-bad",
@@ -109,71 +195,7 @@
    "first_bad_recall": 0.35,
    "gate_safe": false,
    "note": "layer and C chosen by first-bad recall, not AUROC",
-   "score_position_corr": 0.20759640040736066
+   "score_position_corr": 0.20759639819888429
   }
- ],
- "gate_safe": {
-  "note": "dev-only training, so the calibration split stays clean and these may be quoted in ch. 7; the pooled variants B-E may not.",
-  "global": {
-   "layer": 25,
-   "C": 0.1,
-   "auroc_test": 0.6968,
-   "first_bad_recall": 0.3
-  },
-  "firstbad": {
-   "layer": 10,
-   "C": 0.001,
-   "auroc_test": 0.5151,
-   "first_bad_recall": 0.375,
-   "n_pos_train": 27
-  },
-  "first_bad_recall_diff": {
-   "mean": 0.0812,
-   "ci": [
-    -0.1081,
-    0.2778
-   ],
-   "p_better": 0.76
-  }
- },
- "pooled_first_bad_recall_diff": {
-  "mean": 0.2232,
-  "ci": [
-   0.0555,
-   0.3929
-  ],
-  "p_better": 0.99
- },
- "gate": {
-  "baseline_no_gate": 0.8022,
-  "split_conformal": {
-   "verify": 0.218,
-   "calls_q": 1.09,
-   "sel_risk": 0.1538,
-   "first_bad_recall": 0.359,
-   "proj_acc": 0.7912
-  },
-  "probe_global": {
-   "verify": 0.191,
-   "calls_q": 0.96,
-   "sel_risk": 0.1394,
-   "first_bad_recall": 0.3077,
-   "proj_acc": 0.7802
-  },
-  "probe_firstbad": {
-   "verify": 0.234,
-   "calls_q": 1.18,
-   "sel_risk": 0.16,
-   "first_bad_recall": 0.3846,
-   "proj_acc": 0.7912
-  },
-  "oracle": {
-   "verify": 0.073,
-   "calls_q": 0.37,
-   "sel_risk": 0.0885,
-   "first_bad_recall": 0.9231,
-   "proj_acc": 0.978
-  }
- },
- "published_learning_curve_was_on_selection_split": true
+ ]
 }

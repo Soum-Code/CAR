@@ -148,14 +148,17 @@ generator's own frozen hidden states reaches **AUROC 0.6968** against 0.5742 for
 everything else measured — so the failure is not that step-level uncertainty is
 unreadable. It improves selective risk at every α on fewer calls, and still
 misses α = 0.05 by 2.9× and leaves the task PRM net-negative. The probe is
-trained on 670 steps, and doubling that moves it to 0.6896 — an earlier draft
-called 0.6968 a floor on the strength of a learning curve that turned out to
-have been scored on the selection split. It is not a floor; it is roughly what
-a linear probe on frozen states gives here. What *does* respond is the training
-target: fitting the same probe to the FIRST globally-wrong step in a solution,
-the only one a repair can rescue, doubles first-bad recall (0.2250 → 0.4500)
-while halving its AUROC advantage — two objectives that trade against each
-other, and only one of them is what the system is paid on. (Chapter 7.6)
+trained on 670 steps. An earlier draft called that a floor, on a learning curve
+that turned out to have been scored on the selection split; measured properly,
+doubling the training data buys **+0.01** with an interval spanning zero. So
+the claim is unsupported rather than established, and more data is a small
+lever. What *does* respond is the training target: fitting the same probe to
+the FIRST globally-wrong step — the only one a repair can rescue — raises
+first-bad recall from 0.3000 to 0.4500 and **eliminates** its AUROC advantage,
+dropping to 0.5735 against a 0.5742 baseline. Two objectives that trade against
+each other, and only one is what the system is paid on. The gain is significant
+against one reasonable comparator and not the other, and it does not make the
+gate worth running. (Chapter 7.6)
 
 **C10. The score quality the verifier needs is lower than assumed, and AUROC is
 the wrong way to measure it.** Sweeping a synthetic score of controlled AUROC
