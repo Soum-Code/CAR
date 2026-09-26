@@ -94,6 +94,9 @@ generator improves.
 | C12 — training on first-bad steps raises the quantity that pays | +0.2216 CI [+0.051,+0.390] vs the pooled probe, but +0.1412 CI [-0.065,+0.333] vs the PUBLISHED one; global AUROC falls 0.6896 -> 0.5735, below the 0.5742 baseline | 1361 train steps | **measured, comparator-dependent** |
 | C12b — and it still does not make the gate pay | PROJ acc 0.7802 -> 0.7912 against a 0.8022 baseline; selective risk worsens 0.1394 -> 0.1600; per verification call the token+semantic baseline is best | gate run | **measured** |
 | C12c — the binding limit is the label, not the model | 108 first-bad steps exist, 40 in test; pooled trains on 49, gate-safe on 27 and its CI spans zero | corpus | **measured** |
+| C13 — a non-linear probe does NOT beat a linear one | matched at layer: +0.0051 to +0.0315 to -0.0315; sign depends on the layer, 3 of 4 intervals span zero, the significant one favours LINEAR | 925 test steps | **null** |
+| C13b — layer choice is not resolvable, and that is the binding limit | selection separates the top-5 layers by 0.0173, their test AUROCs by 0.0750 (4.3x); a 0.0012 selection margin cost 0.0749 of test AUROC | probe run | **measured** |
+| C13c — no probe lever reaches the ReProbe prediction | 0.9033 needs +0.21; data +0.0105, instrument +0.0051 at matched layer | three levers | **measured** |
 | C10 — the verifier turns net-positive at AUROC ~0.65 | net- to 0.625, net+ from 0.700; below the probe's own 0.6968 | 13 x 64 sweep | **measured** |
 | C10b — that threshold is made entirely of false alarms | at FA=0 the same PRM is net-positive down to AUROC 0.55 | ablation | **measured** |
 | C10c — no score quality holds a binding alpha | best is 0.0956 at AUROC 0.99, 1.9x the alpha=0.05 target | sweep | **measured** |

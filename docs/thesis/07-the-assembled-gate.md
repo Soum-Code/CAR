@@ -609,16 +609,68 @@ split; the gate-safe version trains on 27 and gives +0.0805, CI [−0.119,
 +0.262]. So: the target is demonstrably the right one to optimise, and this
 corpus is too small to show it buys anything deployable.
 
+### The instrument, which was the untested half
+
+Every probe above is a logistic regression on one layer, and ReProbe's are not.
+Testing that needs the layer held fixed — comparing each arm's own best layer
+measures instrument *plus* layer re-selection, which is the confound §7.6
+already corrected once for the data lever.
+
+| training set | layer | linear | non-linear | difference | 95% CI |
+|---|---|---|---|---|---|
+| dev (gate-safe) | 25 | 0.6968 | 0.7024 | +0.0051 | [−0.031, +0.042] |
+| dev (gate-safe) | 26 | 0.6897 | 0.7222 | +0.0315 | [−0.007, +0.070] |
+| pooled | 28 | 0.6896 | 0.7195 | +0.0300 | [−0.002, +0.066] |
+| pooled | 19 | **0.7645** | 0.7331 | **−0.0315** | **[−0.051, −0.015]** |
+
+**The sign depends on which layer is held fixed.** Three intervals span zero
+and the only one that does not favours the *linear* probe. At layer 25 — the
+configuration this chapter actually reports — the instrument is worth +0.0051,
+half the data lever. There is no identifiable instrument effect here.
+
+### And the reason is the more useful finding
+
+Layer choice is not resolvable at this sample size:
+
+| training set | selection spread, top 5 layers | their test spread | ratio |
+|---|---|---|---|
+| dev | 0.0152 | 0.0285 | 1.9× |
+| pooled | 0.0173 | **0.0750** | **4.3×** |
+
+287 selection steps separate the candidate layers by at most 0.017 while their
+held-out AUROCs differ by up to 0.075, so the argmax is close to arbitrary. The
+pooled arm shows the cost directly: it chose layer 28 (selection 0.8667, test
+0.6896) over layer 19 (selection 0.8655, test **0.7645**) — **a 0.0012 margin
+on selection bought a 0.0749 loss on test.**
+
+> The probe series has reached the resolution limit of this corpus. The binding
+> constraint is not which probe, how much training data, or what target — it is
+> that 287 selection steps and 925 test steps cannot separate effects of this
+> size. Every lever measured in §7.6 sits inside its own interval.
+
+That is also the honest status of the three-lever comparison an earlier draft
+of this section tabulated: the data lever (+0.0105), the instrument (+0.0051 at
+matched layer) and the target (first-bad recall, on a different metric and a
+different comparator) are not commensurable and none is established. Ranking
+them was a mistake.
+
+> Reproduce: `python scripts/exp_probe_nonlinear.py`
+> Full writeup: [docs/FINDINGS-PROBE-NONLINEAR.md](../FINDINGS-PROBE-NONLINEAR.md)
+
 ### What it changes
 
 Chapter 9 predicted, before the run, that a probe here would land near the
 ch. 5 PRM's 0.9033 rather than above it — reasoning that ReProbe's margin is
 largest out of domain while strong PRMs reach parity on GSM8K. The measured
-0.6968 is **below** that, and doubling the training data recovers about
-0.01 — so probe-scale training is not what holds the number down, though it is
-worth a little. Either the prediction was wrong about this setting, or a
-*linear* probe on frozen states is the wrong instrument for it. ReProbe's
-probes are not linear, and that is the untested half.
+0.6968 is **below** that, and nothing about the probe closes the gap: reaching
+0.9033 needs **+0.21**, while more training data is worth +0.0105 and a
+non-linear head +0.0051 at matched layer. The prediction was wrong about this
+setting, and not because of how the probe was trained, what on, or which
+functional family it came from.
+
+What the section cannot say is anything sharper than that. Every effect it
+measures is smaller than the interval around it, and smaller than the swing
+produced by an arbitrary layer choice.
 
 ## 7.7 What this chapter establishes
 
@@ -673,12 +725,14 @@ distributed across the whole pipeline.
   clustering algorithm. A relation sensitive to the *asserted quantity* on
   arithmetic steps while still handling the 59% that carry none would be a
   genuinely different probe, and does not exist here.
-- **The probe is linear, and that is the open variable.** Training data is a
-  small one: §7.6 doubles it for about +0.01, with the interval spanning zero.
-  ReProbe's probes are not linear, so statements here about what internal
-  states *cannot* encode are statements about what a logistic probe on one
-  layer cannot read off them. Every statement about what AUROC 0.70 fails to
-  buy is unaffected.
+- **The corpus, not the probe.** §7.6 varies training data (+0.0105), target
+  and functional form (+0.0051 at matched layer) and cannot separate any of
+  them from zero. An arbitrary layer choice moves test AUROC by up to 0.0750,
+  which is larger than every effect measured. So statements here about what
+  internal states *cannot* encode are statements about what is resolvable on
+  925 test steps, not about the states. Every statement about what AUROC 0.70
+  fails to buy is unaffected, because those rest on the gap to the baseline
+  rather than on differences of this size.
 - **108 first-bad steps in the corpus, 40 in test.** The first-bad-target result
   trains on 49 positives pooled and 27 gate-safe, and its significance depends
   on which global-target probe it is compared against. That is the binding

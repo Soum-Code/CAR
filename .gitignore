@@ -38,6 +38,7 @@ runs/*
 !runs/equivalence_relations.json
 # probe_variants.json is small and the tests read it.
 !runs/probe_variants.json
+!runs/probe_nonlinear.json
 # per-step scores for the gate-safe probes; the section-3 gate table is
 # reproduced from these with exp_gate_pipeline.py --probe
 !runs/gate_probe_global.json

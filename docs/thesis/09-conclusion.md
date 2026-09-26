@@ -23,6 +23,7 @@ reproducing.
 | Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
 | A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed** | 0.6968 measured; doubling the training data recovers ~0.01, not the gap |
 | 0.6968 is a floor, pending more training data | this thesis, ch. 7.6 | **unsupported** | its curve was scored on the selection split; a clean test gives +0.0105, CI [−0.035, +0.057] |
+| A linear probe is the wrong instrument, and that explains the gap | this thesis, ch. 7.6 and ch. 9 | **refuted** | matched at layer, a non-linear head is worth +0.0051; the sign flips across layers and the one significant comparison favours linear |
 | The verifier needs a score "well above 0.70" | this thesis, ch. 7 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65; the probe already clears it |
 | AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
 | The cheap equivalence relation was hiding the signal | the obvious objection to §7.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
@@ -136,11 +137,13 @@ selective risk at every α on fewer calls. The prediction that it would land nea
 670 steps against ReProbe's far larger sets. §7.6 measures that excuse and
 finds it small: at fixed layer and C, doubling the training data moves the
 held-out AUROC by **+0.0105**, CI [−0.035, +0.057]. Positive, and nowhere near
-the 0.2 the prediction would need. So either the prediction was wrong about
-this setting, or a *linear* probe on frozen states is the wrong instrument —
-ReProbe's are not linear, and that is the untested half. Ni et al. also find
-probe and PRM combine better than either alone, so the productive object may
-still be a hybrid.
+the 0.2 the prediction would need. The instrument excuse is now tested too and
+comes out null: held at the published probe's own layer, a non-linear head is
+worth **+0.0051**, CI [−0.031, +0.042], and across four matched-layer
+comparisons the sign depends on which layer is fixed. Reaching 0.9033 needs
++0.21. So the prediction was wrong about this setting, and not because of how
+the probe was trained, what on, or which functional family it came from. Ni et al. also find probe and PRM combine better than
+either alone, so the productive object may still be a hybrid.
 
 The more useful finding is what 0.70 was *not* enough for. It did not make the
 gate hold any binding α, and it did not make the PRM worth having — projected

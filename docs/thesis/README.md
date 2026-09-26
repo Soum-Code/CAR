@@ -27,7 +27,7 @@ discarded, not only what worked.
 | 4 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 4, [FINDINGS-GENERATOR.md](../FINDINGS-GENERATOR.md) |
 | 5 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 5 |
 | 6 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 1–3, [FINDINGS-DEPGRAPH.md](../FINDINGS-DEPGRAPH.md) |
-| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md) |
+| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md), [FINDINGS-PROBE-NONLINEAR.md](../FINDINGS-PROBE-NONLINEAR.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md) |
 | 8 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 2–3 |
 | 2, 9 | [POSITIONING.md](../POSITIONING.md) |
 
@@ -96,10 +96,12 @@ Known gaps, in the order they would matter to an examiner:
    and it works, but on 49 training positives and 40 test ones; the gain is
    significant against one comparator and not the other. 108 such steps exist
    in the whole corpus, and that is the binding constraint.
-3. **A non-linear probe.** §7.6 measures what more training data buys and it is
-   about +0.01, interval spanning zero — so scale is a small lever and the
-   untested variable is the instrument. ReProbe's probes are not linear; this
-   thesis's are.
+3. **More evaluation data.** §7.6 measures all three probe levers — data,
+   instrument, target — and every one sits inside its own interval. The
+   selection split separates candidate layers by 0.017 while their test AUROCs
+   differ by 0.075, so an arbitrary layer choice swamps every effect the
+   section can measure. The open question is not which probe but how much
+   evaluation data.
 4. **A third generator** would settle which of the per-generator quantities
    (μ, absorption) are monotone in model strength and which are idiosyncratic.
 5. **ARES-style conditioning under a budget** is the clearest scientific gap —

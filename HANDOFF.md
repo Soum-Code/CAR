@@ -4,7 +4,8 @@ Working state for the CAR thesis. Not thesis content: this is what a new
 session needs to pick the work up without re-deriving it. If something here
 contradicts the code, the code wins — check before relying on a line.
 
-**Last updated:** 2026-09-26, after the bidirectional-entailment run landed.
+**Last updated:** 2026-09-26, after the non-linear probe run and its
+verification pass.
 
 ---
 
@@ -36,12 +37,13 @@ Framing lives in `README.md` and `docs/THESIS.md`. The draft is
 ## 2. Status
 
 **The draft is complete.** Every chapter written, every number measured and
-reproducible, every refuted claim carrying a regression test. 335 tests pass.
+reproducible, every refuted claim carrying a regression test. 342 tests pass.
 
 Experiments finished, most recent first:
 
 | # | experiment | result | writeup |
 |---|---|---|---|
+| 11 | A non-linear probe on the same frozen states | null at matched layer (+0.0051); layer choice is noisier than any effect measured | `docs/FINDINGS-PROBE-NONLINEAR.md` |
 | 10 | Probe round two (more data + first-bad target) | more data buys ~+0.01 (C9c unsupported, not refuted); the right target raises first-bad recall 0.30 -> 0.45 | `docs/FINDINGS-PROBE2.md` |
 | 9 | Bidirectional entailment clustering | 0.5625, CI [0.512, 0.614] — reference relation does NOT rescue the signal | `docs/FINDINGS-ENTAILMENT.md` |
 | 8 | Score-quality sweep | verifier turns net-positive at AUROC ≈ 0.65; AUROC is the wrong metric | `docs/FINDINGS-SCORE-QUALITY.md` |
@@ -68,9 +70,17 @@ including three that changed conclusions:
   they nest (0.1% ⊂ 31.9% ⊂ 78.0%, containment 100% and 93.0%). One
   permissiveness knob, not three probes.
 
+The non-linear probe write-up (§7.6) was then caught by the same process
+**before** it was committed: it claimed the instrument was the largest of three
+levers, on a comparison of two probes that had landed on different layers. At
+matched layer the effect is +0.0051 and the sign flips across layers. That is
+the third time in this section that a correct number was used with the wrong
+control.
+
 Lesson worth repeating: **verify write-ups adversarially before committing.**
 Recomputing every number from the artifacts is cheap next to publishing a wrong
-one in a thesis.
+one in a thesis — and cheaper still than the three correction commits it took
+when the check came after the push rather than before it.
 
 ```
  M README.md                            new blockquote on the reference relation
@@ -108,12 +118,13 @@ Before committing: `python -m pytest -q`, the broken-link check (§7), and
 
 **Open experiments, cheapest first:**
 
-3. **A non-linear probe.** Training data is settled as a *small* lever: §7.6
-   measures the doubling at **+0.0105**, CI [−0.035, +0.057]. (The old
-   0.7374 → 0.8748 curve was scored on the selection split and is not
-   evidence — see the traps below.) What is untested is the instrument:
-   ReProbe's probes are not linear, this thesis's are. The states are already
-   saved, so this is CPU work.
+3. **More EVALUATION data — now the binding constraint on the whole probe
+   series.** All three levers sit inside their own intervals: data +0.0105,
+   instrument +0.0051 at matched layer, target on a different metric. Worse,
+   287 selection steps separate candidate layers by 0.017 while their test
+   AUROCs differ by 0.075 — a 0.0012 selection margin once cost 0.0749 of test
+   AUROC. An arbitrary layer choice swamps every effect §7.6 can measure. More
+   generated solutions, same as #4.
 4. **More first-bad-step labels.** §7.6 *does* train a score against first-bad
    recall and it works (0.30 → 0.45), but on 49 training positives and 40 test
    ones, and the gain is significant against one comparator and not the other.
@@ -203,7 +214,7 @@ and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
 ## 6. Useful commands
 
 ```bash
-python -m pytest -q                                  # 335 tests
+python -m pytest -q                                  # 342 tests
 python scripts/check_citations.py --all              # every cited arXiv id has an entry
 python scripts/make_figures.py                       # all 12 figures, png + pdf
 python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json
