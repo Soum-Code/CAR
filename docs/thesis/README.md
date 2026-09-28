@@ -71,6 +71,30 @@ with the palette validator rather than by eye (worst adjacent CVD ΔE 9.1,
 normal-vision ΔE 22.9). Two of those slots sit below 3:1 contrast on this
 surface, so every chart that uses them carries visible direct labels.
 
+## Front matter and the LaTeX build
+
+Submission details live in [metadata.yaml](metadata.yaml) — institution,
+department, branch, roll number, supervisor, submission date. That one file
+builds the title page, the certificate and the declaration.
+
+```bash
+python scripts/build_latex.py                      # blocks while any FILL: remains
+python scripts/build_latex.py --allow-placeholders # draft build
+python scripts/check_latex.py                      # static validation
+```
+
+The build **refuses to run** while a `FILL:` marker is left in. The title page
+previously took its values from argparse defaults, so a build that forgot the
+flags emitted a PDF reading *"university name"* in italics — a silent failure
+on the one page an examiner reads first. Same spirit as the annotation-rate and
+feasibility gates: a placeholder left in is an error, not a default.
+`tests/test_front_matter.py` pins that the gate actually blocks.
+
+No TeX toolchain is installed here, so `check_latex.py` does static validation
+only — unbalanced environments, unescaped specials, missing figures, an empty
+bibliography. **The project has never been compiled end to end.** That needs one
+Overleaf run, and it is where any remaining errors will surface.
+
 ## Bibliography
 
 [`references.bib`](references.bib), 21 entries.

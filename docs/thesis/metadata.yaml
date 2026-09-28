@@ -1,0 +1,34 @@
+# Thesis front-matter metadata — the single source of truth for the title page,
+# the declaration and the certificate.
+#
+# Every value below marked FILL: must be replaced before submission.
+# scripts/build_latex.py reads this file and REFUSES TO BUILD while any FILL:
+# marker remains, so a PDF cannot quietly go out reading "university name" in
+# italics. Pass --allow-placeholders to build a draft anyway.
+#
+#   python scripts/build_latex.py                        # blocks on FILL:
+#   python scripts/build_latex.py --allow-placeholders   # draft build
+
+title: What Step-Level Verification Certifies, and What It Misses
+subtitle: A measurement study of selective verification in multi-step LLM reasoning
+
+author: P. Somnath Reddy
+roll_number: "FILL: your roll / enrolment number"
+
+degree: Master of Technology
+branch: "FILL: e.g. Computer Science and Engineering"
+
+institution: "FILL: full name of your university or institute"
+department: "FILL: e.g. Department of Computer Science and Engineering"
+
+supervisor: "FILL: supervisor's name, with title"
+supervisor_designation: "FILL: e.g. Associate Professor"
+# Delete these two if there is no co-supervisor.
+co_supervisor: ""
+co_supervisor_designation: ""
+
+# Month and year printed on the title page, e.g. "September 2026".
+submission_date: "FILL: month and year of submission"
+
+# Shown on the certificate page. Usually the academic year or semester.
+academic_year: "FILL: e.g. 2026-27"

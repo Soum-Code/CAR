@@ -272,26 +272,49 @@ FRONT = r"""
 
 \begin{titlepage}
 \begin{center}
-\vspace*{1.5cm}
+\vspace*{1cm}
 
 {\Large %(institution)s}\\[0.4cm]
-{\large %(department)s}\\[2.5cm]
+{\large %(department)s}\\[2cm]
 
-{\Huge\bfseries\color{chaptercolor} %(title)s}\\[2cm]
+{\Huge\bfseries\color{chaptercolor} %(title)s}\\[0.8cm]
+{\large\itshape %(subtitle)s}\\[2cm]
 
 {\Large\textit{A thesis submitted in partial fulfilment\\
 of the requirements for the degree of}}\\[0.8cm]
 
-{\Large\bfseries %(degree)s}\\[2cm]
+{\Large\bfseries %(degree)s}\\[0.3cm]
+{\large in}\\[0.3cm]
+{\Large\bfseries %(branch)s}\\[1.8cm]
 
-{\large %(author)s}\\[0.4cm]
-{\large Supervisor: %(supervisor)s}\\[1.5cm]
+{\large\bfseries %(author)s}\\[0.3cm]
+{\large %(roll_number)s}\\[1.5cm]
 
-{\large \today}
+%(supervisor_block)s
 
 \vfill
+{\large %(submission_date)s}
 \end{center}
 \end{titlepage}
+
+\chapter*{Certificate}
+\addcontentsline{toc}{chapter}{Certificate}
+
+This is to certify that the thesis entitled \textbf{``%(title)s''} submitted by
+\textbf{%(author)s} (%(roll_number)s) to %(institution)s in partial fulfilment
+of the requirements for the award of the degree of %(degree)s in %(branch)s is
+a record of bona fide work carried out under my supervision during the academic
+year %(academic_year)s.
+
+To the best of my knowledge the content of this thesis has not been submitted
+to any other institute or university for the award of any degree or diploma.
+
+\vspace{2.5cm}
+\noindent\rule{6cm}{0.4pt}\\
+%(supervisor)s\\
+%(supervisor_designation)s\\
+%(department)s\\
+%(institution)s
 
 \chapter*{Declaration}
 \addcontentsline{toc}{chapter}{Declaration}
@@ -300,10 +323,14 @@ I declare that this thesis is my own work. Where the work of others has been
 consulted it is acknowledged, and every quantitative claim is accompanied by
 the code and committed artifact that produced it.
 
-\vspace{1.5cm}
+I further declare that this work has not been submitted, in whole or in part,
+for any other degree or diploma at this or any other institution.
+
+\vspace{2.5cm}
 \noindent\rule{6cm}{0.4pt}\\
 %(author)s\\
-\today
+%(roll_number)s\\
+%(submission_date)s
 
 %(abstract)s
 
@@ -320,18 +347,62 @@ the code and committed artifact that produced it.
 """
 
 
+META = SRC / "metadata.yaml"
+
+
+def load_metadata(allow_placeholders: bool) -> dict:
+    """Read the front-matter values, and refuse to build on an unfilled one.
+
+    The title page used to take its values from argparse defaults, so a build
+    that forgot the flags emitted a PDF reading "university name" in italics --
+    and nothing said so. The failure is silent and lands on the title page,
+    which is the one page an examiner reads first. So it gates, in the same
+    spirit as the annotation-rate and feasibility gates elsewhere in this
+    project: a placeholder left in is an error, not a default.
+    """
+    import yaml
+
+    if not META.exists():
+        raise SystemExit(f"missing {META} -- front-matter values live there")
+    meta = yaml.safe_load(META.read_text(encoding="utf-8")) or {}
+
+    unfilled = sorted(k for k, v in meta.items()
+                      if isinstance(v, str) and v.strip().startswith("FILL:"))
+    if unfilled:
+        print(f"{len(unfilled)} front-matter value(s) still unfilled in {META}:")
+        for k in unfilled:
+            print(f"    {k}: {meta[k]}")
+        if not allow_placeholders:
+            raise SystemExit(
+                "\nRefusing to build. Fill these in, or pass --allow-placeholders\n"
+                "for a draft build that prints them verbatim on the title page."
+            )
+        print("  --allow-placeholders given; building a DRAFT anyway.\n")
+    return meta
+
+
+def supervisor_block(meta: dict) -> str:
+    """The supervisor lines, with the co-supervisor only when there is one."""
+    sup = meta.get("supervisor", "")
+    desig = meta.get("supervisor_designation", "")
+    lines = [r"{\large\textit{Under the supervision of}}\\[0.6cm]",
+             rf"{{\large\bfseries {sup}}}\\[0.2cm]",
+             rf"{{\large {desig}}}"]
+    co = (meta.get("co_supervisor") or "").strip()
+    if co:
+        lines += [r"\\[0.8cm]",
+                  rf"{{\large\bfseries {co}}}\\[0.2cm]",
+                  rf"{{\large {meta.get('co_supervisor_designation', '')}}}"]
+    return "\n".join(lines)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, default=OUT)
-    ap.add_argument("--title", default="What Step-Level Verification Certifies, "
-                                       "and What It Misses")
-    ap.add_argument("--author", default="Somnath Reddy")
-    ap.add_argument("--supervisor", default="\\emph{supervisor name}")
-    ap.add_argument("--institution", default="\\emph{university name}")
-    ap.add_argument("--department", default="Department of Computer Science")
-    ap.add_argument("--degree", default="Master of Technology")
-    ap.add_argument("--date", default=r"\today")
+    ap.add_argument("--allow-placeholders", action="store_true",
+                    help="build a draft even though metadata.yaml has FILL: values")
     args = ap.parse_args()
+    meta = load_metadata(args.allow_placeholders)
 
     if not SRC.exists():
         print(f"missing {SRC}")
@@ -362,11 +433,28 @@ def main():
         if "references" in stem:
             continue
         if "front-matter" in stem:
-            body = convert(text, chapter_title=title)
+            # Take only "## Abstract" onward, and stop before "## Contents".
+            # The header above it -- subtitle, author, draft date -- is the
+            # markdown reader's title page, and the LaTeX one is built from
+            # metadata.yaml instead; letting it through printed the author
+            # block and the word "Abstract" twice inside the Abstract chapter.
+            # "## Contents" is a hand-written table \tableofcontents replaces.
+            lines = text.split("\n")
+            try:
+                start = next(i for i, ln in enumerate(lines)
+                             if ln.strip().lower() == "## abstract")
+            except StopIteration:
+                raise SystemExit(f"{md.name}: no '## Abstract' heading to cut at")
+            end = next((i for i, ln in enumerate(lines)
+                        if i > start and ln.strip().lower() == "## contents"),
+                       len(lines))
+            inner = "\n".join(lines[start + 1:end]).strip()
+            body = convert("# Abstract\n\n" + inner, chapter_title="Abstract")
             body = body.split("\n", 1)[1].lstrip()      # drop the \chapter line
             abstract = (r"\chapter*{Abstract}" "\n"
                         r"\addcontentsline{toc}{chapter}{Abstract}" "\n\n" + body)
-            print(f"  {md.name} -> abstract in main.tex")
+            print(f"  {md.name} -> abstract in main.tex "
+                  f"({len(inner.split()):,} words, header and contents dropped)")
             continue
 
         tex = convert(text, chapter_title=title)
@@ -381,12 +469,13 @@ def main():
         print(f"  {md.name} -> chapters/{stem}.tex  ({len(tex.split()):,} words)")
 
     preamble = PREAMBLE_SRC.read_text(encoding="utf-8") + LST
-    front = FRONT % {
-        "title": args.title, "author": args.author,
-        "supervisor": args.supervisor, "institution": args.institution,
-        "department": args.department, "degree": args.degree,
-        "abstract": abstract,
-    }
+    fields = {k: meta.get(k, "") for k in (
+        "title", "subtitle", "author", "roll_number", "degree", "branch",
+        "institution", "department", "supervisor", "supervisor_designation",
+        "submission_date", "academic_year")}
+    fields["supervisor_block"] = supervisor_block(meta)
+    fields["abstract"] = abstract
+    front = FRONT % fields
     body = "\n\n".join(rf"\input{{chapters/{c}}}" for c in chapters)
     main_tex = preamble + front + "\n" + body + r"""
 

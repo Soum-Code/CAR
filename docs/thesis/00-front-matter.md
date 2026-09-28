@@ -4,7 +4,13 @@
 
 **P. Somnath Reddy**
 M.Tech thesis, third semester
-Draft — 2026-09-06
+Draft — 2026-09-29
+
+> Submission details — institution, department, branch, roll number, supervisor
+> and submission date — live in [metadata.yaml](metadata.yaml), which is what
+> builds the LaTeX title page, certificate and declaration.
+> `scripts/build_latex.py` refuses to build while any value there is still
+> unfilled, so a PDF cannot go out reading *"university name"*.
 
 ---
 
@@ -112,7 +118,7 @@ Apache 2.0.
 
 ```bash
 pip install -e ".[dev]"
-python -m pytest                    # 342 tests, no GPU, no network
+python -m pytest                    # 349 tests, no GPU, no network
 python scripts/download_data.py     # GSM8K, StrategyQA, Math-Shepherd sample
 ```
 
