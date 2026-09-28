@@ -1,0 +1,183 @@
+% Preamble for the CAR thesis.
+%
+% Adapted from the thesis template in ndpvt-web/latex-document-skill.
+% This is SOURCE, not a build product: scripts/build_latex.py copies it into
+% thesis-latex/, which is overwritten on every build. Edit it here.
+%
+% To use a department template instead, replace this file wholesale -- the
+% chapter .tex files carry no formatting of their own.
+
+\documentclass[12pt,a4paper,oneside]{book}
+
+%=============================================================================
+% ENCODING AND FONTS
+%=============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{newpxtext}           % Palatino text font (elegant, highly readable)
+\usepackage{newpxmath}           % Matching Palatino math font
+\usepackage[scaled=0.95]{inconsolata} % Monospace font for code
+
+%=============================================================================
+% PDF/A COMPLIANCE (uncomment for thesis submission)
+%=============================================================================
+% Many universities require PDF/A format for thesis submission.
+% Uncomment the following lines to enable PDF/A-2b compliance.
+% Note: Requires a .xmpdata file in the same directory (see below).
+%
+% \usepackage[a-2b,mathxmp]{pdfx}
+%
+% Create a file called "thesis.xmpdata" with this content:
+% \Title{Your Thesis Title}
+% \Author{Your Name}
+% \Subject{PhD Thesis, University of X, Department of Y}
+% \Keywords{keyword1\sep keyword2\sep keyword3}
+% \Publisher{University Name}
+%
+% After compilation, verify with: pdfinfo thesis.pdf | grep "PDF version"
+% PDF/A-2b requires PDF version 1.7 and all fonts embedded.
+% Check font embedding with: pdffonts thesis.pdf
+
+%=============================================================================
+% PAGE LAYOUT AND TYPOGRAPHY
+%=============================================================================
+\usepackage[a4paper, margin=1in, bindingoffset=0.5cm]{geometry}
+\usepackage[final,protrusion=true,expansion=true]{microtype}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{emptypage}           % Blank pages have no headers/footers
+
+%=============================================================================
+% MATH
+%=============================================================================
+\usepackage{mathtools}           % Enhanced amsmath (loads amsmath automatically)
+\usepackage{amssymb}
+
+%=============================================================================
+% GRAPHICS AND FIGURES
+%=============================================================================
+\usepackage{graphicx}
+\usepackage[font=small,labelfont=bf,format=hang]{caption}
+\usepackage{subcaption}
+
+%=============================================================================
+% TABLES
+%=============================================================================
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+
+%=============================================================================
+% LISTS
+%=============================================================================
+\usepackage{enumitem}
+
+%=============================================================================
+% COLORS
+%=============================================================================
+\usepackage{xcolor}
+\definecolor{chaptercolor}{RGB}{0, 70, 140}
+\definecolor{linkblue}{RGB}{0,51,153}
+
+%=============================================================================
+% HEADER/FOOTER
+%=============================================================================
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{
+    \fancyhf{}
+    \fancyfoot[C]{\small\thepage}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+%=============================================================================
+% CHAPTER TITLE STYLING
+%=============================================================================
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries\color{chaptercolor}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-20pt}{40pt}
+
+%=============================================================================
+% ALGORITHMS
+%=============================================================================
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+%=============================================================================
+% THEOREMS
+%=============================================================================
+\usepackage{amsthm}
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[chapter]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+%=============================================================================
+% UNITS AND NUMBERS
+%=============================================================================
+\usepackage{siunitx}
+\sisetup{detect-all}
+
+%=============================================================================
+% QUOTATIONS
+%=============================================================================
+\usepackage[autostyle]{csquotes}
+
+%=============================================================================
+% CITATIONS
+%=============================================================================
+\usepackage{natbib}
+
+%=============================================================================
+% APPENDICES
+%=============================================================================
+\usepackage{appendix}
+
+%=============================================================================
+% HYPERLINKS (load near end)
+%=============================================================================
+\usepackage{bookmark}            % Enhanced bookmarks (generates in first run)
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=chaptercolor,
+    citecolor=linkblue,
+    urlcolor=linkblue,
+    pdfauthor={Somnath Reddy},
+    pdftitle={What Step-Level Verification Certifies, and What It Misses},
+    pdfsubject={M.Tech Thesis, Computer Science},
+    pdfkeywords={conformal prediction\sep LLM reasoning\sep step verification\sep selective risk},
+    bookmarks=true,
+    bookmarksnumbered=true,
+    bookmarksopen=true,
+}
+
+%=============================================================================
+% SMART CROSS-REFERENCES (must load after hyperref)
+%=============================================================================
+\usepackage{cleveref}
+
+%=============================================================================
+% CUSTOM MATH COMMANDS
+%=============================================================================
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\inner}{\langle}{\rangle}
+

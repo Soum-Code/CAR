@@ -79,3 +79,7 @@ Thumbs.db
 
 # Kaggle upload staging: a duplicate of src/ + scripts/, rebuilt on demand
 .kaggle_stage/
+
+# LaTeX build product: regenerate with scripts/build_latex.py.
+# The markdown in docs/thesis/ is the single source.
+thesis-latex/

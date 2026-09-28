@@ -9,6 +9,13 @@ reasoning step:
 global_correct(t)  =  local_valid(t)  AND  NOT premise_corrupt(t)
 ```
 
+![A step fails two separable ways: local arithmetic, and whether its premises were already corrupt. A calculator reads only one axis.](figures/diag1-decomposition.png)
+
+**Figure 3.1.** The decomposition every later chapter measures against. A
+verifier reports the horizontal axis; the answer depends on both. The top-left
+cell — arithmetically perfect, wrong anyway — is what Chapter 4 measures and
+what nothing in the original design could see.
+
 The two are separately observable on GSM8K, which is what makes the study
 possible at all:
 
@@ -50,6 +57,13 @@ small. On a generator whose steps are 59% prose it collapses the estimate to
 
 `C1_checkable` conditions on checkability in both numerator and denominator and
 is the estimator to quote across generators. Chapter 4 reports both.
+
+![The control loop, annotated with which chapter measures which component.](figures/diag2-gate-loop.png)
+
+**Figure 3.2.** The assembled system, and where each measurement lands.
+Chapters 4 to 6 measure one component each in isolation; Chapter 7 runs the
+whole loop. Measuring the parts separately is what makes the assembled
+negative result attributable rather than merely disappointing.
 
 ## 3.2 Verifier reach
 

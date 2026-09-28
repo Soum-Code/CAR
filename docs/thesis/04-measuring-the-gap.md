@@ -63,6 +63,12 @@ Controlling local selective risk at level α bounds nothing about the answer.
 
 ## 4.3 Corruption is close to absorbing
 
+![Corruption as a transition system: entering it is common, leaving it almost never happens.](figures/diag3-absorption.png)
+
+**Figure 4.1.** The process the persistence and recovery numbers describe.
+Entering corruption does not depend on the verifier; escaping it does — which
+is why Chapter 5 treats reach rather than budget as the controlling variable.
+
 | | Mistral-7B-SFT |
 |---|---|
 | steps after the first globally-bad step | 33,236 |
@@ -154,7 +160,7 @@ One definition applied to both corpora, within wrong-answer solutions:
 
 ![Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.](figures/fig1-the-gap.png)
 
-**Figure 4.1.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
+**Figure 4.2.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
 
 The intervals do not overlap. **The gap does not close on a stronger
 generator — it widens.**
