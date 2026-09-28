@@ -88,17 +88,21 @@ nothing about the answer. The claim is about verifiers reading the generator's
 *unverified* context — §2.7 records one structural change, scoring against
 previously-verified premises, that does lift the ceiling. (Chapter 4)
 
-**C1b. The gap widens on a stronger generator.** Re-measured on
+**C1b. The gap widens on a stronger generator, monotonically.** Re-measured on
 Qwen2.5-7B-Instruct at 80.0% GSM8K accuracy against Mistral-7B-SFT's ~45%, the
-figure rises to **90.4%** with disjoint Wilson intervals. The stronger model
-halves its arithmetic slips without halving its inherited corruption, so a
-deterministic verifier gets *less* useful as generators improve. (Chapter 4)
+figure rises to **90.4%** with disjoint Wilson intervals. A third generator,
+Llama 3.1 8B Instruct at 68.4%, lands between them at **87.4%** — a point
+predicted before it was run. The stronger model halves its arithmetic slips
+without halving its inherited corruption, so a deterministic verifier gets
+*less* useful as generators improve. (Chapter 4)
 
 **C2. Corruption is close to absorbing.** After the first globally-bad step,
 95.9% of subsequent steps remain bad, and **0 of the 14,573 Math-Shepherd solutions that could have recovered
-ever recover**. On Qwen the figures are 66.4% and 6 of 500: still strongly
-absorbing, but "near-absorbing" is a property of the generator and does not
-transfer unqualified. (Chapter 4)
+ever recover**. Measured on two further generators, persistence falls to 81.6%
+on Llama 3.1 8B and 66.4% on Qwen2.5-7B, with 12 of 141 and 6 of 83 eligible
+solutions recovering. Absorption is therefore a property of the generator — but
+a *monotone* one, decaying smoothly as accuracy rises rather than varying
+arbitrarily. (Chapter 4)
 
 **C3. Verifier reach is the controlling variable, and it is semantic.**
 Measured across four verifier classes on the population arithmetic provably
@@ -116,8 +120,10 @@ measurement: corr(position, local error) = **+0.950**, error rate doubling from
 
 **C5. The risk target is constrained before any method is chosen.** With
 measured μ = 0.3908, Kotte's impossibility bound charges a 32.3% verification
-entry fee at α = 0.10. The floor is a property of the generator, not the task:
-on Qwen, μ = 0.1221 and α = 0.20 carries no floor at all. (Chapter 8)
+entry fee at α = 0.10. The floor is a property of the generator, not the task,
+and it falls monotonically with generator accuracy: μ = 0.3908 on
+Mistral-7B-SFT, 0.2428 on Llama 3.1 8B, 0.1221 on Qwen2.5-7B, at which point
+α = 0.20 carries no floor at all. (Chapter 8)
 
 **C6. StrategyQA cannot exhibit the phenomenon it is used to study.** All 2,272
 annotated decompositions: mean depth 2.30, **72.9% exactly one hop**, and only

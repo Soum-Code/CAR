@@ -449,7 +449,8 @@ independent judge (Chapter 5).
 
 **Llama Team, *The Llama 3 Herd of Models*** (arXiv:2407.21783) — the third
 generator the thesis names but could not run at draft time, because the model
-is licence-gated on Kaggle. A run is in progress now.
+is licence-gated on Kaggle, which blocked it at draft time. Now measured: the
+third generator, at 68.4% GSM8K.
 
 ### 4.7 A cautionary episode about citations
 
@@ -504,31 +505,51 @@ Wouldn't a better generator close the gap by itself? 500 GSM8K test problems
 were solved by Qwen2.5-7B-Instruct (80.0% measured) and labelled by the same
 Monte-Carlo procedure, K = 4, 8,292 rollouts, 7h40m on two T4s.
 
-| | Mistral-7B-SFT | Qwen2.5-7B-Instruct |
-|---|---|---|
-| GSM8K accuracy | ~45% (reported) | **80.0%** (measured) |
-| local error | 0.1708 | **0.0813** |
-| global error | 0.7106 | 0.5772 |
-| **C1 (checkable)** | **0.7848** | **0.9040** |
-| n globally-wrong checkable steps | 46,555 | 125 |
-| 95% Wilson CI on C1 | [0.781, 0.789] | [0.840, 0.944] |
+A third generator, Llama 3.1 8B Instruct, was added later on identical settings
+(500 problems, K = 4, temperature 0.7, 4-shot; 5,752 rollouts, 6h11m on two
+T4s):
 
-The intervals don't overlap. **The gap widens.** The mechanism is simple once
-stated: the stronger model halves its arithmetic slips (0.171 → 0.081) without
-halving its inherited corruption, so a larger share of what remains is the kind
-no calculator can see.
+| | Mistral-7B-SFT | Llama 3.1 8B | Qwen2.5-7B-Instruct |
+|---|---|---|---|
+| GSM8K accuracy | ~45% (reported) | **68.4%** (measured) | **80.0%** (measured) |
+| local error | 0.1708 | 0.1034 | **0.0813** |
+| global error | 0.7106 | 0.7442 | 0.5772 |
+| **C1 (checkable)** | **0.7848** | **0.8738** | **0.9040** |
+| n globally-wrong checkable steps | 46,555 | 309 | 125 |
+| 95% Wilson CI on C1 | [0.781, 0.789] | [0.832, 0.906] | [0.840, 0.944] |
+
+**The gap widens, and it does so monotonically.** Mistral's interval is
+disjoint from both others. Llama landed between the two — a point predicted
+before it was run, not fitted after. The mechanism is simple once stated: the
+stronger model halves its arithmetic slips without halving its inherited
+corruption, so a larger share of what remains is the kind no calculator can
+see. Local error confirms it, falling 0.1708 → 0.1034 → 0.0813 on the same
+ordering, while global error does *not* order monotonically (0.7106, 0.7442,
+0.5772). C1 rises because the denominator of arithmetic slips shrinks, not
+because the numerator grows.
 
 > A deterministic verifier becomes *less* useful as the generator improves.
 
 That's sharper than the thesis originally claimed, and the opposite of what the
 objection predicted.
 
-**What doesn't transfer.** Two quantities turned out to be generator
-properties stated as task properties, and are now labelled per-generator. Base
-risk μ falls 0.3908 → 0.1221, which removes the α = 0.20 feasibility floor
-entirely. Corruption persistence falls 95.9% → 66.4%, and recoveries go from
-0/14,573 to 6/83. Still strongly absorbing, but "near-absorbing" was a Mistral
-property.
+**What's generator-dependent, and how.** Three quantities were stated as task
+properties and are properties of the generator. With two models that was all
+that could be said; with three they are visibly **monotone in accuracy** rather
+than arbitrary.
+
+| | Mistral (~45%) | Llama (68.4%) | Qwen (80%) |
+|---|---|---|---|
+| μ (solution-weighted) | 0.3908 | 0.2428 | 0.1221 |
+| corruption persistence | 95.9% | 81.6% | 66.4% |
+| solutions recovered | 0 / 14,573 | 12 / 141 | 6 / 83 |
+| corr(position, local error) | +0.950 | +0.876 | +0.26–0.36 |
+
+"Near-absorbing" is therefore not a Mistral quirk — it's what corruption looks
+like in a weak generator, and it decays smoothly as the model improves. The
+recovery *rate* is the one quantity that doesn't order strictly (Llama's 8.5%
+sits just above Qwen's 7.2%), but on 141 and 83 eligible solutions that gap is
+inside sampling noise.
 
 ### 5.2 Reach is semantic, not structural (Chapter 5)
 
@@ -865,7 +886,8 @@ an entry fee. The specification's α = 0.10 wasn't a modest target; against
 global risk it's close to infeasible. Config moved to α = 0.30, and
 `configs/default.yaml` now enforces the floor at setup.
 
-But the floor is a property of the **generator**: on Qwen (μ = 0.1221), α = 0.20
+But the floor is a property of the **generator**, and falls monotonically with
+its accuracy — μ = 0.3908, 0.2428, 0.1221 across the three. On Qwen, α = 0.20
 carries no floor at all. Any statement about attainable α must name its model.
 And there's a sting — when μ falls below α the target becomes *vacuous* rather
 than easy. At α = 0.30 against μ = 0.1578, verifying nothing satisfies the
@@ -981,7 +1003,7 @@ were its own. Every row that pins a measurement carries a regression test.
 | α = 0.10 is workable | spec | **close to infeasible on Mistral** |
 | StrategyQA is a suitable primary benchmark | spec | **wrong choice** |
 | The best structural signal is benchmark-dependent | this thesis, earlier draft | **overturned** — extraction-bug artifact |
-| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific** |
+| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific, and monotone** — 95.9% / 81.6% / 66.4% across three models |
 | `net = scope − FA` is the figure of merit † | this thesis, ch. 5 | **corrected** — base-rate error |
 | A calibrated gate controls risk | **the whole premise** | **refuted** — misses α by 3× |
 | The three failures are independent † | ch. 7 first draft | **partly wrong** — verifier is downstream of score |
@@ -1024,9 +1046,11 @@ the difference.
    effect the section can measure. The open question isn't which probe, it's how
    much evaluation data.
 
-4. **A third generator.** Would settle which per-generator quantities (μ,
-   absorption persistence, the position gradient) are monotone in model strength
-   and which are idiosyncratic. **This is currently running** — see 8.3.
+4. **A fourth generator, outside the 7–8B band.** Gap 4 used to read "a third
+   generator" and is now closed — see 8.3. All three measured models are 7–8B
+   instruction-tuned and evaluated on GSM8K, so the monotone relationship sits
+   in a narrow slice of the design space. Whether it continues to a 70B model,
+   or to a task that isn't arithmetic, is untested.
 
 5. **ARES-style conditioning under a budget.** The clearest scientific gap. You
    et al. detect propagated errors at 90.3% F1 by scoring each step against
@@ -1066,26 +1090,35 @@ the difference.
   headline gap is far outside sampling noise; between-condition differences
   aren't.
 
-### 8.3 In flight right now
+### 8.3 Gap 4, closed
 
-A **Llama 3.1 8B Instruct** generator-transfer run is executing on Kaggle
-(kernel `somnath26/car-llama-transfer`, T4 × 2). This is gap #4, and it was
-blocked at draft time because the model is licence-gated — the Kaggle API
+The **Llama 3.1 8B Instruct** generator-transfer run completed on Kaggle
+(kernel `somnath26/car-llama-transfer`, T4 × 2, 6h11m, 5,752 rollouts). It had
+been blocked at draft time because the model is licence-gated — the Kaggle API
 returned *"User has not consented to terms of use"* and silently didn't mount
-the model, ending two sessions at setup.
+the model, ending two sessions at setup. Once the licence was accepted the
+harness ran unmodified, and the written corpus round-trips 500/500 through the
+Math-Shepherd parser.
 
-Status as of this report: generation is finished at a **68.4% solve rate**
-(inside the 0.55–0.95 band, so the prompt is being followed), and 5,752 global
-rollouts are in progress.
+**It settles gap 4 in the direction that helps.** C1, μ, corruption persistence
+and the position gradient are all monotone in generator accuracy — see the
+tables in 5.1. "Near-absorbing" is a property of weak generators that decays
+smoothly, not an idiosyncrasy of Mistral.
 
-One gate failed, and it's informative rather than fatal. **Annotation rate
+One gate failed, and it proved informative rather than fatal. **Annotation rate
 0.3101 against a 0.60 floor** — Llama writes `<<expr=result>>` markers on only
-about a third of its steps. That's the same gate that caught Qwen writing
-LaTeX. It affects only the arithmetic-checking half of Chapter 4, because μ and
-persistence come from the rollouts, which never parse step text. So the
-quantities the run was launched for will land cleanly. C1 for Llama will need
-the `notation="any"` path, and how much that recovers is a measurement still to
-be made.
+about a third of its steps, the same gate that caught Qwen writing LaTeX. The
+`notation="any"` fallback lifts checkability from 30.9% to **64.3%**, which is
+why C1 rests on n = 309 — more than double Qwen's 125, despite Llama being the
+corpus that failed the gate.
+
+Two errors were caught while folding this in, both of the kind this project
+keeps producing. **μ is solution-weighted, not step-weighted**: the harness
+prints 0.2714, but the figure comparable to Mistral's and Qwen's is **0.2428**,
+and only that one reproduces the Kotte floors. And **checkability has two
+definitions in the codebase** — `notation_breakdown` gives Qwen 40.8% where
+`local_validity` gives the 40.7% the thesis quotes. Three figures were written
+with the wrong one before it was caught.
 
 ### 8.4 Submission-level gaps
 

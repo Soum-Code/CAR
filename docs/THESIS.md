@@ -73,14 +73,15 @@ generator improves.
 | claim | evidence | source | status |
 |---|---|---|---|
 | C1 — 78.5% of wrong steps are locally valid (`C1_checkable`; `C1_all` = 69.8%) | 93,129 steps, stratified | Math-Shepherd | measured |
-| C1b — C1 STRENGTHENS on a better generator | 0.7848 -> 0.9040, CIs disjoint | Qwen2.5-7B, 500 solutions | **measured** |
+| C1b — C1 STRENGTHENS on a better generator, MONOTONICALLY | 0.7848 (Mistral, ~45%) -> 0.8738 (Llama, 68.4%) -> 0.9040 (Qwen, 80%); Mistral's CI disjoint from both | Qwen2.5-7B + Llama 3.1 8B, 500 solutions each | **measured** |
 | C2 — corruption is near-absorbing | 95.9% persistence over 33,236 post-corruption steps; 0/14,573 eligible solutions recovered | Math-Shepherd | measured |
+| C2c — persistence is MONOTONE in generator accuracy | 95.9% (Mistral) -> 81.6% (Llama) -> 66.4% (Qwen); recoveries 0/14,573, 12/141, 6/83 | 3 generators | **measured** |
 | C2b — local risk does not track final error | local pinned ~0.15, final 0.73→0.27 | simulation | simulated |
 | C3 — reach needs independence AND task-training | same-model 0.00, judge 0.23, PRM 0.90 | Math-Shepherd + 3 verifiers | **measured** |
 | C4 — "verify early" is false | chains, 5 DAG families, 2 real corpora | simulation + real graphs | measured |
 | C4b — later steps are harder | corr(pos, local err) = +0.950 | Math-Shepherd | measured |
 | C5 — α = 0.10 costs 32% of budget | μ = 0.3908 + Kotte Prop. 3 | measured + cited | measured |
-| C5b — the floor is generator-dependent | μ 0.3908 -> 0.1221; no floor at α=0.20 | Qwen2.5-7B | **measured** |
+| C5b — the floor is generator-dependent, and monotone | μ 0.3908 -> 0.2428 -> 0.1221 across three generators; no floor at α=0.20 by Qwen | Qwen2.5-7B + Llama 3.1 8B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
 | C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 925 test steps | **measured** |
@@ -177,7 +178,7 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 | 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
 | 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.7% |
 | 3 | ~~Full gate pipeline end-to-end on GSM8K~~ | done | negative result; see FINDINGS-PIPELINE |
-| 4 | ~~Re-measure error rates on a second generator~~ | done | Qwen2.5-7B; Llama 3.1 is licence-gated on Kaggle |
+| 4 | ~~Re-measure error rates on a second and third generator~~ | done | Qwen2.5-7B, then Llama 3.1 8B once the licence was accepted; C1, μ and persistence all monotone in accuracy |
 | 5 | Cross-domain check on StrategyQA + retrieval | ~1 GPU-day | generality; limited by C6 |
 
 **Item 2 is done, and it paid for itself.** It was queued to quantify the
@@ -200,13 +201,16 @@ a benchmark that cannot exhibit the *propagation* finding.
 
 ## Threats to validity, stated up front
 
-- **Generator mismatch, now partly addressed.** The headline rates come from
-  Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on Qwen2.5-7B-Instruct
-  (80% GSM8K) and comes out *higher*, 0.7848 -> 0.9040 with disjoint Wilson
-  intervals, so the gap is not an artifact of a weak generator. Two numbers do
-  NOT transfer and are now labelled per-generator: μ (0.3908 -> 0.1221, which
-  removes the α=0.20 floor entirely) and corruption persistence (95.9% ->
-  66.4%). See docs/FINDINGS-GENERATOR.md.
+- **Generator mismatch, now largely addressed.** The headline rates come from
+  Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on
+  Qwen2.5-7B-Instruct (80% GSM8K) and Llama 3.1 8B Instruct (68.4%) and comes
+  out *higher* on both, 0.7848 -> 0.8738 -> 0.9040 with Mistral's Wilson
+  interval disjoint from each, so the gap is not an artifact of a weak
+  generator. Three numbers are per-generator, and across three models they are
+  monotone in accuracy rather than arbitrary: μ (0.3908 -> 0.2428 -> 0.1221,
+  which removes the α=0.20 floor entirely by Qwen), corruption persistence
+  (95.9% -> 81.6% -> 66.4%), and the position gradient (+0.950 -> +0.876 ->
+  +0.26–0.36). See docs/FINDINGS-GENERATOR.md.
 
 - **A "step" is not model-invariant.** Math-Shepherd's step is one calculator
   operation; Qwen writes 5.15 steps per solution of which 59% are narration

@@ -101,7 +101,7 @@ labelled by the same procedure: Math-Shepherd's hard estimation, K = 4 rollouts
 per step prefix, `+` if any reaches the gold answer. 8,292 rollouts, 7h40m on
 two Tesla T4s. The corpus is written in Math-Shepherd's own `label` format so
 that `exp_measure_error_rate.py` reads both without modification — the
-comparison is between two corpora, not two analysis implementations.
+comparison is between corpora, not between analysis implementations.
 
 ### A notation problem that nearly produced a wrong answer
 
@@ -130,7 +130,7 @@ write GSM8K's notation.
 `normalise_notation` rewrites LaTeX and unicode maths as plain arithmetic, and
 `local_validity(..., notation="any")` falls back to it when no marker is
 present. The check that this **extends** the measurement rather than redefining
-it is that it is applied to both corpora and is nearly inert on the baseline:
+it is that it is applied to every corpus and is nearly inert on the baseline:
 
 | corpus | notation | checkable | local error |
 |---|---|---|---|
@@ -138,6 +138,13 @@ it is that it is applied to both corpora and is nearly inert on the baseline:
 | Mistral-7B-SFT | any | 91.4% | 0.1364 |
 | Qwen2.5-7B | marker | 14.5% | 0.0027 |
 | Qwen2.5-7B | any | **40.7%** | **0.0315** |
+| Llama 3.1 8B | marker | 30.9% | 0.0117 |
+| Llama 3.1 8B | any | **64.3%** | **0.0401** |
+
+Llama, added later, fails the same gate for the same reason and is rescued the
+same way: the annotation rate is 0.3101 against the 0.60 floor, and the
+fallback lifts checkability from 30.9% to 64.3%. It sits between the two
+earlier corpora on this axis as well.
 
 Moving the baseline by 0.6 points while moving the new corpus by an order of
 magnitude is the evidence that the extension reads notation rather than
@@ -146,16 +153,39 @@ on Math-Shepherd reproduces the published C1 of **0.6982** exactly.
 
 ### The result
 
-One definition applied to both corpora, within wrong-answer solutions:
+A third generator was added after the first draft of this chapter.
+Llama 3.1 8B Instruct is licence-gated on Kaggle, which is why §4.6 originally
+recorded it as named but unrunnable; once the licence was accepted the same
+harness ran unmodified. 500 GSM8K test problems, K = 4 rollouts, temperature
+0.7, 4-shot — identical settings to the Qwen run — 5,752 rollouts, 6h11m on two
+Tesla T4s, and the written corpus round-trips 500/500 through the Math-Shepherd
+parser.
 
-| | Mistral-7B-SFT | Qwen2.5-7B-Instruct |
-|---|---|---|
-| GSM8K accuracy | ~45% (reported) | **80.0%** (measured here) |
-| local error | 0.1708 | **0.0813** |
-| global error | 0.7106 | 0.5772 |
-| **C1 (checkable)** | **0.7848** | **0.9040** |
-| n globally-wrong checkable steps | 46,555 | 125 |
-| 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.840, 0.944] |
+One definition applied to all three corpora, within wrong-answer solutions,
+ordered by generator accuracy:
+
+| | Mistral-7B-SFT | Llama 3.1 8B | Qwen2.5-7B-Instruct |
+|---|---|---|---|
+| GSM8K accuracy | ~45% (reported) | **68.4%** (measured here) | **80.0%** (measured here) |
+| local error | 0.1708 | 0.1034 | **0.0813** |
+| global error | 0.7106 | 0.7442 | 0.5772 |
+| **C1 (checkable)** | **0.7848** | **0.8738** | **0.9040** |
+| n globally-wrong checkable steps | 46,555 | 309 | 125 |
+| 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.832, 0.906] | [0.840, 0.944] |
+
+**C1 is monotone in generator accuracy across all three.** 0.7848 at 45%,
+0.8738 at 68.4%, 0.9040 at 80%. The third point was not fitted: §4.4 was
+written with two generators and predicted that a model between them would fall
+between them, and Llama does. Its interval excludes Mistral's value and
+overlaps Qwen's, which is what a monotone relationship measured on 309 and 125
+steps should look like.
+
+Local error is monotone on the same ordering — 0.1708, 0.1034, 0.0813 — and
+that is the mechanism. Global error is **not** monotone (0.7106, 0.7442,
+0.5772); Llama's wrong-answer solutions are the most globally corrupted of the
+three. So the rise in C1 is not driven by the numerator growing. It is driven
+by the denominator of arithmetic slips shrinking faster than inherited
+corruption does.
 
 
 ![Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.](figures/fig1-the-gap.png)
@@ -187,74 +217,103 @@ reasoning. The two agree closely when coverage is high, which is why the
 distinction never surfaced before. `C1_checkable` is the estimator to quote
 across generators.
 
-## 4.5 What does not transfer
+## 4.5 What is generator-dependent, and how
 
-Two claims turn out to be properties of the generator that were stated as
-properties of the task, and are now labelled per-generator.
+Three quantities were stated as properties of the task and are properties of
+the generator. With two models that was all that could be said. With three it
+is possible to say something stronger: they are not idiosyncratic, they move
+monotonically with generator accuracy.
 
-**Base risk, and therefore the feasibility floor.**
+**Base risk, and therefore the feasibility floor.** μ is solution-weighted —
+each stratum weighted by its share of solutions, not of steps — because wrong
+solutions are systematically longer and step-weighting would over-count them.
+On Llama the step-weighted rate is 0.2714 against a solution-weighted 0.2428,
+and the latter is the one comparable to the other two rows.
 
-| | Mistral-7B-SFT | Qwen2.5-7B |
-|---|---|---|
-| μ (solution-weighted) | 0.3908 | **0.1221** |
-| Kotte floor at α = 0.05 | 35.9% | 7.6% |
-| at α = 0.10 | 32.3% | 2.5% |
-| at α = 0.20 | 23.9% | **none** |
+| | Mistral-7B-SFT | Llama 3.1 8B | Qwen2.5-7B |
+|---|---|---|---|
+| GSM8K accuracy | ~45% | 68.4% | 80.0% |
+| μ (solution-weighted) | 0.3908 | 0.2428 | **0.1221** |
+| Kotte floor at α = 0.05 | 35.9% | 20.3% | 7.6% |
+| at α = 0.10 | 32.3% | 15.9% | 2.5% |
+| at α = 0.20 | 23.9% | 5.4% | **none** |
 
-The impossibility bound has not weakened; the base risk it applies to has. On a
-strong generator, α = 0.20 is attainable with no entry fee at all. Any
-statement about attainable α must name its model. (Chapter 8 develops this.)
+The impossibility bound has not weakened; the base risk it applies to has, and
+it does so smoothly. Any statement about attainable α must name its model.
+(Chapter 8 develops this.)
 
 **Absorption.**
 
-| | Mistral | Qwen |
-|---|---|---|
-| steps after the first bad step still bad | 95.9% | 66.4% |
-| solutions able to recover | 14,573 | 83 |
-| solutions that fully recovered | 0 / 14,573 (0.0%) | 6 / 83 (**7.2%**) |
+| | Mistral | Llama | Qwen |
+|---|---|---|---|
+| steps after the first bad step still bad | 95.9% | 81.6% | 66.4% |
+| solutions able to recover | 14,573 | 141 | 83 |
+| solutions that fully recovered | 0 / 14,573 (0.0%) | 12 / 141 (8.5%) | 6 / 83 (7.2%) |
 
-Still strongly absorbing. But "near-absorbing" was measured on Mistral and does
-not transfer unqualified; recovery is rare rather than unobserved.
+Persistence is monotone in accuracy: 95.9%, 81.6%, 66.4%. The recovery *rate*
+is not strictly — Llama's 8.5% sits marginally above Qwen's 7.2% — but on 141
+and 83 eligible solutions that ordering is well inside sampling noise and
+nothing should be read into it. What the three points do establish is that
+**"near-absorbing" is not a Mistral quirk; it is what corruption looks like in
+a weak generator, and it decays as the generator improves.** An earlier draft
+of this section could only say the property failed to transfer.
 
-**The position gradient's sign replicates; its magnitude does not transfer.**
-corr(position, local error) = +0.950 on Mistral. On Qwen it is **+0.26** under
-marker notation and **+0.36** under `notation="any"`, over four and six
-position bins with at least 30 checkable steps.
-
-An earlier draft reported **+0.866** here. That figure comes from three bins
-whose local-error rates are 0.0000, 0.0000 and 0.0133 — √3/2 is the exact
-Pearson r of that pattern — under the marker extractor this chapter itself
-calls unusable on Qwen (§4.4: it reports 0.0027, "which is nonsense"). It was
-an artifact of the bin count, not a replication.
+**The position gradient's sign replicates everywhere; its magnitude is
+resolvable on two corpora of three.** corr(position, local error) = +0.950 on
+Mistral, resolved over eight bins and tens of thousands of steps. On Llama it
+is **+0.876**, over four bins holding at least 60 checkable steps. On Qwen it
+is **+0.26** under marker notation and **+0.36** under `notation="any"`, over
+four and six bins holding at least 30.
 
 Qwen writes too little checkable arithmetic to establish a gradient: 59% of its
-steps assert none, and the deepest bin with 30 usable steps is step 5. The sign
-agrees with Mistral and that is all this corpus supports. Chapter 6's
-allocation conclusion rests on the Mistral measurement, where the gradient is
-resolved over eight bins and tens of thousands of steps.
+steps assert none, and the deepest bin with 30 usable steps is step 5. Llama
+carries 64.3% checkable steps against Qwen's 40.7%, which is why it resolves a
+gradient where Qwen cannot. Chapter 6's allocation conclusion rested on the
+Mistral measurement alone for exactly that reason, and now has an independent
+confirmation on a generated corpus.
+
+An earlier draft reported **+0.866** for Qwen. That figure comes from three
+bins whose local-error rates are 0.0000, 0.0000 and 0.0133 — √3/2 is the exact
+Pearson r of that pattern — under the marker extractor this chapter itself
+calls unusable on Qwen (§4.4: it reports 0.0027, "which is nonsense"). It was
+an artifact of the bin count, not a replication. Its numerical closeness to
+Llama's genuine +0.876 is a coincidence and should not be read as
+corroboration.
 
 ## 4.6 Limits
 
-- **n = 125.** Qwen's globally-wrong checkable steps, against Mistral's 46,555.
-  The Wilson interval excludes the Mistral value but C1 is not precisely
-  located.
-- **59% of Qwen's steps contain no arithmetic.** They are narration — *"First,
-  we determine how many miles Micah ran."* C1 is computed on the checkable 41%,
-  and if narration steps carry corruption at a different rate the estimate is
-  biased. This is not fixable by better extraction; those steps assert nothing
-  a calculator could check.
-- **A "step" is not model-invariant.** Qwen writes 5.15 steps per solution
-  against Mistral's ~3.6, and most of Qwen's are prose. Math-Shepherd's step is
-  one calculator operation; Qwen's is one line of explanation. Per-step rates
-  across models are rates over different units, and this belongs in the
-  limitations chapter as a property of the unit of analysis rather than of the
-  measurement.
+- **n = 309 and n = 125.** Llama's and Qwen's globally-wrong checkable steps,
+  against Mistral's 46,555. Both Wilson intervals exclude the Mistral value, so
+  the monotone ordering is not an artifact of sample size — but neither C1 is
+  precisely located, and the two generated corpora's intervals overlap each
+  other heavily.
+- **Both generated corpora are thin on checkable arithmetic.** 59.3% of Qwen's
+  steps and 35.7% of Llama's assert none; they are narration — *"First, we
+  determine how many miles Micah ran."* C1 is computed on the checkable
+  fraction (40.7% and 64.3% respectively), and if narration steps carry
+  corruption at a different rate the estimate is biased. Not fixable by better
+  extraction; those steps assert nothing a calculator could check.
+- **Llama failed the annotation gate.** It writes `<<expr=result>>` markers on
+  only 31.0% of steps against the 0.60 floor, so the run continued in
+  non-strict mode. The `notation="any"` fallback is what makes the corpus
+  usable at all, lifting checkability from 30.9% to 64.3%. Every Llama figure
+  here therefore depends on that extension being sound, which §4.4 argues from
+  its near-inertness on the baseline rather than assuming.
+- **Llama's propagation signature is not measurable.** Only 1.2% of its
+  solutions contain any arithmetic error, which leaves **4** locally-valid
+  steps downstream of a local error. The 75.0% figure the harness prints for
+  them is three steps out of four and is not quoted anywhere in this chapter.
+  Mistral's corresponding 89.6% rests on tens of thousands.
+- **A "step" is not model-invariant.** Qwen writes 5.15 steps per solution and
+  Llama 3.88, against Mistral's ~3.6, and most of Qwen's are prose.
+  Math-Shepherd's step is one calculator operation; Qwen's is one line of
+  explanation. Per-step rates across models are rates over different units, and
+  this belongs in the limitations chapter as a property of the unit of analysis
+  rather than of the measurement.
 - **Label semantics.** Math-Shepherd's `+`/`-` are automatic Monte-Carlo
   estimates of "leads to a correct answer", not proofs. A lucky wrong step can
   be labelled `+`, which makes the measured global error rate a lower bound.
-- **The generator is not the one the thesis names.** Llama 3.1 8B is
-  licence-gated on Kaggle; the API returns *"User has not consented to terms of
-  use"* and the model is silently not mounted, so two sessions ended at setup.
-  Qwen2.5-7B-Instruct is the same size class with comparable GSM8K accuracy,
-  which is the property the argument needs. Re-running on Llama requires no
-  code change.
+- **Three points, one family.** All three generators are 7–8B instruction-tuned
+  models evaluated on GSM8K. The monotone relationship in §4.5 is measured
+  across a narrow band of the design space, and nothing here establishes that
+  it continues to a 70B model or to a different task.

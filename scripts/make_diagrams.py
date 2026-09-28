@@ -10,7 +10,8 @@ prose alone --
   D2  the control loop, so a reader can see which chapter measures which
       component before meeting any of them;
   D3  the absorption process, which prose describes as "near-absorbing" and a
-      transition diagram states exactly.
+      transition diagram states exactly -- including that the persistence rate
+      is a property of the generator, measured on three of them.
 
 They are drawn in matplotlib rather than TikZ so they share the plots' visual
 language, and so they render without a TeX toolchain -- which this machine does
@@ -210,10 +211,10 @@ def d3_absorption():
     ax.text(0.82, yc, "stays corrupt\n" r"$\bf{95.9\%}$ of later steps",
             ha="center", va="center", fontsize=8.6, color=CRITICAL, linespacing=1.5)
 
-    ax.text(0.5, 0.12,
-            "On Qwen2.5-7B the same process gives 66.4% persistence and 6 recoveries\n"
-            "of 83 eligible solutions -- absorbing, but $\\it{near}$-absorbing was a Mistral property.",
-            ha="center", fontsize=8.4, color=INK_2, linespacing=1.6)
+    ax.text(0.5, 0.055,
+            "Llama 3.1 8B 81.6% (12 of 141 recover)   |   Qwen2.5-7B 66.4% (6 of 83)\n"
+            "Absorption decays $\\it{monotonically}$ as the generator improves.",
+            ha="center", va="bottom", fontsize=8.4, color=INK_2, linespacing=1.7)
 
     ax.set_title("Corruption is close to absorbing", loc="left", x=0.02, y=0.94,
                  fontsize=10.5, color=INK, weight="bold")

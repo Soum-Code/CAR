@@ -18,10 +18,10 @@ test fails if it stops reproducing.
 | Semantic entropy at intermediate steps is the key signal | specification | **refuted** | AUROC 0.5740; combining buys 0.0002 |
 | Influence weighting (descendant count) beats uniform | specification §4.2 | **refuted** | loses to uniform on 5 DAG families and 2 real corpora; the chain test could not have shown it (§6.2: influence ≡ front on a chain) |
 | H3: verify early beats verify late | specification | **refuted** | worst policy at every scope > 0; corr(position, error) = +0.950 |
-| α = 0.10 is a workable target | specification | **close to infeasible on Mistral** | 32.3% Kotte entry fee at μ = 0.3908; on Qwen (μ = 0.1221) the same target is comfortable |
+| α = 0.10 is a workable target | specification | **close to infeasible on Mistral** | 32.3% Kotte entry fee at μ = 0.3908; 15.9% on Llama (μ = 0.2428); on Qwen (μ = 0.1221) the same target is comfortable |
 | StrategyQA is a suitable primary benchmark | specification | **wrong choice** | 72.9% of graphs one hop deep |
 | The best structural signal is benchmark-dependent | this thesis, earlier draft | **overturned** | artifact of the extraction bug; depth wins on both |
-| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific** | 95.9% on Mistral, 66.4% on Qwen |
+| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific, and monotone** | 95.9% Mistral, 81.6% Llama, 66.4% Qwen — ordered by accuracy across three models |
 | C3's `net = scope − FA` is the figure of merit † | this thesis, ch. 5 | **corrected** | base-rate error; see §7.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at α = 0.05; three α bind and the misses are 3.0×, 1.5×, 1.0× |
 | The three failures are independent † | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
@@ -41,14 +41,18 @@ independent is the **signal** and the **budget**.
 
 ## 9.2 Threats to validity
 
-**Generator mismatch, partly addressed.** The headline rates come from
-Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on Qwen2.5-7B-Instruct
-and comes out *higher*, with disjoint Wilson intervals, so the gap is not an
-artifact of a weak generator. Three quantities do not transfer and are labelled
-per-generator: μ (0.3908 → 0.1221), corruption persistence (95.9% → 66.4%), and
-the position gradient — corr(position, local error) falls from +0.950 to
-+0.26–+0.36 over only four to six usable bins, because Qwen writes too little
-checkable arithmetic to resolve one. None has been measured on a third model.
+**Generator mismatch, largely addressed.** The headline rates come from
+Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on two further
+generators and comes out *higher* on both, with Mistral's Wilson interval
+disjoint from each, so the gap is not an artifact of a weak generator. Three
+quantities are generator-dependent, and with three models they can be shown to
+be monotone in accuracy rather than arbitrary: μ (0.3908 → 0.2428 → 0.1221),
+corruption persistence (95.9% → 81.6% → 66.4%), and the position gradient —
+corr(position, local error) is +0.950 on Mistral and +0.876 on Llama, and falls
+to +0.26–+0.36 on Qwen over only four to six usable bins, because Qwen writes
+too little checkable arithmetic to resolve one. All three generators are 7–8B
+instruction-tuned models on GSM8K, so the monotone relationship is measured
+across a narrow band and nothing establishes it continues beyond that.
 
 **A "step" is not a model-invariant unit.** Math-Shepherd's step is one
 calculator operation. Qwen writes 5.15 steps per solution of which 59% are

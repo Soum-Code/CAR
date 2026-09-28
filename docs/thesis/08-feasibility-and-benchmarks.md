@@ -35,15 +35,19 @@ than producing a flat results table that has to be diagnosed afterwards.
 
 ### The floor is a property of the generator
 
-Chapter 4 measured μ on a second generator, and the picture changes completely:
+Chapter 4 measured μ on two further generators, and the picture changes
+completely:
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 |
 |---|---|---|---|---|
-| Mistral-7B-SFT, μ = 0.3908 | 35.9% | 32.3% | 23.9% | 13.0% |
-| Qwen2.5-7B, μ = 0.1221 | 7.6% | 2.5% | **none** | **none** |
+| Mistral-7B-SFT (~45%), μ = 0.3908 | 35.9% | 32.3% | 23.9% | 13.0% |
+| Llama 3.1 8B (68.4%), μ = 0.2428 | 20.3% | 15.9% | 5.4% | **none** |
+| Qwen2.5-7B (80.0%), μ = 0.1221 | 7.6% | 2.5% | **none** | **none** |
 
-The impossibility bound has not weakened; the base risk it applies to has. On a
-strong generator α = 0.20 is attainable with no entry fee at all.
+The impossibility bound has not weakened; the base risk it applies to has, and
+it does so monotonically in generator accuracy. On a strong generator α = 0.20
+is attainable with no entry fee at all; on a mid-strength one it costs 5.4%;
+on a weak one, 23.9%.
 
 **Any statement about attainable α must name the model it was measured on.**
 This thesis originally stated the floor as a property of the task, and that was

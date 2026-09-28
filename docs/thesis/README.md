@@ -107,10 +107,19 @@ Known gaps, in the order they would matter to an examiner:
    differ by 0.075, so an arbitrary layer choice swamps every effect the
    section can measure. The open question is not which probe but how much
    evaluation data.
-4. **A third generator** would settle which of the per-generator quantities
-   (μ, absorption) are monotone in model strength and which are idiosyncratic.
-5. **ARES-style conditioning under a budget** is the clearest scientific gap —
+4. **ARES-style conditioning under a budget** is the clearest scientific gap —
    see ch. 9 future work.
+5. **A fourth generator, outside the 7–8B band.** The three measured here are
+   all 7–8B instruction-tuned models on GSM8K, so §4.5's monotone relationship
+   is established across a narrow slice. Whether it continues to a 70B model,
+   or to a different task, is untested.
+
+Closed since the first draft: *a third generator*, which was gap 4. Llama 3.1
+8B Instruct was licence-gated on Kaggle and is now measured. It settles the
+question in the direction that helps — C1, μ, corruption persistence and the
+position gradient are all **monotone in generator accuracy** rather than
+idiosyncratic, so §4.5 states a relationship where it previously recorded a
+failure to transfer.
 
 ## Venue
 
