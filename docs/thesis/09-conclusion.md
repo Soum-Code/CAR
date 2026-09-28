@@ -34,7 +34,7 @@ test fails if it stops reproducing.
 | The cheap equivalence relation was hiding the signal | the obvious objection to §7.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
 
 The row refuting *selective verification with a calibrated gate controls risk*
-is the thesis. The row below it is the correction the oracle baseline forced: of the three failure points, only two are separate. The
+is the thesis. Below it sits the correction the oracle baseline forced: of the three failure points, only two are separate. The
 verifier's net-negative result is a consequence of aiming it with a near-chance
 score, and disappears when the score is perfect. What remains genuinely
 independent is the **signal** and the **budget**.
@@ -54,7 +54,7 @@ checkable arithmetic to resolve one. None has been measured on a third model.
 calculator operation. Qwen writes 5.15 steps per solution of which 59% are
 narration asserting no arithmetic at all. Per-step rates across generators are
 rates over different units. This is a limitation of the unit of analysis, not
-of the measurement, and it is not fixable by better extraction.
+of the measurement, and no amount of better extraction fixes it.
 
 **Label semantics.** Math-Shepherd's `+`/`-` are automatic Monte-Carlo
 estimates of "leads to a correct answer", not proofs. A lucky wrong step can be
@@ -118,8 +118,8 @@ the gate actually uses, −4 points when the score is bypassed entirely
 (always-verify), and **+17.6** behind a perfect one. A verifier is not good or bad; it is well or badly
 aimed.
 
-**Do not tune a step-level score on AUROC.** It is the natural metric and it is
-not the quantity a reasoning system is paid on. Under error propagation only the
+**Do not tune a step-level score on AUROC.** It is the natural metric, and not
+the quantity a reasoning system is paid on. Under error propagation only the
 *first* bad step in a solution can be repaired, so a score that ranks late
 errors highly scores well on AUROC and rescues nothing. Measured here: a trained
 probe at AUROC 0.6968 converts to 0.7802 projected accuracy where a synthetic
@@ -186,10 +186,10 @@ Chapter 7 is a result about token-level and sampling-based signals, not about
 all possible signals, and §7.6 is the demonstration of that. But §7.4 also
 changes what "better" should mean. The target is not a higher AUROC: the
 verifier already turns positive at ≈ 0.65, and no AUROC at all holds α = 0.05
-at this budget. The target is a score that ranks the **earliest** bad step
-highly, because that is the only one a repair can rescue. A signal evaluated on
+at this budget. What is wanted is a score that ranks the **earliest** bad step
+highly, since only that one can be rescued by a repair. A signal evaluated on
 AUROC alone can improve on that metric while getting worse at the thing the
-system is for — which is what the probe did.
+system is for, as the probe did.
 
 **Bidirectional entailment clustering — run, and it closed negatively.** This
 was listed here as the cheapest untested alternative, on the grounds that
@@ -197,12 +197,12 @@ Chapter 7 shows the relation is load-bearing. §7.2 now reports it: the
 reference relation scores **0.5625** on test, 95% CI [0.512, 0.614], on the
 same 12,865 generations. It does not find signal the cheap relation missed. The
 0.0114 gap to numeric equivalence is *not* a ranking — its interval spans zero
-— and the claim worth making is the other one: the three relations nest on a
+— and the claim to make is the other one: the three relations nest on a
 single permissiveness axis, calling 0.1%, 31.9% and 78.0% of pairs equal, and
 across that entire range the measurement does not move.
 
-The relation is also the wrong tool, which is worth recording separately from
-the result. An MNLI model judges 86.6% of pairs entailing and merges steps
+The relation is also the wrong tool — a separate point from the result, and
+worth recording as one. An MNLI model judges 86.6% of pairs entailing and merges steps
 asserting different quantities — it checks whether two sentences are about the
 same thing, not whether they compute the same number. A relation that *is*
 sensitive to the asserted quantity, and that also handles the 59% of steps
@@ -294,7 +294,7 @@ instead measured why one does not work. The final statement:
 > calibration cannot help while the first is unfixed.
 
 That is a claim about the design space rather than about one system, each leg
-has a measured number and a regression test, and it is falsifiable in the only
+has a measured number and a regression test, falsifiable in the only
 way that matters: a signal that ranks step error would break it.
 
 The project is more useful for having failed. A working gate on GSM8K would

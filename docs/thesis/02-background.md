@@ -45,7 +45,7 @@ instance one weighting recent observations more heavily. The methods are
 provably robust, losing substantially less coverage under drift while retaining
 the standard guarantee when the data really are exchangeable.
 
-It is worth being precise about what this does and does not reach, because
+Being precise about what this does and does not reach matters, because
 Chapter 9 names the gap as this thesis's open problem. Barber et al. handle
 *drift* — the distribution moves, for reasons outside the procedure — and
 *asymmetry* in the fitting algorithm. Neither is the situation here. In a
@@ -96,7 +96,7 @@ importance-weighted increment `X̃_t(q) := (B_t/π_t)·X_t(q)`. Then the
 supermartingale property survives, all anytime-valid guarantees hold verbatim,
 and expected certification delay inflates by at most `1/π_min`.
 
-That is precisely the forced-exploration-plus-inverse-propensity scheme this
+That is the forced-exploration-plus-inverse-propensity scheme this
 project independently designed for censored feedback, under a *stronger*
 guarantee than the long-run rate we had hypothesised. The machinery is
 implemented here (`src/car/conformal/adaptive.py`) and used, but it is cited to
@@ -104,7 +104,7 @@ CSA rather than claimed.
 
 CSA also characterises the fully-censored failure mode — run the verifier only
 on accepted rounds and "the controller stalls at the current threshold but
-stays valid" — which is the `naive` update mode in this codebase.
+stays valid" — the `naive` update mode in this codebase.
 
 What CSA does *not* do is the opening this thesis originally aimed at. It
 operates on independent rounds: one query, one answer, act or abstain. Round
@@ -280,7 +280,7 @@ synthetic chains it detects **propagated errors at 90.3% F1 (+27.6)**.
 **This is a result the thesis has to accommodate rather than dismiss.** It shows
 the inherited-corruption population is not intrinsically invisible. It is
 invisible to a verifier reading a step against the generator's *unverified*
-context — which is what every verifier measured in Chapter 5 does. The correct
+context, as every verifier measured in Chapter 5 does. The correct
 reading of C1 is therefore narrower than "no verifier can see these steps": a
 verifier conditioned on the generator's own uncorrected prefix cannot, and
 restricting to verified premises is the structural change that lifts the

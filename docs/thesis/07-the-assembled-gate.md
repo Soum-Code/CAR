@@ -11,8 +11,8 @@ the assembled system can answer:
 > Does calibrating a threshold on an uncertainty score actually bound the risk
 > of the steps the gate lets through?
 
-It does not. The result is negative and it is the most useful thing this
-project has measured.
+It does not. That negative result is the most useful thing this project has
+measured.
 
 ## 7.1 Setup
 
@@ -27,9 +27,8 @@ Conditions, all through the same `CARAgent` loop with one component swapped:
 plain chain-of-thought, always-verify, random gate at matched budget, quantile
 gate, split conformal, adaptive conformal with IPW, adaptive with naive
 updates, and an **oracle score** — the same split-conformal calibrator driven by
-a score that reads the label. The oracle is not deployable; it is the ceiling,
-and it is what separates "the gate is bad" from "the task is hard at this
-budget".
+a score that reads the label. The oracle is not deployable. It is the ceiling, and it
+separates "the gate is bad" from "the task is hard at this budget".
 
 Verifiers, parameterised by the reach measured in Chapter 5: step-local
 arithmetic (scope 0.0000), independent judge (0.2283 at 2.0% false alarm), task
@@ -249,8 +248,8 @@ score and misses the target:
 | 0.30 | — | 0.1538 | **0.1394** | 0.0885 |
 
 It closes about 29% of the AUROC gap to a perfect score and about 22% of the
-risk gap, which is the internal consistency one would want before believing
-either number. And it misses α = 0.05 by **2.9×**.
+risk gap — the internal consistency one would want before believing either
+number. And it misses α = 0.05 by **2.9×**.
 
 > The earlier version of this chapter could be read as "the signal happened to
 > be absent." It is not. A better signal exists, improves the gate, uses fewer
@@ -309,7 +308,7 @@ being arithmetic-blind inherited corruption* — every item in it was wrong. In
 deployment the verifier is pointed at whatever the gate selects, and behind a
 near-chance score that is mostly correct steps.
 
-**The oracle row settles which component is at fault, and it is not the
+**The oracle row settles which component is at fault. It is not the
 verifier:**
 
 | score | verifier | calls/q | recall | projected accuracy |
@@ -331,8 +330,8 @@ accuracy from 0.7637 to **0.9780** — 17.6 points above the no-gate baseline �
 *a third* of the calls. A false alarm can only fire on a step the gate chose to
 verify, and a good score almost never chooses a correct one.
 
-> The figure of merit is not `scope − FA`, and it is not
-> `scope × P(wrong)` against `FA × P(correct)` over the population either. It is
+> The figure of merit is not `scope − FA`. Nor is it
+> `scope × P(wrong)` against `FA × P(correct)` over the population. It is
 > conditioned on **what the gate selects**:
 > `scope × P(wrong | verified)` against `FA × P(correct | verified)`.
 > The score sets that conditioning, so improving the score raises the
@@ -568,8 +567,8 @@ probe's AUROC advantage**: 0.5735 sits level with the 0.5742 token+semantic
 baseline whose failure is this chapter's central negative result. The 0.0007
 gap is far inside the interval on either number, so "level with" is as far as
 it goes — §7.2 declines to rank a 0.0114 gap for the same reason. That trade is the chapter's own point made concrete: ranked by
-AUROC the first-bad probe is the worst of the four, and it is the one that best
-does the job the system is for.
+AUROC the first-bad probe is the worst of the four, and the one that best does
+the job the system is for.
 
 **How large the gain is depends on which global-target probe it is measured
 against**, and both are reasonable:
@@ -613,8 +612,8 @@ corpus is too small to show it buys anything deployable.
 
 Every probe above is a logistic regression on one layer, and ReProbe's are not.
 Testing that needs the layer held fixed — comparing each arm's own best layer
-measures instrument *plus* layer re-selection, which is the confound §7.6
-already corrected once for the data lever.
+measures instrument *plus* layer re-selection — the confound §7.6 already
+corrected once for the data lever.
 
 | training set | layer | linear | non-linear | difference | 95% CI |
 |---|---|---|---|---|---|
@@ -683,8 +682,8 @@ oracle run below shows, not three *independent* ones:
 | the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
 | the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle, and turns positive at AUROC ≈ 0.65 |
 
-The oracle run changes the shape of this conclusion, and it is worth being
-exact. The three failures are *not* independent in the way an earlier draft of
+The oracle run changes the shape of this conclusion. Being exact about how
+matters. The three failures are *not* independent in the way an earlier draft of
 this chapter claimed. The verifier's net-negative result is a consequence of the
 score, not a separate defect: fix the score and the same verifier becomes worth
 +17.6 points. What survives as genuinely separate is the score and the budget —
@@ -698,8 +697,8 @@ and the verifier was never the problem.
 The score-quality sweep puts numbers on both halves of that and adds a third
 thing nobody asked for. The verifier turns positive at AUROC ≈ 0.65, which is
 *below* the probe's 0.6968 — so the signal bottleneck is nearly cleared
-already, and it is cleared entirely by removing false alarms rather than by
-improving the score at all. The budget bottleneck, by contrast, survives the
+already, and removing false alarms clears it entirely without improving the
+score at all. The budget bottleneck, by contrast, survives the
 whole range: no score quality up to 0.99 holds α = 0.05. And the third thing is
 that **AUROC turns out to be the wrong target** — the probe converts its ranking
 into answers worse than a synthetic score of identical AUROC, because it ranks
