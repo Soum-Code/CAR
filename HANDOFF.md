@@ -159,6 +159,27 @@ runs the variants; the source dataset is `somnath26/car-source-verifier-scope`
 and must be re-uploaded with `kaggle datasets version -d --dir-mode zip`
 (without `--dir-mode zip` it silently uploads only the top-level files).
 
+## 4c. Kaggle secrets: launch from the editor, never the API
+
+A kernel that reads a Kaggle Secret **cannot be started with
+`kaggle kernels push`**. Secrets are attached per-notebook through the web
+editor, and `kernel-metadata.json` has no field for them, so an API-pushed
+version runs without the attachment and fails with:
+
+```
+could not read the secret: ConnectionError
+Connection error trying to communicate with service.
+```
+
+That message reads like a network blip and is not one — the secret can be
+present and correctly named and it still fails. Two pushes were lost to this
+before the cause was found.
+
+**The working path:** open the notebook in the Kaggle editor →
+**Save Version → Save & Run All (Commit) → Save**. Pushing the *dataset* by API
+is fine; only the kernel launch has to come from the editor. This applies to
+`somnath26/car-llama-transfer` and to any future kernel needing `HF_TOKEN`.
+
 ## 5. Traps — these cost real time
 
 **Environment**

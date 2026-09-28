@@ -98,11 +98,20 @@ MIN_ANNOTATION_RATE = 0.60
 # ---- generation ------------------------------------------------------
 
 
-def load_model(model_id: str):
+def load_model(model_id: str, token: str | None = None):
+    """Load a generator, optionally authenticating for a gated repo.
+
+    `token` is passed in by the caller and never defaults to a literal -- a
+    test asserts that, because a Hugging Face token of this project's author
+    was once committed to a public repo and the only safe default is None.
+    Gated models (Llama 3.1) need it; ungated ones (Qwen) ignore it.
+    """
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    tok = AutoTokenizer.from_pretrained(model_id)
+    auth = {"token": token} if token else {}
+
+    tok = AutoTokenizer.from_pretrained(model_id, **auth)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
     # LEFT padding for batched decoder-only generation. Right padding puts pad
