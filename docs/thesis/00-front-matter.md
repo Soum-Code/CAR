@@ -55,7 +55,7 @@ target by a factor of three, and the one verifier with real reach is
 net-negative behind that score.
 
 Two controls separate cause from consequence. An **oracle score** takes
-selective risk 0.154 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
+selective risk 0.155 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
 the calls, so the verifier was never the problem — it was being aimed badly. A
 **probe on the generator's own frozen hidden states** reaches AUROC 0.6968, so
 the signal is not absent either — and doubling its training data buys about
@@ -121,8 +121,12 @@ time are committed rather than regenerated: `runs/semantic_scope_*.json`,
 `runs/generated_qwen25_7b.jsonl`, `runs/uncertainty_qwen25_7b*.jsonl`,
 `runs/semantic_samples.jsonl`.
 
-Every refuted claim in this thesis has a regression test that keeps it refuted,
-so a result cannot silently stop reproducing.
+Every refuted claim in this thesis that rests on a *measurement* has a
+regression test that keeps it refuted, so a result cannot silently stop
+reproducing. Three rows of §9.1's table do not, and cannot: one is a literature
+fact (the censored-feedback method was scooped), and two are claims whose
+refutation is a matter of scope rather than of a number that could move. They
+are marked in that table.
 
 ---
 

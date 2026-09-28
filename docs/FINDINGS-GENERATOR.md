@@ -125,7 +125,7 @@ this one does too.)
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 |
 |---|---|---|---|---|
-| Mistral floor | 35.9% | 32.3% | 23.8% | 13.0% |
+| Mistral floor | 35.9% | 32.3% | 23.9% | 13.0% |
 | Qwen floor | 7.6% | 2.5% | **none** | **none** |
 
 The Kotte impossibility bound has not weakened; the base risk it applies to
@@ -137,13 +137,16 @@ Any claim about the floor must name its generator.
 | | Mistral | Qwen |
 |---|---|---|
 | steps after the first bad step still bad | 95.9% | 66.4% |
-| solutions that fully recovered | 0 / 25,971 | 6 / 500 |
+| solutions able to recover | 14,573 | 83 |
+| solutions that fully recovered | 0 / 14,573 (0.0%) | 6 / 83 (**7.2%**) |
 
 "Near-absorbing" was measured on Mistral and does not transfer unqualified.
 Recovery is rare but no longer unobserved.
 
 **C4b — the position gradient replicates.** corr(position, local error) =
-**+0.866**, against +0.950 on Mistral. Same sign, same conclusion: later steps
+**+0.26 (marker) to +0.36 (`notation="any"`)**, against +0.950 on Mistral — an
+earlier draft reported +0.866, which was three bins under an extractor this
+project calls unusable on Qwen. Same sign, weaker: later steps
 are harder, and front-loading is not favoured.
 
 ---

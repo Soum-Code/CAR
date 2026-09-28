@@ -19,7 +19,7 @@ With the μ measured in Chapter 4 for Mistral-7B-SFT:
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 | 0.40 |
 |---|---|---|---|---|---|
-| μ = 0.3908, floor | 35.9% | **32.3%** | 23.8% | 13.0% | none |
+| μ = 0.3908, floor | 35.9% | **32.3%** | 23.9% | 13.0% | none |
 
 **α = 0.10 — the specification's value — charges a third of the entire
 verification budget as an entry fee** before any method is admissible. It is
@@ -39,7 +39,7 @@ Chapter 4 measured μ on a second generator, and the picture changes completely:
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 |
 |---|---|---|---|---|
-| Mistral-7B-SFT, μ = 0.3908 | 35.9% | 32.3% | 23.8% | 13.0% |
+| Mistral-7B-SFT, μ = 0.3908 | 35.9% | 32.3% | 23.9% | 13.0% |
 | Qwen2.5-7B, μ = 0.1221 | 7.6% | 2.5% | **none** | **none** |
 
 The impossibility bound has not weakened; the base risk it applies to has. On a
@@ -84,12 +84,14 @@ Policy comparisons on StrategyQA are measuring noise.
 ### The switch, and what it cost
 
 GSM8K became the primary benchmark on evidence rather than preference. It has
-2.4× the propagation headroom, depth reaching 8, and five times as many
-questions at depth ≥ 3.
+**2.7×** the propagation headroom (29.9% against 11.2%), depth reaching 8, and
+**6.2×** as many questions at depth ≥ 3 (3,815 against 615) — the ratios of the
+table above. An earlier draft said 2.4× and "five times", which were the
+pre-bug-fix values from before Chapter 6's dependency-extraction fix.
 
 What was given up is the annotated decomposition: GSM8K dependency graphs are
 **derived** from calculator-operand matching, not annotated. Chapter 6
-hand-validates that derivation and measures its error at 5.6% of edges. That is
+hand-validates that derivation and measures its error at 5.7% of edges. That is
 a real cost, and it is quantified rather than waved at.
 
 StrategyQA is retained for calibration and for evidence-grounded verification,

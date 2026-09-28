@@ -95,7 +95,7 @@ halves its arithmetic slips without halving its inherited corruption, so a
 deterministic verifier gets *less* useful as generators improve. (Chapter 4)
 
 **C2. Corruption is close to absorbing.** After the first globally-bad step,
-95.9% of subsequent steps remain bad, and **0 of 25,971 Math-Shepherd solutions
+95.9% of subsequent steps remain bad, and **0 of the 14,573 Math-Shepherd solutions that could have recovered
 ever recover**. On Qwen the figures are 66.4% and 6 of 500: still strongly
 absorbing, but "near-absorbing" is a property of the generator and does not
 transfer unqualified. (Chapter 4)
@@ -134,8 +134,10 @@ overturned a published conclusion. (Chapter 6)
 Generator uncertainty does not rank global step error (AUROC 0.5589 token-level,
 0.5740 semantic, 0.5742 combined, against 0.8668 on synthetic features with
 genuine separation). Split conformal consequently holds coverage while missing
-selective risk by 3× at every α that binds, and the highest-reach verifier is
-net-negative at its measured operating point.
+selective risk by 3× at α = 0.05, and the highest-reach verifier is
+net-negative at its measured operating point. (Three α values bind; the misses
+are 3.0×, 1.5× and 1.0×, so the headline factor is the tightest of them, not
+all of them.)
 
 An oracle score separates cause from consequence: it takes selective risk
 0.1554 → **0.0885** and projected accuracy 0.7912 → **0.9780** using a third of

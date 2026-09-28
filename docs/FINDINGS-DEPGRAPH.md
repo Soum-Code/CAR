@@ -77,7 +77,7 @@ smaller.
 
 Stratified to corpus weights (11.6% of graphs contain an ambiguous link):
 
-> **corpus edge error rate 5.6%**, corpus graph error rate 9.1%
+> **corpus edge error rate 5.7%**, corpus graph error rate 9.5%
 
 So roughly **1 edge in 18 is wrong**, and about **1 graph in 11** contains at
 least one bad edge.
@@ -110,7 +110,7 @@ This matters for how the caveat should be stated:
   factor that never appears as a number in the question text, so the flag
   never fired.
 
-The honest caveat is therefore **"~5.6% of derived edges are wrong"**, measured,
+The honest caveat is therefore **"~5.7% of derived edges are wrong"**, measured,
 not "9.6% of links are ambiguous", which was a proxy that over-counts in one
 direction and under-counts in the other.
 
@@ -157,7 +157,7 @@ this code path.
   routinely contain unannotated reasoning lines (`gsm8k_4767`: "$100 - $60 =
   $40" has no `<<>>`), and a dependency running through one of those is
   invisible to any operand-matching scheme. Those are not counted as missing
-  here, so **5.6% is a lower bound on total edge error**.
-- The residual 5.6% is not fixable by better matching alone: distinguishing
+  here, so **5.7% is a lower bound on total edge error**.
+- The residual 5.7% is not fixable by better matching alone: distinguishing
   "3 coupons" from "$3 discount" requires reading the sentence, not the
   arithmetic.

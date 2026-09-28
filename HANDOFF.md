@@ -26,7 +26,7 @@ measurement framing on 2026-09-02. Do not try to revive them:
    synthetic DAG families, and real extracted graphs.
 
 The central finding: conformal machinery certifies *local* step validity, but
-**69.8% of globally-wrong GSM8K steps are arithmetically perfect** — wrong only
+**78.5% of globally-wrong GSM8K steps are arithmetically perfect (`C1_checkable`)** — wrong only
 because a premise was. A calculator cannot see any of them.
 
 Framing lives in `README.md` and `docs/THESIS.md`. The draft is

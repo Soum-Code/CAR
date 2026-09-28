@@ -290,9 +290,9 @@ Projected final-answer accuracy against a no-gate baseline of **0.8022**:
 | verifier | scope | false alarm | always verify | random gate | split conformal |
 |---|---|---|---|---|---|
 | arithmetic, step-local | 0.0000 | 0.0000 | 0.8022 | 0.8022 | 0.8022 |
-| independent judge | 0.2283 | 0.0200 | 0.8022 | 0.7802 | 0.7857 |
-| task PRM | 0.9033 | 0.0987 | **0.7637** | **0.7143** | 0.7802 |
-| **task PRM, ablation FA = 0** | 0.9033 | **0.0000** | **0.9231** | 0.8516 | 0.8736 |
+| independent judge | 0.2283 | 0.0200 | 0.8022 | 0.7802 | 0.8022 |
+| task PRM | 0.9033 | 0.0987 | **0.7637** | **0.7143** | 0.7912 |
+| **task PRM, ablation FA = 0** | 0.9033 | **0.0000** | **0.9231** | 0.8516 | 0.8681 |
 
 The highest-scope verifier available **loses 4 points of accuracy** at its
 measured operating point, and more verification makes it worse. Zero out its

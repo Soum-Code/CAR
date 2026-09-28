@@ -6,17 +6,20 @@ This thesis refuted more claims than it established, including most of its own.
 Each refutation carries a regression test so it cannot quietly stop
 reproducing.
 
+Rows marked † have no regression test and cannot have one — their refutation is
+a literature fact or a matter of scope, not a number that could move.
+
 | claim | source | outcome | evidence |
 |---|---|---|---|
-| Adaptive conformal under censored feedback is novel | this project's specification | **scooped** | CSA Thm E.1, a stronger anytime guarantee |
+| Adaptive conformal under censored feedback is novel † | this project's specification | **scooped** | CSA Thm E.1, a stronger anytime guarantee |
 | Composite token-level uncertainty is the key signal | specification | **refuted** | AUROC 0.5589 |
 | Semantic entropy at intermediate steps is the key signal | specification | **refuted** | AUROC 0.5740; combining buys 0.0002 |
 | Influence weighting (descendant count) beats uniform | specification §4.2 | **refuted 5×** | loses to uniform on chains, 5 DAG families, 2 real corpora |
 | H3: verify early beats verify late | specification | **refuted** | worst policy at every scope > 0; corr(position, error) = +0.950 |
 | α = 0.10 is a workable target | specification | **infeasible** | 32.3% Kotte entry fee at μ = 0.3908 |
-| StrategyQA is a suitable primary benchmark | specification | **wrong choice** | 72.9% of graphs one hop deep |
+| StrategyQA is a suitable primary benchmark † | specification | **wrong choice** | 72.9% of graphs one hop deep |
 | The best structural signal is benchmark-dependent | this thesis, earlier draft | **overturned** | artifact of the extraction bug; depth wins on both |
-| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific** | 95.9% on Mistral, 66.4% on Qwen |
+| Corruption is near-absorbing † | this thesis, ch. 4 | **generator-specific** | 95.9% on Mistral, 66.4% on Qwen |
 | C3's `net = scope − FA` is the figure of merit | this thesis, ch. 5 | **corrected** | base-rate error; see §7.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at every binding α |
 | The three failures are independent | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
@@ -62,13 +65,14 @@ problem — one solution per problem is an unbiased draw — which is why its
 post-stratification is a sensitivity check rather than a correction.
 
 **Derived graphs.** GSM8K dependencies are inferred from operand matching.
-Hand-validated at **5.6% edge error** (16.5% in graphs containing an ambiguous
+Hand-validated at **5.7% edge error** (16.5% in graphs containing an ambiguous
 link, 4.2% elsewhere). That is a lower bound — dependencies routed through
 unannotated solution lines are invisible to any operand-matching scheme — and
 the adjudication was by LLM, not blind human annotation.
 
-**Uncheckable steps.** 12.3% of Math-Shepherd steps and 59% of Qwen steps carry
-no arithmetic. They are reported separately rather than assumed correct, but
+**Uncheckable steps.** 11.3% of Math-Shepherd steps and 59% of Qwen steps carry
+no arithmetic (12.3% within the wrong-answer stratum, which is the figure an
+earlier draft quoted for the whole corpus). They are reported separately rather than assumed correct, but
 every local rate is conditioned on checkability.
 
 **Modelling versus measurement.** The propagation model's assumptions — full

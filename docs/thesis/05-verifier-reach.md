@@ -57,8 +57,12 @@ lives.
 
 That defines the remaining question precisely:
 
-> On the 28,434 steps arithmetic provably cannot see, what scope does a
+> On the 28,433 steps arithmetic provably cannot see, what scope does a
 > *semantic* verifier achieve?
+
+(28,433, not the 28,434 above: one of the steps with no upstream arithmetic
+error is still caught at k = 0, by its own bad arithmetic. That single
+detection is the `1` in the k = 0 row of §5.1's table.)
 
 ## 5.2 The four arms
 
@@ -67,7 +71,10 @@ control group of steps that are locally valid **and** globally correct — witho
 which detection rate alone is meaningless, since a verifier that flags
 everything scores TPR 1.0 and is useless.
 
-1,500 arithmetic-blind steps + 750 controls, Kaggle P100.
+Kaggle P100. The sample differs by arm: the task PRM was run on **1,500**
+arithmetic-blind steps + **750** controls, both judge arms on **600 + 300**.
+So the judges' scopes rest on 600 positives and their false-alarm rates on
+300 controls, not on the PRM's larger sample.
 
 | verifier | independent of generator? | task-trained? | scope | false alarm | net |
 |---|---|---|---|---|---|

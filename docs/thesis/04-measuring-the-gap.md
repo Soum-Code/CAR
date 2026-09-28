@@ -53,7 +53,10 @@ is not, because global correctness is almost definitional for the two strata.
 C1_all = 0.4961 / 0.7106 = 0.6982
 ```
 
-**69.8% of globally-wrong steps are arithmetically perfect.** Under the
+**69.8% of globally-wrong steps are arithmetically perfect** by this
+estimator (`C1_all`). §4.4 shows it is the wrong one to carry across
+generators and replaces it with `C1_checkable` = **78.5%**, which is the figure
+quoted elsewhere. Under the
 checkable-conditioned estimator on the same data the figure is **0.7848**.
 
 Controlling local selective risk at level α bounds nothing about the answer.
@@ -62,16 +65,24 @@ Controlling local selective risk at level α bounds nothing about the answer.
 
 | | Mistral-7B-SFT |
 |---|---|
-| steps after the first globally-bad step | 71,624 |
+| steps after the first globally-bad step | 33,236 |
 | of which still labelled `-` | **95.9%** |
-| solutions that fully recovered | **0 of 25,971** |
+| solutions able to recover (a first bad step, then more steps) | 14,573 |
+| solutions that fully recovered | **0 of 14,573** |
 
-Of steps that are locally valid and downstream of a local error, essentially
-all are globally wrong. That is the propagation signature, measured rather than
+"Fully recovered" means every step after the first globally-bad one is good —
+not merely that some later step is. Under the weaker reading 1,062 solutions
+contain a good step downstream of corruption, which is why the strict
+definition is the one stated.
+
+Of steps that are locally valid and downstream of a local error, **89.6%** are
+globally wrong. That is the propagation signature, measured rather than
 assumed: steps that are arithmetically perfect and still wrong because a
-premise was.
+premise was. (The 95.9% above is a different population — all steps after the
+first globally-bad step, not only the locally-valid ones.)
 
-Zero recoveries in 25,971 solutions is the strongest single piece of evidence
+Zero recoveries in the 14,573 solutions that could have recovered is the
+strongest single piece of evidence
 that the local/global gap cannot be closed by more of the same verification.
 
 ## 4.4 The gap widens on a stronger generator
@@ -89,7 +100,7 @@ comparison is between two corpora, not two analysis implementations.
 ### A notation problem that nearly produced a wrong answer
 
 Math-Shepherd's local check reads GSM8K's `<<expr=result>>` markers.
-Mistral-7B-SFT emits them in 87.8% of steps because it was fine-tuned on GSM8K
+Mistral-7B-SFT emits them in 88.7% of steps because it was fine-tuned on GSM8K
 itself. **Qwen emits them in 14.5%** and writes the rest as LaTeX:
 
 ```
@@ -182,7 +193,7 @@ properties of the task, and are now labelled per-generator.
 | μ (solution-weighted) | 0.3908 | **0.1221** |
 | Kotte floor at α = 0.05 | 35.9% | 7.6% |
 | at α = 0.10 | 32.3% | 2.5% |
-| at α = 0.20 | 23.8% | **none** |
+| at α = 0.20 | 23.9% | **none** |
 
 The impossibility bound has not weakened; the base risk it applies to has. On a
 strong generator, α = 0.20 is attainable with no entry fee at all. Any
@@ -193,14 +204,28 @@ statement about attainable α must name its model. (Chapter 8 develops this.)
 | | Mistral | Qwen |
 |---|---|---|
 | steps after the first bad step still bad | 95.9% | 66.4% |
-| solutions that fully recovered | 0 / 25,971 | 6 / 500 |
+| solutions able to recover | 14,573 | 83 |
+| solutions that fully recovered | 0 / 14,573 (0.0%) | 6 / 83 (**7.2%**) |
 
 Still strongly absorbing. But "near-absorbing" was measured on Mistral and does
 not transfer unqualified; recovery is rare rather than unobserved.
 
-**The position gradient does replicate.** corr(position, local error) = +0.950
-on Mistral, **+0.866** on Qwen. Same sign, same conclusion, and it is the
-finding Chapter 6 needs.
+**The position gradient's sign replicates; its magnitude does not transfer.**
+corr(position, local error) = +0.950 on Mistral. On Qwen it is **+0.26** under
+marker notation and **+0.36** under `notation="any"`, over four and six
+position bins with at least 30 checkable steps.
+
+An earlier draft reported **+0.866** here. That figure comes from three bins
+whose local-error rates are 0.0000, 0.0000 and 0.0133 — √3/2 is the exact
+Pearson r of that pattern — under the marker extractor this chapter itself
+calls unusable on Qwen (§4.4: it reports 0.0027, "which is nonsense"). It was
+an artifact of the bin count, not a replication.
+
+Qwen writes too little checkable arithmetic to establish a gradient: 59% of its
+steps assert none, and the deepest bin with 30 usable steps is step 5. The sign
+agrees with Mistral and that is all this corpus supports. Chapter 6's
+allocation conclusion rests on the Mistral measurement, where the gradient is
+resolved over eight bins and tens of thousands of steps.
 
 ## 4.6 Limits
 

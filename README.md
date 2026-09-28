@@ -5,7 +5,7 @@ A measurement study of selective verification in multi-step LLM reasoning.
 **The finding, in one line:**
 
 > Conformal verification certifies that a reasoning step is *locally valid*.
-> On GSM8K, **69.8% of globally-wrong steps are arithmetically perfect** — they
+> On GSM8K, **78.5% of globally-wrong steps are arithmetically perfect** — they
 > are wrong only because a premise was. A calculator cannot see any of them.
 
 Measured on 93,129 steps from 25,971 model-generated solutions, not simulated.
@@ -59,8 +59,12 @@ first. Measured on GSM8K within wrong-answer solutions:
 | global error | 0.7106 |
 | **inherited corruption** | **0.4961** |
 
-**69.8% of bad steps are arithmetically perfect.** Controlling local selective
-risk at level α bounds nothing about the answer.
+**78.5% of bad steps are arithmetically perfect.** That is `C1_checkable` — the
+share among globally-wrong steps that *have* arithmetic to check. The
+whole-step version `C1_all` gives 69.8% here, but collapses to 0.25 on a
+generator that writes little arithmetic, so §4.4 names `C1_checkable` as the
+estimator to quote across generators. Controlling local selective risk at
+level α bounds nothing about the answer either way.
 
 **And it is not an artifact of a weak generator — it gets worse.** Re-measured
 on Qwen2.5-7B-Instruct (80% on GSM8K against Mistral-7B-SFT's ~45%), on 500
@@ -88,11 +92,11 @@ CORRUPT_k -> CLEAN       v_t * scope * decay^(k-1)
 
 Simulated: local risk stays pinned near 0.15 across budgets while final error
 spans 0.73 → 0.27. Measured: after the first bad step 95.9% of later steps stay
-bad, and **0 of 25,971 solutions ever recovered**.
+bad, and **0 of the 14,573 solutions that could have recovered did**.
 
-On Qwen2.5-7B the same measurement gives 66.4% persistence and 6 recoveries in
-500 — still strongly absorbing, but *near*-absorbing was a Mistral property and
-does not transfer unqualified.
+On Qwen2.5-7B the same measurement gives 66.4% persistence and 6 recoveries out
+of the 83 solutions that could recover — **7.2%**, against Mistral's 0.0%. Still
+absorbing, but *near*-absorbing was a Mistral property and does not transfer.
 
 ### C3 — Verifier reach is the controlling design variable, and it is SEMANTIC
 
@@ -145,7 +149,7 @@ With measured μ = 0.3908:
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 | 0.40 |
 |---|---|---|---|---|---|
-| floor | 35.9% | 32.3% | 23.8% | 13.0% | none |
+| floor | 35.9% | 32.3% | 23.9% | 13.0% | none |
 
 α = 0.10 — the spec's value — charges a third of the budget as an entry fee.
 `configs/default.yaml` now uses 0.30 and **enforces the floor at setup**.
@@ -165,7 +169,7 @@ exists.
 
 Every GSM8K dependency edge here is derived, not annotated: line *i* links to
 line *j* when an operand of *i* equals the result of *j*. Hand-validating 50
-stratified graphs measured that at **5.6% edge error** — and found a systematic
+stratified graphs measured that at **5.7% edge error** — and found a systematic
 bug on the way. The operand regex read each subtraction operator as a minus
 sign, so **every subtraction in the corpus silently lost its dependency edge**.
 Fixing it moved mean depth 2.54 → 2.79 and headroom 26.6% → 29.9%, and
@@ -277,7 +281,7 @@ breadth.
 | 3 | Re-measure error rates on a second generator | **done** — Qwen2.5-7B, C1 rises 0.78 → 0.90 |
 | 4 | Same-model + independent-judge scope arms | **done** — 0.0000 and 0.2283 |
 | 5 | Full gate pipeline end-to-end on GSM8K | **done** — negative: AUROC 0.56, target missed 3x |
-| 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.6% |
+| 6 | Hand-validate ~50 GSM8K dependency graphs | **done** — found a systematic bug; corrected edge error 5.7% |
 | 7 | Probe on frozen internal states | **done** — AUROC 0.6968; the signal exists and does not close the gap |
 | 10 | Probe round two: more data, and a first-bad-step target | **done** — more data buys ~+0.01; the right target raises first-bad recall 0.30 → 0.45 |
 | 11 | A non-linear probe on the same frozen states | **done** — null at matched layer (+0.0051); layer choice is noisier than any effect measured |

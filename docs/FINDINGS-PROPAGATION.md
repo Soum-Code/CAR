@@ -502,7 +502,7 @@ fourth independent replication of that result.
 ## Remaining risks
 
 - ~~9.6% ambiguous links.~~ **Hand-validated.** The measured edge error rate is
-  **5.6%**, and the ambiguity flag turned out to be a poor proxy for it in both
+  **5.7%**, and the ambiguity flag turned out to be a poor proxy for it in both
   directions. See [FINDINGS-DEPGRAPH.md](FINDINGS-DEPGRAPH.md).
 - GSM8K is arithmetic only. The evidence-grounded verification story (retrieval,
   prompt injection, verifier scope < 1) has no home there — that is what

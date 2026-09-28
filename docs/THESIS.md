@@ -17,7 +17,7 @@ work.
 > Conformal machinery applied to multi-step reasoning certifies whether a step
 > is **locally valid** — that is what a verifier reports and therefore what can
 > be calibrated. In multi-step reasoning that is not the quantity of interest.
-> We measure the gap: on GSM8K, 69.8% of globally-wrong steps are
+> We measure the gap: on GSM8K, 78.5% of globally-wrong steps are
 > arithmetically perfect, wrong only because a premise was, and no sound
 > deterministic verifier can see any of them. We show the gap is governed by
 > **verifier reach** rather than step uncertainty, that the resulting optimal
@@ -72,9 +72,9 @@ generator improves.
 
 | claim | evidence | source | status |
 |---|---|---|---|
-| C1 — 69.8% of wrong steps are locally valid | 93,129 steps, stratified | Math-Shepherd | measured |
+| C1 — 78.5% of wrong steps are locally valid (`C1_checkable`; `C1_all` = 69.8%) | 93,129 steps, stratified | Math-Shepherd | measured |
 | C1b — C1 STRENGTHENS on a better generator | 0.7848 -> 0.9040, CIs disjoint | Qwen2.5-7B, 500 solutions | **measured** |
-| C2 — corruption is near-absorbing | 95.9% persistence; 0/25,971 recovered | Math-Shepherd | measured |
+| C2 — corruption is near-absorbing | 95.9% persistence over 33,236 post-corruption steps; 0/14,573 eligible solutions recovered | Math-Shepherd | measured |
 | C2b — local risk does not track final error | local pinned ~0.15, final 0.73→0.27 | simulation | simulated |
 | C3 — reach needs independence AND task-training | same-model 0.00, judge 0.23, PRM 0.90 | Math-Shepherd + 3 verifiers | **measured** |
 | C4 — "verify early" is false | chains, 5 DAG families, 2 real corpora | simulation + real graphs | measured |
@@ -84,7 +84,7 @@ generator improves.
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
 | C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
 | C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 925 test steps | **measured** |
-| C8b — the gate misses every binding alpha | risk 0.147 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
+| C8b — the gate misses every binding alpha | risk 0.1491 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
 | C8c — the verifier result is DOWNSTREAM of the score | 0.7637 behind the real score, 0.9780 behind an oracle, same verifier | end-to-end run | **measured** |
 | C8d — semantic divergence does not rescue it | resampled K=5 over 2,573 steps; r=+0.44 with the token score, combining buys 0.0002 | 12,865 generations | **measured** |
 | C8e — a perfect score still misses a binding alpha | oracle risk 0.0885 vs alpha=0.05; the budget binds | end-to-end run | **measured** |
@@ -175,7 +175,7 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 | # | task | cost | blocks |
 |---|---|---|---|
 | 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
-| 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.6% |
+| 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.7% |
 | 3 | ~~Full gate pipeline end-to-end on GSM8K~~ | done | negative result; see FINDINGS-PIPELINE |
 | 4 | ~~Re-measure error rates on a second generator~~ | done | Qwen2.5-7B; Llama 3.1 is licence-gated on Kaggle |
 | 5 | Cross-domain check on StrategyQA + retrieval | ~1 GPU-day | generality; limited by C6 |
@@ -186,7 +186,7 @@ was reading each subtraction operator as a minus sign, so every subtraction lost
 its dependency edge. Fixing it moved mean depth 2.54 → 2.79, headroom 26.6% →
 29.9%, and collapsed the unclassifiable `other` shape category from 22.9% to
 5.9%. It also overturned one published conclusion (see below). The corrected
-edge error rate is **5.6%**, measured rather than proxied.
+edge error rate is **5.7%**, measured rather than proxied.
 
 The general lesson, worth a line in the thesis: the caveat that gets quantified
 is rarely the one that matters. Auditing the derivation found a bug an order of
@@ -220,12 +220,12 @@ a benchmark that cannot exhibit the *propagation* finding.
   deliberate class mix, so no unconditional rate can be read off it. Every
   number is stratified and post-stratified to reported accuracy.
 - **Derived graphs.** GSM8K dependencies are inferred from calculator operand
-  matching. Hand-validated on 50 stratified graphs: **5.6% of edges are wrong**
+  matching. Hand-validated on 50 stratified graphs: **5.7% of edges are wrong**
   (16.5% in graphs containing an ambiguous link, 4.2% elsewhere). That is a
   lower bound — dependencies routed through unannotated solution lines are
   invisible to any operand-matching scheme. Adjudication was by LLM, not blind
   human annotation. See docs/FINDINGS-DEPGRAPH.md.
-- **Uncheckable steps.** 12.3% of steps carry no arithmetic and are reported
+- **Uncheckable steps.** 11.3% of steps carry no arithmetic (12.3% within the wrong-answer stratum) and are reported
   separately rather than assumed correct.
 - **Modelling vs measurement.** C2b, C3 and C4 rest partly on the propagation
   model. Its assumptions — full repair, i.i.d. per-step error — are known to be

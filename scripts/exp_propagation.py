@@ -26,9 +26,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from car.propagation import (  # noqa: E402
     PropagationChain,
     always,
-    influence_weighted,
+    final_error_probability,
     never,
-    survival_probability,
+    schedule_policy,
     uniform_random,
 )
 
@@ -42,7 +42,10 @@ def evaluate(chain: PropagationChain, policy, n=N_TRIALS, seed=0, budget=None):
     final, local_r, global_r, calls = [], [], [], []
     for _ in range(n):
         r = chain.run(policy, rng, budget=budget)
-        final.append(r.final_correct)
+        # final_correct became a method taking an outcome model when the
+        # propagation module grew non-terminal outcomes; this script predates
+        # that and was silently unrunnable until the ch. 1-8 verification pass.
+        final.append(r.final_correct())
         local_r.append(r.local_selective_risk)
         global_r.append(r.global_selective_risk)
         calls.append(r.verification_calls)
@@ -102,11 +105,32 @@ def q2_verifier_scope():
             row += f"{evaluate(chain, pol, n=8000)['final_error']:>12.4f}"
         print(f"{scope:<10.2f}{row}")
 
-    print("\nClosed form (survival_probability), scope=0 vs scope=1:")
+    print("\nClosed form (final_error_probability), scope=0 vs scope=1:")
     for scope in (0.0, 1.0):
-        vals = [survival_probability(LENGTH, r, scope, LOCAL_ERR) for r in rates]
+        vals = [final_error_probability(LENGTH, r, scope, LOCAL_ERR) for r in rates]
         print(f"  scope={scope:.1f}: " + "  ".join(f"{v:.4f}" for v in vals))
     print()
+
+
+def _influence(base_rate, mode):
+    """Influence-weighted verification schedule for a LINEAR chain.
+
+    On a chain every step's descendant count is length - 1 - i, so influence
+    weighting is a monotone front-loading -- numerically identical to the
+    `front` policy, which is exactly why ch. 6 had to move to DAGs before the
+    two could be told apart. Kept here so the chain result this script reports
+    is reproducible; `car.topology.influence_schedule` is the general version.
+    """
+    import numpy as np
+
+    infl = np.array([LENGTH - 1 - i for i in range(LENGTH)], dtype=float)
+    if mode == "sqrt":
+        infl = np.sqrt(infl)
+    total = infl.sum()
+    if total <= 0:
+        return [base_rate] * LENGTH
+    w = infl / total * (base_rate * LENGTH)
+    return list(np.clip(w, 0.0, 1.0))
 
 
 def q3_allocation():
@@ -123,8 +147,10 @@ def q3_allocation():
     print("-" * 78)
     for base in (0.125, 0.25, 0.375, 0.5):
         u = evaluate(chain, uniform_random(base), n=20000, seed=1)
-        il = evaluate(chain, influence_weighted(base, "linear"), n=20000, seed=1)
-        isq = evaluate(chain, influence_weighted(base, "sqrt"), n=20000, seed=1)
+        il = evaluate(chain, schedule_policy(_influence(base, "linear")),
+                      n=20000, seed=1)
+        isq = evaluate(chain, schedule_policy(_influence(base, "sqrt")),
+                       n=20000, seed=1)
         best = min(il["final_error"], isq["final_error"])
         print(f"{base:<10.3f}{u['final_error']:>14.4f}{il['final_error']:>16.4f}"
               f"{isq['final_error']:>16.4f}{u['final_error'] - best:>10.4f}")

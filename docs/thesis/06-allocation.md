@@ -94,7 +94,7 @@ would restore the case for front-loading. **Measurement closes it.**
 
 **Figure 6.2.** Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.
 
-`corr(position, local error rate) = +0.950` on Math-Shepherd, and **+0.866** on
+`corr(position, local error rate) = +0.950` on Math-Shepherd, and **+0.26 to +0.36** on
 the independently generated Qwen corpus. The local error rate **doubles** from
 step 1 to step 8. Later steps are *harder*, not easier, which favours
 back-loading further than the model already did.
@@ -120,8 +120,9 @@ weighting.
 This was caught by a direct challenge to test tree topologies before dropping
 the claim, and it is the single most useful methodological correction in the
 project. Re-run on branching structures, influence weighting *is*
-distinguishable from front-loading, is better than it, and still loses to plain
-uniform.
+distinguishable from front-loading — usually better, though not on
+parallel(3×3), and on StrategyQA the two are within 0.0001 — and still loses to
+plain uniform everywhere.
 
 Two further instrumentation artifacts were found and fixed in the same pass:
 
@@ -204,7 +205,7 @@ finding became simpler, not more complicated.
 
 Stratified to corpus weights (11.6% of graphs contain an ambiguous link):
 
-> **corpus edge error rate 5.6%**, corpus graph error rate 9.1%
+> **corpus edge error rate 5.7%**, corpus graph error rate 9.5%
 
 Roughly 1 edge in 18 is wrong, and about 1 graph in 11 contains at least one
 bad edge.
@@ -213,15 +214,17 @@ The dominant failure is **value collision** — an operand that coincidentally
 equals an earlier result while actually being a given. `gsm8k_7096`'s `3` is
 *3 coupons*, not L1's *$3 discount*; `gsm8k_5124`'s `400` is *gallons per
 acre*, not *gallons per day*. Distinguishing these requires reading the
-sentence, not the arithmetic, so the residual 5.6% is not fixable by better
+sentence, not the arithmetic, so the residual 5.7% is not fixable by better
 matching.
 
 The ambiguity flag turns out to be a poor proxy in **both** directions. Most
 flagged links are correct (91 edges, 15 wrong), and `gsm8k_5251` was classified
 *clean* yet produced two spurious edges — its colliding value `2` is a
 "half → double" factor that never appears as a number in the question. The
-honest caveat is therefore *"5.6% of derived edges are wrong,"* measured,
-rather than *"9.6% of links are ambiguous,"* which over-counts one way and
+honest caveat is therefore *"5.7% of derived edges are wrong,"* measured,
+rather than *"9.6% of links are ambiguous"* — the pre-fix rate the audit was
+queued against; the corrected extractor flags 12.6% of graphs — which
+over-counts one way and
 under-counts the other.
 
 ## 6.4 Two methodological notes
@@ -232,7 +235,7 @@ reader* rather than independent reconstruction. For tracing which quantity an
 operand refers to that judgement is close to mechanical, but it is weaker
 evidence than blind double-annotation and is labelled as such.
 
-**5.6% is a lower bound.** Only edges *between annotated calculator steps* are
+**5.7% is a lower bound.** Only edges *between annotated calculator steps* are
 in scope. Solutions routinely contain unannotated reasoning lines
 (`gsm8k_4767`: `"$100 - $60 = $40"` has no `<<>>`), and a dependency routed
 through one is invisible to any operand-matching scheme.
