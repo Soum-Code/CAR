@@ -652,7 +652,8 @@ between allocation policies are unaffected.
   model CAR actually uses. The method transfers; the number may not.
 - Labels are automatic Monte-Carlo estimates of "leads to a correct answer",
   not proofs. A lucky wrong step can be labelled `+`.
-- 12.3% of steps carry no arithmetic and are reported as uncheckable rather
+- 12.3% of wrong-answer-stratum steps carry no arithmetic (8.6% over the whole
+  corpus under `notation="any"`) and are reported as uncheckable rather
   than assumed correct.
 - Post-stratification leans on the reported ~41–52% accuracy; the local rate is
   robust to it, the global rate is not.
