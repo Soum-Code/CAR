@@ -16,7 +16,7 @@ test fails if it stops reproducing.
 | Adaptive conformal under censored feedback is novel † | this project's specification | **scooped** | CSA Thm E.1, a stronger anytime guarantee |
 | Composite token-level uncertainty is the key signal | specification | **refuted** | AUROC 0.5589 |
 | Semantic entropy at intermediate steps is the key signal | specification | **refuted** | AUROC 0.5740; combining buys 0.0002 |
-| Influence weighting (descendant count) beats uniform | specification §5.2 | **refuted** | loses to uniform on 5 DAG families and 2 real corpora; the chain test could not have shown it (§7.2: influence ≡ front on a chain) |
+| Influence weighting (descendant count) beats uniform | specification | **refuted** | loses to uniform on 5 DAG families and 2 real corpora; the chain test could not have shown it (§7.2: influence ≡ front on a chain) |
 | H3: verify early beats verify late | specification | **refuted** | worst policy at every scope > 0; corr(position, error) = +0.950 |
 | α = 0.10 is a workable target | specification | **close to infeasible on Mistral** | 32.3% Kotte entry fee at μ = 0.3908; 15.9% on Llama (μ = 0.2428); on Qwen (μ = 0.1221) the same target is comfortable |
 | StrategyQA is a suitable primary benchmark | specification | **wrong choice** | 72.9% of graphs one hop deep |
@@ -30,7 +30,7 @@ test fails if it stops reproducing.
 | 0.6968 is a floor, pending more training data | this thesis, ch. 8.6 | **unsupported** | its curve was scored on the selection split; a clean test gives +0.0105, CI [−0.035, +0.057] |
 | A linear probe is the wrong instrument, and that explains the gap | this thesis, ch. 8.6 and ch. 10 | **null** | matched at layer, a non-linear head is worth +0.0051; the sign flips across layers and the one significant comparison favours linear |
 | The verifier needs a score "well above 0.70" | this thesis, ch. 8 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65, and 0.6968 sits inside the [0.625, 0.700] band the sweep cannot resolve — the probe is at the boundary, not past it |
-| AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
+| AUROC is the figure of merit for a step score | implicit everywhere in chs. 8 and 10 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
 | The cheap equivalence relation was hiding the signal | the obvious objection to §8.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
 
 The row refuting *selective verification with a calibrated gate controls risk*

@@ -39,7 +39,7 @@ Mistral AI, the Qwen team and Meta.
 
 Every GPU measurement in this thesis — the generator transfer of Chapter 5, the
 verifier scope of Chapter 6, and the uncertainty, divergence and probe runs of
-Chapter 8 — ran on Kaggle's free allocation. Three of those runs took six to
-eight hours each. A student without access to that allocation could not have
+Chapter 8 — ran on Kaggle's free allocation. The two generation runs took 7h40m
+and 6h11m. A student without access to that allocation could not have
 produced this thesis, and it is worth recording that the work was gated on
 donated compute rather than on ideas.

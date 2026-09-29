@@ -25,15 +25,16 @@ does not work, and the reasons it does not work are measurable, separable, and
 more informative than the system would have been.
 
 We establish four results on GSM8K and StrategyQA, using 93,129 model-generated
-reasoning steps from Math-Shepherd and a further 2,573 steps generated for this
-work by Qwen2.5-7B-Instruct.
+reasoning steps from Math-Shepherd and a further 4,511 steps generated for this
+work by Qwen2.5-7B-Instruct (2,573) and Llama 3.1 8B Instruct (1,938).
 
 **First, the quantity a verifier reports is not the quantity of interest.** A
 step can fail by being invalid on its own terms (`47 × 3 = 131`) or by being
 impeccable reasoning from a corrupted premise. A verifier reports the first;
 conformal machinery therefore calibrates the first. On Mistral-7B-SFT, 78.5% of
-globally-wrong steps are arithmetically perfect. Re-measured on a generator
-almost twice as accurate, the figure rises to **90.4%** — the gap is not an
+globally-wrong steps are arithmetically perfect. Re-measured on two further
+generators the figure rises monotonically with their accuracy, to 87.4% on
+Llama 3.1 8B and **90.4%** on a generator almost twice as accurate — the gap is not an
 artifact of a weak model, and a deterministic verifier becomes *less* useful as
 the generator improves.
 
@@ -61,7 +62,7 @@ target by a factor of three, and the one verifier with real reach is
 net-negative behind that score.
 
 Two controls separate cause from consequence. An **oracle score** takes
-selective risk 0.155 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
+selective risk 0.154 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
 the calls, so the verifier was never the problem — it was being aimed badly. A
 **probe on the generator's own frozen hidden states** reaches AUROC 0.6968, so
 the signal is not absent either — and doubling its training data buys about
@@ -81,8 +82,8 @@ convert.
 The contribution is therefore a characterisation of a design space rather than
 a system: selective verification of LLM reasoning fails at the signal, at the
 calibration, and at the verifier, and repairing any one of them is not
-sufficient. Along the way we correct a systematic bug in a widely-used
-dependency-extraction heuristic, show that a benchmark in common use for this
+sufficient. Along the way we correct a systematic bug in the operand-matching
+heuristic this thesis uses to derive dependency graphs, show that a benchmark in common use for this
 problem cannot exhibit the phenomenon it is used to study, and document three
 measurement errors that each produced a confident and wrong result before being
 caught.
@@ -124,8 +125,8 @@ python scripts/download_data.py     # GSM8K, StrategyQA, Math-Shepherd sample
 
 Each chapter names the script that reproduces its tables. Results that cost GPU
 time are committed rather than regenerated: `runs/semantic_scope_*.json`,
-`runs/generated_qwen25_7b.jsonl`, `runs/uncertainty_qwen25_7b*.jsonl`,
-`runs/semantic_samples.jsonl`.
+`runs/generated_qwen25_7b.jsonl`, `runs/generated_llama31_8b.jsonl`,
+`runs/uncertainty_qwen25_7b*.jsonl`, `runs/semantic_samples.jsonl`.
 
 Every refuted claim in this thesis that rests on a *measurement* has a
 regression test that keeps it refuted, so a result cannot silently stop
@@ -142,11 +143,12 @@ are marked in that table.
 |---|---|
 | 1 | [Introduction](01-introduction.md) |
 | 2 | [Background](02-background.md) |
-| 3 | [Framework](04-framework.md) |
-| 4 | [Measuring the gap](05-measuring-the-gap.md) |
-| 5 | [Verifier reach](06-verifier-reach.md) |
-| 6 | [Allocation](07-allocation.md) |
-| 7 | [The assembled gate](08-the-assembled-gate.md) |
-| 8 | [Feasibility and benchmarks](09-feasibility-and-benchmarks.md) |
-| 9 | [Limitations, negative results, conclusion](10-conclusion.md) |
+| 3 | [Related work](03-related-work.md) |
+| 4 | [Framework](04-framework.md) |
+| 5 | [Measuring the gap](05-measuring-the-gap.md) |
+| 6 | [Verifier reach](06-verifier-reach.md) |
+| 7 | [Allocation](07-allocation.md) |
+| 8 | [The assembled gate](08-the-assembled-gate.md) |
+| 9 | [Feasibility and benchmarks](09-feasibility-and-benchmarks.md) |
+| 10 | [Limitations, negative results, conclusion](10-conclusion.md) |
 | — | [References](11-references.md) |

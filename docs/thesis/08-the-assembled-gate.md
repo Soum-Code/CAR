@@ -3,7 +3,7 @@
 > Reproduce: `python scripts/exp_gate_pipeline.py`
 > Null control: `python scripts/exp_gate_pipeline.py --synthetic-signal 0.0`
 
-Chapters 5, 5 and 6 measured one component each. This chapter runs the whole
+Chapters 5, 6 and 7 measured one component each. This chapter runs the whole
 control loop on real model output — real generator uncertainty, real step
 labels, real conformal calibration, real budget — and asks the only question
 the assembled system can answer:
@@ -327,7 +327,7 @@ having, and the next subsection measures it rather than guessing.
 
 The same verifier, at the same measured 9.87% false-alarm rate, moves projected
 accuracy from 0.7637 to **0.9780** — 17.6 points above the no-gate baseline — on
-*a third* of the calls. A false alarm can only fire on a step the gate chose to
+*a fifth* of the calls. A false alarm can only fire on a step the gate chose to
 verify, and a good score almost never chooses a correct one.
 
 > The figure of merit is not `scope − FA`. Nor is it
@@ -425,7 +425,7 @@ measured local error rising with position — corr(position, error) = +0.950,
 doubling from 11% at step 1 to 22% at step 8 — so a score that chases positional
 difficulty is rewarded on AUROC. But the projection only pays for the **first**
 bad step, because everything downstream inherits corruption that repairing a
-later step does not undo (C2, and 0 recoveries in 25,971 solutions). The
+later step does not undo (C2, and 0 recoveries in the 14,573 solutions that could have recovered). The
 probe's AUROC advantage is being spent where it cannot buy an answer.
 
 > Two scores with identical AUROC are worth different amounts. What a
@@ -580,7 +580,7 @@ against**, and both are reasonable:
 
 The pooled probe has the lowest first-bad recall of any global-target variant
 here, so quoting only the first row picks the flattering baseline. Against the
-probe a reader actually has in mind the effect is +47% relative with an
+probe a reader actually has in mind the effect is +50% relative with an
 interval that includes no effect. The direction is consistent; the significance
 is not robust to the comparator.
 

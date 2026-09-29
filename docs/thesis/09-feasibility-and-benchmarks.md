@@ -21,8 +21,8 @@ With the μ measured in Chapter 5 for Mistral-7B-SFT:
 |---|---|---|---|---|---|
 | μ = 0.3908, floor | 35.9% | **32.3%** | 23.9% | 13.0% | none |
 
-**α = 0.10 — the specification's value — charges a third of the entire
-verification budget as an entry fee** before any method is admissible. It is
+**α = 0.10 — the specification's value — charges a third of all steps
+as an entry fee** before any method is admissible. It is
 not a modest target; against global risk it is close to infeasible, and it is
 only defensible against *local* risk, which Chapter 5 showed is not the
 quantity of interest.

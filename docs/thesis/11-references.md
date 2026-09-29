@@ -26,7 +26,7 @@ must be checked before submission.
 - `cobbe2021gsm8k` — **Training Verifiers to Solve Math Word Problems** · Cobbe, Karl and Kosaraju, Vineet and Bavarian, Mohammad and Chen, Mark and Jun, Heewoo and Kaiser, Lukasz and Plappert, Matthias and Tworek, Jerry and Hilton, Jacob and Nakano, Reiichiro and Hesse, Christopher and Schulman, John, 2021 · [2110.14168](https://arxiv.org/abs/2110.14168)
   <br>GSM8K. The inline calculator annotations are what make the local validity check deterministic
 - `geva2021strategyqa` — **Did Aristotle Use a Laptop? A Question Answering Benchmark with Implicit Reasoning Strategies** · Geva, Mor and Khashabi, Daniel and Segal, Elad and Khot, Tushar and Roth, Dan and Berant, Jonathan, Transactions of the Association for Computational Linguistics, 2021 · [link](https://allenai.org/data/strategyqa)
-  <br>Ch. 8 shows its annotated decompositions are too shallow to exhibit propagation
+  <br>Ch. 9 shows its annotated decompositions are too shallow to exhibit propagation
 - `wang2024mathshepherd` — **Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations** · Wang, Peiyi and Li, Lei and Shao, Zhihong and Xu, Runxin and Dai, Damai and Li, Yifei and Chen, Deli and Wu, Yu and Sui, Zhifang, Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (ACL), 2024 · [2312.08935](https://arxiv.org/abs/2312.08935)
   <br>The 93,129 labelled steps this thesis measures on. Labels are Monte-Carlo hard estimation, not human annotation
 
@@ -37,7 +37,7 @@ must be checked before submission.
 - `ni2025reprobe` — **ReProbe: Efficient Test-Time Scaling of Multi-Step Reasoning by Probing Internal States of Large Language Models** · Ni, Jingwei and Fadeeva, Ekaterina and Wu, Tianyi and Akhtar, Mubashara and Zhang, Jiaheng and Ash, Elliott and Leippold, Markus and Baldwin, Timothy and Ng, See-Kiong and Shelmanov, Artem and Sachan, Mrinmaya, 2025 · [2511.06209](https://arxiv.org/abs/2511.06209)
   <br>A small probe on frozen internal states matching far larger PRMs; the efficiency result any "better step score" proposal must beat, and tested here in §8.6 across training data, target and functional form, none of which closes the gap to it
 - `wen2026embedding` — **Embedding Perturbation may Better Reflect Intermediate-Step Uncertainty in LLM Reasoning** · Wen, Qihao and Wang, Jiahao and Nan, Yang and He, Pengfei and Tandon, Ravi and Xu, Han, 2026 · [2602.02427](https://arxiv.org/abs/2602.02427)
-  <br>Argues embedding perturbation reflects intermediate-step uncertainty better than sampling-based signals do. Ch. 7 measures the sampling-based half and finds it near chance, which is the same conclusion from the other direction
+  <br>Argues embedding perturbation reflects intermediate-step uncertainty better than sampling-based signals do. Ch. 8 measures the sampling-based half and finds it near chance, which is the same conclusion from the other direction
 - `farquhar2024semantic` — **Detecting Hallucinations in Large Language Models Using Semantic Entropy** · Farquhar, Sebastian and Kossen, Jannik and Kuhn, Lorenz and Gal, Yarin, Nature, 2024
   <br>Whole-answer semantic entropy via bidirectional entailment clustering; ch. 8 applies the principle to one step and finds it does not carry
 
@@ -48,7 +48,7 @@ must be checked before submission.
 - `singh2026snowball` — **The Hallucination Snowball: Modeling Error Propagation as State Transitions in Multi-Agent LLM Pipelines** · Singh, Prabhjot and Pawar, Bhushan, 2026 · [2608.14588](https://arxiv.org/abs/2608.14588)
   <br>Escape probabilities 24.6/48.3/89.3\% across successive boundaries; the source of this project's decay constant 0.377
 - `ro2025sherlock` — **Sherlock: Reliable and Efficient Agentic Workflow Execution** · Ro, Yeonju and Qiu, Haoran and Goiri, 'Iñigo and Fonseca, Rodrigo and Bianchini, Ricardo and Akella, Aditya and Wang, Zhangyang and Erez, Mattan and Choukse, Esha, 2025 · [2511.00330](https://arxiv.org/abs/2511.00330)
-  <br>Closest prior work to ch. 7: verifier placement on a known workflow DAG, chosen offline by structure
+  <br>Closest prior work to chs. 6-7: verifier placement and per-node verifier choice on a known workflow DAG, placed offline by counterfactual fault injection rather than by a structural heuristic
 - `you2025probabilistic` — **Probabilistic Soundness Guarantees in LLM Reasoning Chains** · You, Weiqiu and Xue, Anton and Havaldar, Shreya and Rao, Delip and Jin, Helen and Callison-Burch, Chris and Wong, Eric, 2025 · [2507.12948](https://arxiv.org/abs/2507.12948)
   <br>Evaluates a step given verified premises, which is the local/global decomposition of ch. 4 approached from the other side
 
@@ -64,5 +64,5 @@ must be checked before submission.
 - `qwen2024qwen25` — **Qwen2.5 Technical Report** · Qwen Team, 2024 · [2412.15115](https://arxiv.org/abs/2412.15115)
   <br>Qwen2.5-7B-Instruct is the second generator (ch. 5) and the independent judge (ch. 6)
 - `dubey2024llama3` — **The Llama 3 Herd of Models** · Llama Team, AI @ Meta, 2024 · [2407.21783](https://arxiv.org/abs/2407.21783)
-  <br>The generator this thesis names but could not run: licence-gated on the available compute platform, see ch. 5 limits
+  <br>The third generator (ch. 5). Licence-gated on the available compute platform until the licence was accepted, then measured
 

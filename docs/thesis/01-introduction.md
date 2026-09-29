@@ -130,7 +130,7 @@ annotated decompositions: mean depth 2.30, **72.9% exactly one hop**, and only
 11.2% of steps have any non-terminal descendant. A step can only corrupt
 downstream reasoning if downstream reasoning exists. (Chapter 9)
 
-**C7. Derived dependency graphs are 94.4% correct, and hand-validating them
+**C7. Derived dependency graphs are 94.3% correct, and hand-validating them
 found a systematic bug.** An audit of 50 stratified GSM8K graphs exposed an
 operand-extraction fault that silently deleted the dependency edge of *every
 subtraction* in the corpus. Fixing it moved mean depth 2.54 → 2.79 and

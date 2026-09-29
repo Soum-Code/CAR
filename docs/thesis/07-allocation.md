@@ -147,8 +147,8 @@ had never been checked against the source text.
 
 50 graphs were adjudicated, stratified 25/25 by whether the graph contains an
 ambiguous link — a link whose operand also appears as a number in the question
-and could equally be a restated given. Ambiguity is concentrated (only 11.6% of
-graphs contain one), so a uniform sample of 50 would contain about five of the
+and could equally be a restated given. Ambiguity is concentrated (only 12.6% of
+graphs contain one), so a uniform sample of 50 would contain about six of the
 cases actually at risk.
 
 ### The audit found a bug, and not the one it was looking for

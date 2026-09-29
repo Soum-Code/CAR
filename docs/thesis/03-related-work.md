@@ -153,5 +153,5 @@ the same weights is not a verifier.
 | **this work** | measurement, not a gate | **dependent step within a trajectory** | — | — | **yes — the object of study** |
 
 The last row is deliberately not a system. The original intention was to
-occupy that row with a method; the measurements in Chapters 5–7 are the reason
+occupy that row with a method; the measurements in Chapters 5–8 are the reason
 it does not.

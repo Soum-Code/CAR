@@ -137,8 +137,9 @@ which suggests the two capture different aspects of step quality and points at
 hybrid verifiers rather than a replacement.
 
 Any proposal whose contribution is "a better step score" now has to beat a probe
-costing 10M parameters, not a large model. This is also the signal class this
-thesis did *not* test — see Chapter 10.
+costing 10M parameters, not a large model. This is the signal class §8.6 tests
+directly, and the one place this thesis finds a step-level score that ranks the
+risk at all.
 
 ## 2.4 The selective-labels problem
 
@@ -149,8 +150,9 @@ it flags observes labels only where it flags, so the label distribution is
 conditioned on the gate's own decisions. Naive updating from those labels does
 not converge to the right threshold.
 
-Forced exploration with inverse-propensity weighting is the standard remedy and
-is what CSA's Theorem E.1 formalises for this setting. Two ordering constraints
+Forced exploration with inverse-propensity weighting is the standard remedy,
+and is what Theorem E.1 of Khosravi & Huo's *Conformal Selective Acting*
+(CSA, §3.1) formalises for this setting. Two ordering constraints
 follow and are enforced in the implementation:
 
 1. The exploration coin must be drawn **before** the gate decision and

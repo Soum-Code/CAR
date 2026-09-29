@@ -83,7 +83,7 @@ generator improves.
 | C5 — α = 0.10 costs 32% of budget | μ = 0.3908 + Kotte Prop. 3 | measured + cited | measured |
 | C5b — the floor is generator-dependent, and monotone | μ 0.3908 -> 0.2428 -> 0.1221 across three generators; no floor at α=0.20 by Qwen | Qwen2.5-7B + Llama 3.1 8B | **measured** |
 | C6 — StrategyQA has no headroom | 72.9% one hop; 11.2% vs GSM8K 29.9% | 2272 annotated + 6974 derived graphs | measured |
-| C7 — derived GSM8K edges are 94.4% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
+| C7 — derived GSM8K edges are 94.3% correct | 50 graphs, stratified, hand-adjudicated | FINDINGS-DEPGRAPH | measured |
 | C8 — generator uncertainty does not rank global step error | AUROC 0.5589 token-level, 0.5740 semantic, 0.5742 both (0.8668 on synthetic signal, 0.4828 on noise) | 925 test steps | **measured** |
 | C8b — the gate misses every binding alpha | risk 0.1491 at alpha=0.05, flat across the sweep | end-to-end run | **measured** |
 | C8c — the verifier result is DOWNSTREAM of the score | 0.7637 behind the real score, 0.9780 behind an oracle, same verifier | end-to-end run | **measured** |

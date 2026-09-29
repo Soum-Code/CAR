@@ -193,8 +193,9 @@ corruption does.
 
 **Figure 5.2.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
 
-The intervals do not overlap. **The gap does not close on a stronger
-generator — it widens.**
+Neither generated corpus's interval overlaps Mistral's; Llama's and Qwen's
+overlap each other heavily, so the ordering between those two is not resolved
+here. **The gap does not close on a stronger generator — it widens.**
 
 The mechanism is straightforward once stated: the stronger model halves its
 arithmetic slips (0.171 → 0.081) without halving its inherited corruption, so a

@@ -75,7 +75,7 @@ smaller.
 | ambiguous | 25 | 91 | 12 | 3 | **0.1648** | **0.4800** |
 | clean | 25 | 48 | 2 | 0 | 0.0417 | 0.0400 |
 
-Stratified to corpus weights (11.6% of graphs contain an ambiguous link):
+Stratified to corpus weights (12.6% of graphs contain an ambiguous link):
 
 > **corpus edge error rate 5.7%**, corpus graph error rate 9.5%
 
