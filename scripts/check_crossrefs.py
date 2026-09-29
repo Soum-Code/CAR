@@ -35,8 +35,22 @@ def main() -> int:
     print(f"{len(chapters)} chapters, {len(sections)} numbered sections, "
           f"{len(figures)} figure captions")
 
+    # Headings come from the chapters; references are checked in every document
+    # that points AT the chapters. docs/thesis/README.md was omitted from the
+    # first version of this check and kept a stale §7.6 through the chapter
+    # renumber, which is the exact failure the script exists to catch.
+    #
+    # Two files are deliberately excluded because their §numbers are their own
+    # sections, not the thesis's: POSITIONING.md and docs/paper/paper.md.
+    referrers = (sorted(T.glob("[0-9]*.md"))
+                 + [T / "README.md", Path("docs/THESIS.md"),
+                    Path("docs/PROJECT-REPORT.md"), Path("README.md")]
+                 + sorted(Path("docs").glob("FINDINGS-*.md")))
+    referrers = [p for p in referrers if p.exists()]
+    print(f"checking references in {len(referrers)} documents")
+
     bad: list[str] = []
-    for md in sorted(T.glob("[0-9]*.md")):
+    for md in referrers:
         t = md.read_text(encoding="utf-8")
         for ref in re.findall(r"§(\d+(?:\.\d+)+)", t):
             if ref not in sections:

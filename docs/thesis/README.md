@@ -69,7 +69,7 @@ python scripts/make_diagrams.py   # the three diagrams
 | 7.7 | 7 | selective risk against score AUROC, with both α targets |
 
 Figures 7.1–7.3 are computed from the committed corpus at render time, so they
-cannot drift from Chapter 7's tables. The rest are measured constants, each
+cannot drift from Chapter 8's tables. The rest are measured constants, each
 carrying the script that produced it in a comment.
 
 Colour: categorical slots 1–4 of a validated palette, in fixed order, checked
@@ -125,37 +125,36 @@ measured and reproducible, and every refuted claim has a regression test.
 
 Known gaps, in the order they would matter to an examiner:
 
-1. **No related-work chapter separate from background.** For a paper
-   submission these would split.
-2. **More first-bad-step labels.** §7.6 trains a score against the right target
+1. **More first-bad-step labels.** §8.6 trains a score against the right target
    and it works, but on 49 training positives and 40 test ones; the gain is
    significant against one comparator and not the other. 108 such steps exist
    in the whole corpus, and that is the binding constraint.
-3. **More evaluation data.** §7.6 measures all three probe levers — data,
+2. **More evaluation data.** §8.6 measures all three probe levers — data,
    instrument, target — and every one sits inside its own interval. The
    selection split separates candidate layers by 0.017 while their test AUROCs
    differ by 0.075, so an arbitrary layer choice swamps every effect the
    section can measure. The open question is not which probe but how much
    evaluation data.
-4. **ARES-style conditioning under a budget** is the clearest scientific gap —
-   see ch. 9 future work.
-5. **A fourth generator, outside the 7–8B band.** The three measured here are
-   all 7–8B instruction-tuned models on GSM8K, so §4.5's monotone relationship
+3. **ARES-style conditioning under a budget** is the clearest scientific gap —
+   see ch. 10 future work.
+4. **A fourth generator, outside the 7–8B band.** The three measured here are
+   all 7–8B instruction-tuned models on GSM8K, so §5.5's monotone relationship
    is established across a narrow slice. Whether it continues to a 70B model,
    or to a different task, is untested.
 
-Closed since the first draft: *a third generator*, which was gap 4. Llama 3.1
+Closed since the first draft. *A separate related-work chapter*, which
+was gap 1, is now chapter 3. And *a third generator*, which was gap 4: Llama 3.1
 8B Instruct was licence-gated on Kaggle and is now measured. It settles the
 question in the direction that helps — C1, μ, corruption persistence and the
 position gradient are all **monotone in generator accuracy** rather than
-idiosyncratic, so §4.5 states a relationship where it previously recorded a
+idiosyncratic, so §5.5 states a relationship where it previously recorded a
 failure to transfer.
 
 ## Venue
 
 Realistic targets: an ACL/EMNLP short paper, or a NeurIPS/ICLR workshop on LLM
 evaluation or uncertainty. The measurement plus the benchmark critique is a
-credible short-paper contribution; Chapter 7's three-point failure analysis is
+credible short-paper contribution; Chapter 8's three-point failure analysis is
 the part most likely to interest a main-conference audience, because it is a
 negative result with a mechanism rather than a null.
 
