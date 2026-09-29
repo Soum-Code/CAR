@@ -234,6 +234,9 @@ def main() -> int:
         r"\SUBSECTION{", r"\subsection{")
     # Section headings in the draft carry their own numbers; IEEEtran numbers.
     body = re.sub(r"(\\(?:sub)?section\{)(?:\d+(?:\.\d+)?\.?\s+)", r"\1", body)
+    # Acknowledgment sits outside the numbering in IEEE papers, between the
+    # last numbered section and the references.
+    body = body.replace(r"\section{Acknowledgment}", r"\section*{Acknowledgment}")
 
     # Re-run the tables through the two-column converter.
     def retable(m: re.Match) -> str:

@@ -319,6 +319,14 @@ def convert(md: str, *, chapter_title: str) -> str:
                 in_list = "enumerate"
             item, i = _gather(lines, i, re.sub(r"^\d+\.\s+", "", line))
             out.append(r"\item " + inline(item))
+        elif re.fullmatch(r"-{3,}|\*{3,}|_{3,}", line.strip()):
+            # A markdown horizontal rule. Passed through untouched it reaches
+            # TeX as "---", which sets an em dash: the paper printed a stray
+            # dash between the acknowledgment and the references, and the
+            # thesis abstract carried three. Sectioning already separates these
+            # documents, so the rule becomes vertical space rather than a line.
+            close_list()
+            out.append(r"\medskip")
         elif not line.strip():
             close_list()
             out.append("")

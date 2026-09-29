@@ -526,6 +526,19 @@ in a public repository. 360 tests, no GPU and no network required. Every refuted
 claim that rests on a measurement carries a regression test, so a result cannot
 silently stop reproducing.
 
+## Acknowledgment
+
+The author thanks Ponsuresh Manoharan of L&T EduTech, Chennai, for supervising
+this work, and the School of Computer Engineering at the Kalinga Institute of
+Industrial Technology for the environment in which it was carried out.
+
+This research received no specific grant from any funding agency in the public,
+commercial or not-for-profit sectors. Every GPU measurement reported here ran
+on Kaggle's free allocation, three of the generation runs taking six to eight
+hours each. The study measures publicly released artifacts throughout: the
+Math-Shepherd corpus, GSM8K, and open model weights from Mistral AI, the Qwen
+team and Meta.
+
 ---
 
 ## References
