@@ -1,4 +1,4 @@
-# CAR: Measuring Where Step-Level Verification Fails
+# Coverage Is Not Risk: Locating Where Selective Verification of LLM Reasoning Fails
 
 *Workshop submission draft — target: NeurIPS/ICLR workshop on LLM evaluation or
 uncertainty. ~8 pages excluding references.*
