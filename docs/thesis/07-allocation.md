@@ -94,8 +94,11 @@ would restore the case for front-loading. **Measurement closes it.**
 
 **Figure 7.2.** Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.
 
-`corr(position, local error rate) = +0.950` on Math-Shepherd, and **+0.26 to +0.36** on
-the independently generated Qwen corpus. The local error rate **doubles** from
+`corr(position, local error rate) = +0.950` on Math-Shepherd, over eight bins.
+The sign replicates on both generated corpora; the magnitude resolves on one of
+them, **+0.876** on Llama 3.1 8B over four bins. Qwen gives +0.26 to +0.36 but
+§5.5 declines to read a gradient off it at all, because 59% of its steps assert
+no arithmetic. The local error rate **doubles** from
 step 1 to step 8. Later steps are *harder*, not easier, which favours
 back-loading further than the model already did.
 

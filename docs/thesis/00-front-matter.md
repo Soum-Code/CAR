@@ -65,8 +65,9 @@ Two controls separate cause from consequence. An **oracle score** takes
 selective risk 0.154 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
 the calls, so the verifier was never the problem — it was being aimed badly. A
 **probe on the generator's own frozen hidden states** reaches AUROC 0.6968, so
-the signal is not absent either — and doubling its training data buys about
-0.01, so scale is not what holds it back. Neither rescues the gate: the probe misses
+the signal is not absent either — and doubling its training data buys
++0.0105 with an interval spanning zero, so scale is not established as the
+constraint, nor ruled out. Neither rescues the gate: the probe misses
 α = 0.05 by 2.9× and the oracle by 1.8×, because at two verification calls per
 question the budget binds regardless of ranking.
 
@@ -80,9 +81,12 @@ repaired, and a score that ranks late steps highly earns AUROC it cannot
 convert.
 
 The contribution is therefore a characterisation of a design space rather than
-a system: selective verification of LLM reasoning fails at the signal, at the
-calibration, and at the verifier, and repairing any one of them is not
-sufficient. Along the way we correct a systematic bug in the operand-matching
+a system. Selective verification of LLM reasoning is bottlenecked at the
+**signal** and at the **budget**. The verifier's net-negative result is
+downstream of the score rather than a third, independent defect — the same
+verifier at the same false-alarm rate gains 17.6 points behind a perfect score
+— and the calibration cannot certify the quantity of interest while the score
+does not rank it. Repairing either bottleneck alone is not sufficient. Along the way we correct a systematic bug in the operand-matching
 heuristic this thesis uses to derive dependency graphs, show that a benchmark in common use for this
 problem cannot exhibit the phenomenon it is used to study, and document three
 measurement errors that each produced a confident and wrong result before being

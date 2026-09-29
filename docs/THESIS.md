@@ -92,7 +92,7 @@ generator improves.
 | C9 — a probe on internal states DOES rank step error | AUROC 0.6968 vs 0.5742; +0.12 | 925 test steps | **measured** |
 | C9b — and it still does not close the gap | risk 0.1432 at alpha=0.05 (2.9x target); PRM still net-negative at 0.7802 | end-to-end run | **measured** |
 | C9c — 0.6968 is a floor, not a ceiling | UNSUPPORTED: its curve was scored on the SELECTION split. Clean fixed-config test gives +0.0105, CI [-0.035,+0.057]; directionally positive, far short of what the leaked curve implied | probe round two | **unsupported** |
-| C12 — training on first-bad steps raises the quantity that pays | +0.2216 CI [+0.051,+0.390] vs the pooled probe, but +0.1412 CI [-0.065,+0.333] vs the PUBLISHED one; global AUROC falls 0.6896 -> 0.5735, below the 0.5742 baseline | 1361 train steps | **measured, comparator-dependent** |
+| C12 — training on first-bad steps raises the quantity that pays | +0.2216 CI [+0.051,+0.390] vs the pooled probe, but +0.1412 CI [-0.065,+0.333] vs the PUBLISHED one; global AUROC falls 0.6896 -> 0.5735, level with the 0.5742 baseline (the 0.0007 gap is not a ranking) | 1361 train steps | **measured, comparator-dependent** |
 | C12b — and it still does not make the gate pay | PROJ acc 0.7802 -> 0.7912 against a 0.8022 baseline; selective risk worsens 0.1394 -> 0.1600; per verification call the token+semantic baseline is best | gate run | **measured** |
 | C12c — the binding limit is the label, not the model | 108 first-bad steps exist, 40 in test; pooled trains on 49, gate-safe on 27 and its CI spans zero | corpus | **measured** |
 | C13 — a non-linear probe does NOT beat a linear one | matched at layer: +0.0051 to +0.0315 to -0.0315; sign depends on the layer, 3 of 4 intervals span zero, the significant one favours LINEAR | 925 test steps | **null** |
@@ -231,7 +231,7 @@ a benchmark that cannot exhibit the *propagation* finding.
   human annotation. See docs/FINDINGS-DEPGRAPH.md.
 - **Uncheckable steps.** 11.3% of steps carry no arithmetic (12.3% within the wrong-answer stratum) and are reported
   separately rather than assumed correct.
-- **Modelling vs measurement.** C2b, C3 and C4 rest partly on the propagation
+- **Modelling vs measurement.** C2b and C4 rest partly on the propagation
   model. Its assumptions — full repair, i.i.d. per-step error — are known to be
   wrong; the i.i.d. one is wrong in a direction that makes the conclusions
   *conservative*.
@@ -252,7 +252,8 @@ reach loses more to false alarms than it recovers.
 
 The resulting claim is about the design space rather than one system:
 
-> Selective verification of LLM reasoning fails at three independent points.
+> Selective verification of LLM reasoning is bottlenecked at the signal
+> and at the budget.
 > The signal does not rank the risk -- neither token-level uncertainty (AUROC
 > 0.5589) nor sampling-based semantic divergence (0.5740), and combining them
 > buys 0.0002; the calibration certifies a quantity that is not the risk

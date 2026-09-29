@@ -175,9 +175,10 @@ ordered by generator accuracy:
 | 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.832, 0.906] | [0.840, 0.944] |
 
 **C1 is monotone in generator accuracy across all three.** 0.7848 at 45%,
-0.8738 at 68.4%, 0.9040 at 80%. The third point was not fitted: §5.4 was
-written with two generators and predicted that a model between them would fall
-between them, and Llama does. Its interval excludes Mistral's value and
+0.8738 at 68.4%, 0.9040 at 80%. Llama was run after this section was first
+written, on settings fixed by the Qwen run and with no parameter chosen to
+place it; nothing about the measurement was tuned to land it between the other
+two. Its interval excludes Mistral's value and
 overlaps Qwen's, which is what a monotone relationship measured on 309 and 125
 steps should look like.
 
@@ -223,8 +224,11 @@ across generators.
 
 Three quantities were stated as properties of the task and are properties of
 the generator. With two models that was all that could be said. With three it
-is possible to say something stronger: they are not idiosyncratic, they move
-monotonically with generator accuracy.
+is possible to say something stronger: they are not idiosyncratic. Base risk
+and corruption persistence move monotonically with generator accuracy across
+all three. The position gradient's sign replicates on all three corpora, but
+its magnitude resolves on only two of them — Qwen writes too little checkable
+arithmetic to establish a gradient at all.
 
 **Base risk, and therefore the feasibility floor.** μ is solution-weighted —
 each stratum weighted by its share of solutions, not of steps — because wrong

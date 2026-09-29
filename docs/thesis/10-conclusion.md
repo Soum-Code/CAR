@@ -25,7 +25,7 @@ test fails if it stops reproducing.
 | C3's `net = scope − FA` is the figure of merit † | this thesis, ch. 6 | **corrected** | base-rate error; see §8.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at α = 0.05; three α bind and the misses are 3.0×, 1.5×, 1.0× |
 | The three failures are independent † | this thesis, ch. 8 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
-| Internal states do not carry a usable step signal | implied by ch. 8's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
+| Internal states do not carry a usable step signal | implied by ch. 8's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves selective risk (0.1554 → 0.1394) on fewer calls — though not first-bad recall |
 | A probe here will land near the PRM's 0.9033 | this thesis, ch. 10 prediction | **missed** | 0.6968 measured; doubling the training data recovers ~0.01, not the gap |
 | 0.6968 is a floor, pending more training data | this thesis, ch. 8.6 | **unsupported** | its curve was scored on the selection split; a clean test gives +0.0105, CI [−0.035, +0.057] |
 | A linear probe is the wrong instrument, and that explains the gap | this thesis, ch. 8.6 and ch. 10 | **null** | matched at layer, a non-linear head is worth +0.0051; the sign flips across layers and the one significant comparison favours linear |
@@ -45,12 +45,13 @@ independent is the **signal** and the **budget**.
 Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on two further
 generators and comes out *higher* on both, with Mistral's Wilson interval
 disjoint from each, so the gap is not an artifact of a weak generator. Three
-quantities are generator-dependent, and with three models they can be shown to
-be monotone in accuracy rather than arbitrary: μ (0.3908 → 0.2428 → 0.1221),
-corruption persistence (95.9% → 81.6% → 66.4%), and the position gradient —
-corr(position, local error) is +0.950 on Mistral and +0.876 on Llama, and falls
-to +0.26–+0.36 on Qwen over only four to six usable bins, because Qwen writes
-too little checkable arithmetic to resolve one. All three generators are 7–8B
+quantities are generator-dependent. Two of them are monotone in accuracy across
+all three models rather than arbitrary: μ (0.3908 → 0.2428 → 0.1221) and
+corruption persistence (95.9% → 81.6% → 66.4%). The third, the position
+gradient, replicates in *sign* on all three but resolves in magnitude on only
+two — corr(position, local error) is +0.950 on Mistral and +0.876 on Llama, and
+falls to +0.26–+0.36 on Qwen over four to six usable bins, because Qwen writes
+too little checkable arithmetic to establish a gradient. All three generators are 7–8B
 instruction-tuned models on GSM8K, so the monotone relationship is measured
 across a narrow band and nothing establishes it continues beyond that.
 
@@ -109,17 +110,19 @@ form, and it will frequently tell you the target you wrote down is either
 infeasible or vacuous. Both failure modes look like success in a results table.
 
 **Do not assume verifiers are interchangeable.** Calculator, retrieval, sandbox
-and PRM are listed as alternatives in a great deal of system design. They span
-0.00 to 0.90 detection rate on the population that matters. Which one you pick
+and PRM are listed as alternatives in a great deal of system design. The four
+classes this thesis could measure — arithmetic checking, a same-model critic,
+a general independent judge and the task PRM — span 0.00 to 0.90 detection
+rate on the population that matters. Which one you pick
 is the design decision; the gate around it is not.
 
 **Evaluate a verifier on the population your gate will actually send it.** A
 detection rate measured on a positive-only set is not a deployment number — and
 neither is one measured over the whole population. What matters is
-`P(wrong | verified)`, and the *score* sets that. The same PRM at the same 9.87%
-false-alarm rate is worth −1.1 points of accuracy behind the near-chance score
-the gate actually uses, −4 points when the score is bypassed entirely
-(always-verify), and **+17.6** behind a perfect one. A verifier is not good or bad; it is well or badly
+`P(wrong | verified)`, and the *score* sets that. The same PRM at the same measured 9.87%
+false-alarm rate is worth −1.1 points of PROJECTED accuracy behind the
+near-chance score the gate actually uses, −4 points when the score is bypassed
+entirely (always-verify), and **+17.6** behind a perfect one. A verifier is not good or bad; it is well or badly
 aimed.
 
 **Do not tune a step-level score on AUROC.** It is the natural metric, and not
@@ -166,8 +169,8 @@ the probe was trained, what on, or which functional family it came from. Ni et a
 either alone, so the productive object may still be a hybrid.
 
 The more useful finding is what 0.70 was *not* enough for. It did not make the
-gate hold α = 0.05 or 0.10 — α = 0.15 also binds and the probe does hold that
-one — and it did not make the PRM worth having: projected accuracy 0.7802,
+gate hold α = 0.05 or 0.10, the two binding targets the probe was measured
+against, and it did not make the PRM worth having: projected accuracy 0.7802,
 still under the 0.8022 baseline, where the oracle reaches 0.9780.
 
 §8.4 then locates the threshold that earlier drafts could only gesture at. A

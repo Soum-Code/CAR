@@ -145,10 +145,11 @@ Known gaps, in the order they would matter to an examiner:
 Closed since the first draft. *A separate related-work chapter*, which
 was gap 1, is now chapter 3. And *a third generator*, which was gap 4: Llama 3.1
 8B Instruct was licence-gated on Kaggle and is now measured. It settles the
-question in the direction that helps — C1, μ, corruption persistence and the
-position gradient are all **monotone in generator accuracy** rather than
-idiosyncratic, so §5.5 states a relationship where it previously recorded a
-failure to transfer.
+question in the direction that helps — C1, μ and corruption persistence are all
+**monotone in generator accuracy** rather than idiosyncratic, and the position
+gradient's sign replicates on all three generators though its magnitude
+resolves on only two. So §5.5 states a relationship where it previously
+recorded a failure to transfer.
 
 ## Venue
 

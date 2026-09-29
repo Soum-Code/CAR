@@ -164,8 +164,8 @@ The two baselines most often skipped are the two that matter most:
   calibration will rescue it.
 - **Oracle score.** The upper bound: the same calibrator, budget and verifier
   driven by a score that reads the label. It separates "the gate is bad" from
-  "the task is hard at this budget", and Chapter 8 reports it as a row in every
-  table.
+  "the task is hard at this budget", and Chapter 8 carries it in the
+  gate-comparison tables where a ceiling at fixed budget is defined.
 
 ### Replay, and what it forbids
 

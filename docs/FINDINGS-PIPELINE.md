@@ -182,6 +182,14 @@ The three compose into one statement:
 That is a stronger contribution than a working gate would have been, because it
 is a claim about the *design space* rather than about one system.
 
+> **Superseded 2026-09-30.** The oracle baseline added later shows the third
+> point is not independent: behind a perfect score the same verifier at the
+> same 9.87% false-alarm rate gains 17.6 points, and it turns net-positive at
+> AUROC ≈ 0.65. What survives as genuinely separate is the **signal** and the
+> **budget** — a perfect score still misses α = 0.05 by 1.8×. The thesis
+> states the corrected version; this block is kept as the conclusion reached
+> before the oracle run, not as a current claim.
+
 ---
 
 ## Limits

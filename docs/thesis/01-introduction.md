@@ -91,14 +91,14 @@ previously-verified premises, that does lift the ceiling. (Chapter 5)
 **C1b. The gap widens on a stronger generator, monotonically.** Re-measured on
 Qwen2.5-7B-Instruct at 80.0% GSM8K accuracy against Mistral-7B-SFT's ~45%, the
 figure rises to **90.4%** with disjoint Wilson intervals. A third generator,
-Llama 3.1 8B Instruct at 68.4%, lands between them at **87.4%** — a point
-predicted before it was run. The stronger model halves its arithmetic slips
+Llama 3.1 8B Instruct at 68.4%, lands between them at **87.4%**, on settings
+fixed by the earlier run. The stronger model halves its arithmetic slips
 without halving its inherited corruption, so a deterministic verifier gets
 *less* useful as generators improve. (Chapter 5)
 
 **C2. Corruption is close to absorbing.** After the first globally-bad step,
 95.9% of subsequent steps remain bad, and **0 of the 14,573 Math-Shepherd solutions that could have recovered
-ever recover**. Measured on two further generators, persistence falls to 81.6%
+ever fully recover**. Measured on two further generators, persistence falls to 81.6%
 on Llama 3.1 8B and 66.4% on Qwen2.5-7B, with 12 of 141 and 6 of 83 eligible
 solutions recovering. Absorption is therefore a property of the generator — but
 a *monotone* one, decaying smoothly as accuracy rises rather than varying
@@ -154,8 +154,9 @@ second and genuinely independent bottleneck: the budget. (Chapter 8)
 **C9. A better signal exists, and is still not enough.** A logistic probe on the
 generator's own frozen hidden states reaches **AUROC 0.6968** against 0.5742 for
 everything else measured — so the failure is not that step-level uncertainty is
-unreadable. It improves selective risk at every α on fewer calls, and still
-misses α = 0.05 by 2.9× and leaves the task PRM net-negative. The probe is
+unreadable. It improves selective risk at every α — on fewer calls at α = 0.05 and
+0.30, though it spends more at α = 0.10 — and still misses α = 0.05 by
+2.9× and leaves the task PRM net-negative. The probe is
 trained on 670 steps. An earlier draft called that a floor, on a learning curve
 that turned out to have been scored on the selection split; measured properly,
 doubling the training data buys **+0.01** with an interval spanning zero. So
@@ -188,9 +189,12 @@ step in a solution can be repaired and the probe ranks late ones.
 > be calibrated. In multi-step reasoning that is not the quantity of interest,
 > and the gap does not close by improving the generator, widening the
 > verification window, or adding the uncertainty signal the design assumed
-> would carry it. Selective verification of LLM reasoning fails at the signal,
-> at the calibration, and at the verifier, and repairing any one of them is not
-> sufficient.
+> would carry it. Selective verification of LLM reasoning is bottlenecked at
+> the **signal** and at the **budget**. The verifier's net-negative result is
+> downstream of the score rather than a third, independent defect — the same
+> verifier at the same false-alarm rate gains 17.6 points behind a perfect
+> score — and the calibration cannot certify the quantity of interest while the
+> score does not rank it. Repairing either bottleneck alone is not sufficient.
 
 ## 1.6 Structure
 

@@ -679,7 +679,7 @@ oracle run below shows, not three *independent* ones:
 | failure point | measurement | what the oracle and the probe say about it |
 |---|---|---|
 | the measured signals do not rank the risk | AUROC 0.5589 / 0.5740 / 0.5742; a probe reaches 0.6968 | binding, and *not* a dead end — the signal exists, and a perfect score takes risk 0.154 → 0.089 and accuracy 0.79 → 0.98 |
-| the calibration certifies the wrong quantity | coverage holds; selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
+| the calibration certifies the wrong quantity | coverage is guaranteed by construction and reports nothing amiss; measured selective risk misses α by 3× | not repaired by a perfect score — the oracle still misses α = 0.05 by 1.8×, because the budget binds |
 | the verifier with reach costs more than it recovers | 0.7637 against a 0.8022 baseline | **downstream of the score**, not independent: the same verifier gains 17.6 points behind the oracle, and turns positive at AUROC ≈ 0.65 |
 
 The oracle run changes the shape of this conclusion. Being exact about how
