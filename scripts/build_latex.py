@@ -400,18 +400,18 @@ FRONT = r"""
 {\Large %(institution)s}\\[0.4cm]
 {\large %(department)s}\\[2cm]
 
-{\Huge\bfseries\color{chaptercolor} %(title)s}\\[0.8cm]
-{\large\itshape %(subtitle)s}\\[2cm]
+{\Huge\bfseries\color{chaptercolor} %(title)s}\\[0.7cm]
+{\large\itshape %(subtitle)s}\\[1.4cm]
 
 {\Large\textit{A thesis submitted in partial fulfilment\\
-of the requirements for the degree of}}\\[0.8cm]
+of the requirements for the degree of}}\\[0.7cm]
 
-{\Large\bfseries %(degree)s}\\[0.3cm]
-{\large in}\\[0.3cm]
-{\Large\bfseries %(branch)s}\\[1.8cm]
+{\Large\bfseries %(degree)s}\\[0.25cm]
+{\large in}\\[0.25cm]
+{\Large\bfseries %(branch)s}\\[1.2cm]
 
-{\large\bfseries %(author)s}\\[0.3cm]
-{\large %(roll_number)s}\\[1.5cm]
+{\large\bfseries %(author)s}\\[0.25cm]
+{\large %(roll_number)s}\\[1cm]
 
 %(supervisor_block)s
 
@@ -436,8 +436,8 @@ to any other institute or university for the award of any degree or diploma.
 \noindent\rule{6cm}{0.4pt}\\
 %(supervisor)s\\
 %(supervisor_designation)s\\
-%(department)s\\
-%(institution)s
+%(supervisor_organisation)s\\
+%(supervisor_location)s
 
 \chapter*{Declaration}
 \addcontentsline{toc}{chapter}{Declaration}
@@ -506,11 +506,16 @@ def load_metadata(allow_placeholders: bool) -> dict:
 
 def supervisor_block(meta: dict) -> str:
     """The supervisor lines, with the co-supervisor only when there is one."""
-    sup = meta.get("supervisor", "")
-    desig = meta.get("supervisor_designation", "")
+    sup = esc(meta.get("supervisor", ""))
+    desig = esc(meta.get("supervisor_designation", ""))
+    org = esc(meta.get("supervisor_organisation", ""))
+    loc = esc(meta.get("supervisor_location", ""))
+    where = ", ".join(x for x in (org, loc) if x)
     lines = [r"{\large\textit{Under the supervision of}}\\[0.6cm]",
              rf"{{\large\bfseries {sup}}}\\[0.2cm]",
              rf"{{\large {desig}}}"]
+    if where:
+        lines.append(rf"\\[0.2cm]{{\large {where}}}")
     co = (meta.get("co_supervisor") or "").strip()
     if co:
         lines += [r"\\[0.8cm]",
@@ -608,7 +613,11 @@ def main():
     fields = {k: meta.get(k, "") for k in (
         "title", "subtitle", "author", "roll_number", "degree", "branch",
         "institution", "department", "supervisor", "supervisor_designation",
+        "supervisor_organisation", "supervisor_location",
         "submission_date", "academic_year")}
+    # These land in LaTeX verbatim, and real-world values carry specials:
+    # "L&T EduTech" alone would break the compile on an unescaped ampersand.
+    fields = {k: esc(str(v)) for k, v in fields.items()}
     fields["supervisor_block"] = supervisor_block(meta)
     fields["abstract"] = abstract
     front = FRONT % fields

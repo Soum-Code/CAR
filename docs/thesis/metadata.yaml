@@ -21,8 +21,15 @@ branch: "FILL: e.g. Computer Science and Engineering"
 institution: "Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar"
 department: "School of Computer Science and Engineering"
 
-supervisor: "FILL: supervisor's name, with title"
-supervisor_designation: "FILL: e.g. Associate Professor"
+supervisor: "Ponsuresh Manoharan"
+supervisor_designation: "Subject Matter Expert -- Cyber Security"
+# The supervisor's OWN affiliation. Printed under the signature on the
+# certificate instead of the student's department and institution, which is
+# what the template used to do -- correct for an internal faculty supervisor,
+# wrong for an external one, and it would have read as though he were KIIT
+# faculty.
+supervisor_organisation: "L&T EduTech"
+supervisor_location: "Chennai"
 # Delete these two if there is no co-supervisor.
 co_supervisor: ""
 co_supervisor_designation: ""
