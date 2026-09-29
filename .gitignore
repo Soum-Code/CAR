@@ -87,3 +87,7 @@ Thumbs.db
 # LaTeX build product: regenerate with scripts/build_latex.py.
 # The markdown in docs/thesis/ is the single source.
 thesis-latex/
+
+# IEEE paper build product: regenerate with scripts/build_paper_latex.py.
+# docs/paper/paper.md is the single source.
+paper-latex/
