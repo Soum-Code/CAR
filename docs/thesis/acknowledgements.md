@@ -1,13 +1,14 @@
 # Acknowledgements
 
 <!--
-  A scaffold, not a finished page. The paragraphs below are grounded in facts
-  about this project: who supervised it, which institution it was done at, and
-  which public artifacts it actually rests on.
+  Complete as it stands: no bracketed slots, nothing that needs filling before
+  submission.
 
-  The bracketed parts are yours. Nobody else can write them, and an
-  acknowledgements page that thanks no one in particular reads worse than a
-  short one that does.
+  It deliberately names no one beyond the supervisor, because inventing a
+  specific debt is worse than a general one honestly stated. If a particular
+  person earned a line -- someone who read a draft, ran an argument at you
+  until it broke, or kept a GPU session alive -- add them. A named thanks is
+  worth more than a paragraph of general ones, and only you know who.
 -->
 
 This work was carried out under the guidance of Ponsuresh Manoharan, Subject
@@ -17,15 +18,15 @@ they led. A project that sets out to build a system and ends up reporting why
 that system cannot be built needs a supervisor willing to accept a negative
 result as a result, and I had one.
 
-I thank the School of Computer Engineering at the Kalinga Institute
-of Industrial Technology for [the resources and support that made this work
-possible — name anything specific: lab access, a seminar that sharpened the
-question, faculty who read a draft].
+I thank the School of Computer Engineering at the Kalinga Institute of
+Industrial Technology for the facilities and the academic environment in which
+this work was done.
 
-[Friends and classmates who listened, argued, or read something they did not
-have to. Name them.]
+I am grateful to my friends and classmates, who heard a great deal more about
+step-level verification than any of them signed up for, and whose questions
+were more often than not sharper than they intended.
 
-[Family. Yours to write, and worth writing properly.]
+To my family, for support that was steady and largely unremarked on: thank you.
 
 This thesis measures other people's artifacts, and should say so. The
 Math-Shepherd corpus released by Wang et al. supplies the 93,129 step-level
