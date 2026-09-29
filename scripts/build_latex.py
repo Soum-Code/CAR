@@ -456,7 +456,7 @@ for any other degree or diploma at this or any other institution.
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgements}
 
-\emph{To be written.}
+%(acknowledgements)s
 
 \tableofcontents
 \listoffigures
@@ -667,6 +667,22 @@ def main():
     fields["our_supervision"] = ("our joint supervision" if n_sup > 1
                                  else "my supervision")
     fields["our_knowledge"] = "our knowledge" if n_sup > 1 else "my knowledge"
+
+    # Acknowledgements live in their own markdown file, like every other piece
+    # of prose here. The build warns while the scaffold's bracketed slots are
+    # still in it -- they are placeholders for people only the author can name,
+    # and printing "[Family. Yours to write]" in a submitted thesis would be
+    # worse than the "To be written." this replaced.
+    ack_md = SRC / "acknowledgements.md"
+    if ack_md.exists():
+        raw = ack_md.read_text(encoding="utf-8")
+        raw = re.sub(r"<!--.*?-->", "", raw, flags=re.S)
+        body = convert(raw, chapter_title="Acknowledgements")
+        fields["acknowledgements"] = body.split("\n", 1)[1].lstrip()
+        if re.search(r"\[[^\]]{25,}\]", raw):
+            print("  NOTE: acknowledgements.md still has unfilled [...] slots")
+    else:
+        fields["acknowledgements"] = r"\emph{To be written.}"
     fields["abstract"] = abstract
     front = FRONT % fields
     body = "\n\n".join(rf"\input{{chapters/{c}}}" for c in chapters)
