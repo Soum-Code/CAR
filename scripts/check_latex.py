@@ -69,7 +69,10 @@ def main() -> int:
         # and swallow the text between -- which reported `80\%-of-\$40` as an
         # error when it is correct.
         stripped = re.sub(r"\\[&$#%_{}]", "", body)
-        stripped = re.sub(r"\\begin\{tabular\}.*?\\end\{tabular\}", "",
+        # tabular AND tabularx: build_latex.py emits the latter for wide
+        # tables, and missing it here reports every column separator in them
+        # as an unescaped &.
+        stripped = re.sub(r"\\begin\{(tabularx?)\}.*?\\end\{\1\}", "",
                           stripped, flags=re.S)
         stripped = re.sub(r"\$[^$]*\$", "", stripped)
         for ch in ("&", "$", "#"):

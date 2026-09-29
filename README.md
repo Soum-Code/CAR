@@ -300,7 +300,7 @@ pip install -e ".[dev]"
 python -m pytest
 ```
 
-349 tests, no GPU, no network. Corpus tests skip if datasets are absent.
+356 tests, no GPU, no network. Corpus tests skip if datasets are absent.
 
 ### Get the data
 

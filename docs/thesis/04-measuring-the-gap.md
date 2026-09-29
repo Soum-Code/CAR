@@ -159,7 +159,8 @@ recorded it as named but unrunnable; once the licence was accepted the same
 harness ran unmodified. 500 GSM8K test problems, K = 4 rollouts, temperature
 0.7, 4-shot — identical settings to the Qwen run — 5,752 rollouts, 6h11m on two
 Tesla T4s, and the written corpus round-trips 500/500 through the Math-Shepherd
-parser.
+parser. It holds 1,938 steps across 500 solutions, 3.88 per solution, against
+Qwen's 2,573 at 5.15.
 
 One definition applied to all three corpora, within wrong-answer solutions,
 ordered by generator accuracy:

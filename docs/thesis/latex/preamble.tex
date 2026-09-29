@@ -43,6 +43,12 @@
 %=============================================================================
 \usepackage[a4paper, margin=1in, bindingoffset=0.5cm]{geometry}
 \usepackage[final,protrusion=true,expansion=true]{microtype}
+% Citations here carry a footnoted arXiv URL, and a paragraph holding both a
+% long italic title and an unbreakable link leaves TeX no legal break: the
+% first compiled PDF had lines running 200-300pt past the margin. Letting it
+% stretch interword space on the last resort pass is the conventional remedy,
+% and is preferable to text in the margin.
+\setlength{\emergencystretch}{3em}
 \usepackage{setspace}
 \onehalfspacing
 \usepackage{emptypage}           % Blank pages have no headers/footers
@@ -51,6 +57,11 @@
 % MATH
 %=============================================================================
 \usepackage{mathtools}           % Enhanced amsmath (loads amsmath automatically)
+% newpxmath (loaded with the Palatino fonts above) already defines \Bbbk, and
+% amssymb defines it again -- a fatal "Command \Bbbk already defined" that no
+% amount of static checking catches, only a compiler. Letting it go relax
+% before amssymb loads is the documented fix for the newpx/newtx families.
+\let\Bbbk\relax
 \usepackage{amssymb}
 
 %=============================================================================
@@ -66,6 +77,11 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{multirow}
+% Wide tables: plain `l` columns never wrap, so a cell of prose runs straight
+% off the page edge. build_latex.py switches to tabularx with X columns once a
+% table's natural width would overflow.
+\usepackage{tabularx}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
 %=============================================================================
 % LISTS
@@ -112,6 +128,9 @@
 %=============================================================================
 % THEOREMS
 %=============================================================================
+% Same clash as \Bbbk above: newpxmath defines \openbox and amsthm defines it
+% again. Both are fatal, both only surface under a real compiler.
+\let\openbox\relax
 \usepackage{amsthm}
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}[chapter]
@@ -150,6 +169,11 @@
 %=============================================================================
 \usepackage{bookmark}            % Enhanced bookmarks (generates in first run)
 \usepackage{hyperref}
+% Every citation in this draft footnotes its arXiv URL, and a bare \url is one
+% unbreakable token: three of them ran 200-300pt past the margin in the first
+% compiled PDF. xurl lets a URL break at any character. Must load AFTER
+% hyperref.
+\usepackage{xurl}
 \hypersetup{
     colorlinks=true,
     linkcolor=chaptercolor,
@@ -158,7 +182,9 @@
     pdfauthor={Somnath Reddy},
     pdftitle={What Step-Level Verification Certifies, and What It Misses},
     pdfsubject={M.Tech Thesis, Computer Science},
-    pdfkeywords={conformal prediction\sep LLM reasoning\sep step verification\sep selective risk},
+    % Commas, not \sep -- \sep is pdfx's separator for \Keywords, and pdfx is
+    % commented out above, so it was an undefined control sequence here.
+    pdfkeywords={conformal prediction, LLM reasoning, step verification, selective risk},
     bookmarks=true,
     bookmarksnumbered=true,
     bookmarksopen=true,

@@ -61,6 +61,16 @@ SPECIAL = {"&": r"\&", "%": r"\%", "$": r"\$", "#": r"\#",
            "_": r"\_", "{": r"\{", "}": r"\}"}
 
 
+def _mapped(ch: str, *, where: str = "the prose") -> str:
+    """The UNICODE lookup, with the error both call sites should raise."""
+    if ch not in UNICODE:
+        raise SystemExit(
+            f"unmapped non-ASCII character {ch!r} (U+{ord(ch):04X}) in {where}. "
+            f"Add it to UNICODE in {__file__} rather than stripping it."
+        )
+    return UNICODE[ch]
+
+
 def esc(text: str, *, in_math: bool = False) -> str:
     """Escape LaTeX specials, then map the unicode the draft uses."""
     out = []
@@ -74,12 +84,7 @@ def esc(text: str, *, in_math: bool = False) -> str:
         elif ch == "\\":
             out.append(r"\textbackslash{}")
         elif ord(ch) > 127:
-            if ch not in UNICODE:
-                raise SystemExit(
-                    f"unmapped non-ASCII character {ch!r} (U+{ord(ch):04X}). "
-                    f"Add it to UNICODE in {__file__} rather than stripping it."
-                )
-            out.append(UNICODE[ch])
+            out.append(_mapped(ch))
         else:
             out.append(ch)
     return "".join(out)
@@ -95,17 +100,27 @@ def inline(text: str) -> str:
 
     text = re.sub(r"`([^`]+)`", stash, text)
 
-    # links: keep the text, footnote the URL (a printed thesis cannot be clicked)
+    # links: keep the text, footnote the URL (a printed thesis cannot be clicked).
+    #
+    # The \footnote has to be stashed the same way a code span is. esc() runs
+    # AFTER this substitution, so a \footnote inserted here was being escaped
+    # into \textbackslash{}footnote\{...\} and printed as visible text -- every
+    # footnoted URL in the document, silently, until something finally compiled
+    # it. Returning the label unescaped is the other half: esc() escapes it once
+    # below, where returning esc(label) escaped it twice.
+    raw: list[str] = []
+
     def link(m):
         label, url = m.group(1), m.group(2)
-        if url.startswith("#"):
-            return esc(label)
-        if url.startswith("http"):
-            return esc(label) + r"\footnote{\url{" + url + "}}"
-        return esc(label)  # internal repo paths: drop the path, keep the words
+        if not url.startswith("http"):
+            return label        # anchors and repo paths: keep the words only
+        raw.append(r"\footnote{\url{" + url + "}}")
+        return label + f"\x01{len(raw) - 1}\x01"
 
     text = re.sub(r"(?<!!)\[([^\]]+)\]\(([^)\s]+)\)", link, text)
     text = esc(text)
+    for i, s in enumerate(raw):
+        text = text.replace(f"\x01{i}\x01", s)
     text = re.sub(r"\*\*([^*]+)\*\*", r"\\textbf{\1}", text)
     text = re.sub(r"(?<!\*)\*([^*]+)\*(?!\*)", r"\\emph{\1}", text)
 
@@ -117,26 +132,100 @@ def inline(text: str) -> str:
                      ("$", r"\$"), ("^", r"\textasciicircum{}"),
                      ("~", r"\textasciitilde{}")):
             safe = safe.replace(a, b)
+        # ...and its own unicode mapping. Spans are stashed BEFORE esc() runs,
+        # so they never reach the gate there. A `47 × 3 = 131` in the draft was
+        # reaching main.tex as a raw U+00D7 inside \texttt, which is exactly
+        # the silent pass-through that gate exists to prevent.
+        safe = "".join(
+            ch if ord(ch) <= 127 else _mapped(ch, where="a code span")
+            for ch in safe
+        )
+        # A long path or command in \texttt is one unbreakable token, and the
+        # remaining overfull lines in the compiled PDF were all of this shape:
+        # `python scripts/gpu_semantic_scope.py`, `runs/uncertainty_*.jsonl`.
+        # Offering a break after each separator lets them wrap where a reader
+        # would expect, instead of running into the margin.
+        if len(s) > 18:
+            for sep in ("/", r"\_", "-", "."):
+                safe = safe.replace(sep, sep + r"\allowbreak{}")
         text = text.replace(f"\x00{i}\x00", r"\texttt{" + safe + "}")
     return text
 
 
+# Roughly how many characters of \small text fit on one line of the text
+# block. Measured from the compiled output rather than derived: tables under
+# this sit inside the margin, tables over it overflow.
+TABLE_CHAR_BUDGET = 95
+
+
+def _visible(cell: str) -> int:
+    """Length as it will print, ignoring markdown that carries no width."""
+    return len(re.sub(r"\*\*|\*|`|\[|\]\([^)]*\)", "", cell))
+
+
 def convert_table(rows: list[str]) -> str:
-    """Markdown pipe table to a booktabs tabular inside a table float."""
+    """Markdown pipe table to a booktabs table float.
+
+    Narrow tables get a plain `tabular` with `l` columns, which centres well.
+    Wide ones get `tabularx` at \\textwidth with the prose-carrying columns as
+    wrapping `L`, because `l` columns never break a line: a cell of prose in
+    one runs straight off the page edge, which is how chapter 9's refuted-claim
+    table ended up 952pt too wide -- more than twice the text block -- in the
+    first compiled PDF.
+    """
     cells = [[c.strip() for c in r.strip().strip("|").split("|")] for r in rows]
     header, body = cells[0], cells[2:]          # cells[1] is the --- rule
     ncol = len(header)
-    # Left-align everything: these are mostly label + number tables, and the
-    # numbers carry their own alignment through consistent decimal places.
-    spec = "l" * ncol
-    out = [r"\begin{table}[htbp]", r"\centering", r"\small",
-           r"\begin{tabular}{" + spec + "}", r"\toprule",
+    body = [(r + [""] * ncol)[:ncol] for r in body]
+
+    widths = [max(_visible(r[i]) for r in [header] + body) for i in range(ncol)]
+    natural = sum(widths) + 3 * ncol
+
+    if natural <= TABLE_CHAR_BUDGET:
+        spec = "l" * ncol
+        env, open_arg, size = "tabular", "", r"\small"
+    else:
+        # Wrap the columns wide enough to be prose; keep the rest at natural
+        # width so numeric columns do not get stretched into empty space.
+        cut = max(12, sorted(widths)[-1] // 3)
+        spec = "".join("L" if w > cut else "l" for w in widths)
+        if "L" not in spec:                      # all columns similar: wrap all
+            spec = "L" * ncol
+        env, open_arg = "tabularx", r"{\textwidth}"
+        size = r"\footnotesize" if natural > TABLE_CHAR_BUDGET * 1.6 else r"\small"
+
+    out = [r"\begin{table}[htbp]", r"\centering", size,
+           rf"\begin{{{env}}}{open_arg}{{{spec}}}", r"\toprule",
            " & ".join(inline(h) for h in header) + r" \\", r"\midrule"]
     for row in body:
-        row = (row + [""] * ncol)[:ncol]
         out.append(" & ".join(inline(c) for c in row) + r" \\")
-    out += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    out += [r"\bottomrule", rf"\end{{{env}}}", r"\end{table}"]
     return "\n".join(out)
+
+
+def _starts_block(ln: str) -> bool:
+    """Does this line begin a new markdown construct rather than continue one?"""
+    s = ln.strip()
+    return (not s
+            or s.startswith(("#", ">", "|", "```", "!["))
+            or bool(re.match(r"^[-*] ", s))
+            or bool(re.match(r"^\d+\. ", s)))
+
+
+def _gather(lines: list[str], i: int, first: str) -> tuple[str, int]:
+    """Join a paragraph or list item into one string before converting it.
+
+    inline() used to run per line, so any span crossing a line break lost its
+    pair: chapter 2's *Reliable and Efficient Agentic Workflow\\nExecution*
+    reached the PDF with literal asterisks, because neither half matched the
+    italic pattern on its own. Markdown treats a paragraph as one unit, so the
+    converter has to as well.
+    """
+    parts = [first]
+    while i + 1 < len(lines) and not _starts_block(lines[i + 1]):
+        i += 1
+        parts.append(lines[i].strip())
+    return " ".join(p for p in parts if p), i
 
 
 def convert(md: str, *, chapter_title: str) -> str:
@@ -221,13 +310,15 @@ def convert(md: str, *, chapter_title: str) -> str:
                 close_list()
                 out.append(r"\begin{itemize}")
                 in_list = "itemize"
-            out.append(r"\item " + inline(line[2:]))
+            item, i = _gather(lines, i, line[2:])
+            out.append(r"\item " + inline(item))
         elif re.match(r"^\d+\. ", line):
             if in_list != "enumerate":
                 close_list()
                 out.append(r"\begin{enumerate}")
                 in_list = "enumerate"
-            out.append(r"\item " + inline(re.sub(r"^\d+\.\s+", "", line)))
+            item, i = _gather(lines, i, re.sub(r"^\d+\.\s+", "", line))
+            out.append(r"\item " + inline(item))
         elif not line.strip():
             close_list()
             out.append("")
@@ -235,7 +326,8 @@ def convert(md: str, *, chapter_title: str) -> str:
             if in_list:
                 out[-1] += " " + inline(line.strip())    # continuation line
             else:
-                out.append(inline(line))
+                para, i = _gather(lines, i, line.strip())
+                out.append(inline(para))
         i += 1
 
     close_list()
@@ -262,9 +354,40 @@ LST = r"""
   columns=fullflexible,
   keepspaces=true,
   showstringspaces=false,
-  literate={-}{{-}}1 {>}{{>}}1 {<}{{<}}1,
+  extendedchars=true,
+  % Code blocks are emitted verbatim, so esc() never sees them and the unicode
+  % map above does not apply. The draft quotes formulas inside them --
+  % "(mu - alpha) / (1 - alpha)" with real Greek and a real U+2212 -- and
+  % inputenc rejects those inside a listing with "Invalid UTF-8 byte sequence".
+  % listings has to be told about each one separately. LST_LITERATE below is
+  % the same set, and build_latex.py gates on the two staying in sync.
+  literate={-}{{-}}1 {>}{{>}}1 {<}{{<}}1
+           {μ}{{$\mu$}}1 {α}{{$\alpha$}}1
+           {−}{{$-$}}1 {·}{{$\cdot$}}1,
 }
 """
+
+# Every non-ASCII character the listings `literate` above can render. A code
+# block containing anything else produces an invalid PDF, so the build stops.
+LST_LITERATE = {"μ", "α", "−", "·"}
+
+
+def check_listing_chars(md: str, name: str) -> None:
+    """Refuse to emit a code block carrying unicode listings cannot render.
+
+    The prose path gates on this in esc(); the verbatim path had no gate at
+    all, which is how a real U+03BC reached a listing and killed the compile
+    with an error pointing at \\lst@EC rather than at the character.
+    """
+    for block in re.findall(r"^```.*?^```", md, re.S | re.M):
+        for ch in block:
+            if ord(ch) > 127 and ch not in LST_LITERATE:
+                raise SystemExit(
+                    f"{name}: code block contains {ch!r} (U+{ord(ch):04X}), "
+                    f"which the listings literate map cannot render. Add it to "
+                    f"LST and LST_LITERATE in {__file__}, or use ASCII in the "
+                    f"code block."
+                )
 
 FRONT = r"""
 \begin{document}
@@ -424,6 +547,7 @@ def main():
     abstract = ""
     for md in sorted(SRC.glob("[0-9]*.md")):
         text = md.read_text(encoding="utf-8")
+        check_listing_chars(text, md.name)
         first = next((ln for ln in text.split("\n") if ln.startswith("# ")), "")
         title = re.sub(r"^#\s+(?:[0-9.]+\.?\s+)?", "", first) or md.stem
         stem = md.stem
