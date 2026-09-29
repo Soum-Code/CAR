@@ -85,8 +85,8 @@ Math-Shepherd's 93,129 labelled steps: within wrong-answer solutions, local
 error is 0.1708 and global error 0.7106, so **78.5% of globally-wrong steps are
 arithmetically perfect**. Controlling local selective risk at level α bounds
 nothing about the answer. The claim is about verifiers reading the generator's
-*unverified* context — §2.7 records one structural change, scoring against
-previously-verified premises, that does lift the ceiling. (Chapter 4)
+*unverified* context — §3.3 records one structural change, scoring against
+previously-verified premises, that does lift the ceiling. (Chapter 5)
 
 **C1b. The gap widens on a stronger generator, monotonically.** Re-measured on
 Qwen2.5-7B-Instruct at 80.0% GSM8K accuracy against Mistral-7B-SFT's ~45%, the
@@ -94,7 +94,7 @@ figure rises to **90.4%** with disjoint Wilson intervals. A third generator,
 Llama 3.1 8B Instruct at 68.4%, lands between them at **87.4%** — a point
 predicted before it was run. The stronger model halves its arithmetic slips
 without halving its inherited corruption, so a deterministic verifier gets
-*less* useful as generators improve. (Chapter 4)
+*less* useful as generators improve. (Chapter 5)
 
 **C2. Corruption is close to absorbing.** After the first globally-bad step,
 95.9% of subsequent steps remain bad, and **0 of the 14,573 Math-Shepherd solutions that could have recovered
@@ -102,39 +102,39 @@ ever recover**. Measured on two further generators, persistence falls to 81.6%
 on Llama 3.1 8B and 66.4% on Qwen2.5-7B, with 12 of 141 and 6 of 83 eligible
 solutions recovering. Absorption is therefore a property of the generator — but
 a *monotone* one, decaying smoothly as accuracy rises rather than varying
-arbitrarily. (Chapter 4)
+arbitrarily. (Chapter 5)
 
 **C3. Verifier reach is the controlling variable, and it is semantic.**
 Measured across four verifier classes on the population arithmetic provably
 cannot see: step-local arithmetic 0.0000, unbounded arithmetic lookback 0.1999,
 same-model critic 0.0000, independent general judge 0.2283, task-specialised
 PRM **0.9033**. Reach requires independence from the generator *and* task
-specialisation; neither alone suffices. (Chapter 5)
+specialisation; neither alone suffices. (Chapter 6)
 
 **C4. "Verify early" is false, and the useful structural signal is ancestor
 count.** Front-loading is the worst allocation at every scope > 0, replicated
 on chains, five synthetic DAG families and real graphs from two benchmarks. The
 last defence — that early steps are intrinsically harder — is closed by
 measurement: corr(position, local error) = **+0.950**, error rate doubling from
-11% at step 1 to 22% at step 8. (Chapter 6)
+11% at step 1 to 22% at step 8. (Chapter 7)
 
 **C5. The risk target is constrained before any method is chosen.** With
 measured μ = 0.3908, Kotte's impossibility bound charges a 32.3% verification
 entry fee at α = 0.10. The floor is a property of the generator, not the task,
 and it falls monotonically with generator accuracy: μ = 0.3908 on
 Mistral-7B-SFT, 0.2428 on Llama 3.1 8B, 0.1221 on Qwen2.5-7B, at which point
-α = 0.20 carries no floor at all. (Chapter 8)
+α = 0.20 carries no floor at all. (Chapter 9)
 
 **C6. StrategyQA cannot exhibit the phenomenon it is used to study.** All 2,272
 annotated decompositions: mean depth 2.30, **72.9% exactly one hop**, and only
 11.2% of steps have any non-terminal descendant. A step can only corrupt
-downstream reasoning if downstream reasoning exists. (Chapter 8)
+downstream reasoning if downstream reasoning exists. (Chapter 9)
 
 **C7. Derived dependency graphs are 94.4% correct, and hand-validating them
 found a systematic bug.** An audit of 50 stratified GSM8K graphs exposed an
 operand-extraction fault that silently deleted the dependency edge of *every
 subtraction* in the corpus. Fixing it moved mean depth 2.54 → 2.79 and
-overturned a published conclusion. (Chapter 6)
+overturned a published conclusion. (Chapter 7)
 
 **C8. The assembled gate does not control risk, and the reason is the signal.**
 Generator uncertainty does not rank global step error (AUROC 0.5589 token-level,
@@ -149,7 +149,7 @@ An oracle score separates cause from consequence: it takes selective risk
 0.1554 → **0.0885** and projected accuracy 0.7912 → **0.9780** using a third of
 the calls, so the verifier result is downstream of the score rather than a
 separate defect. It also still misses α = 0.05 by 1.8×, which locates the
-second and genuinely independent bottleneck: the budget. (Chapter 7)
+second and genuinely independent bottleneck: the budget. (Chapter 8)
 
 **C9. A better signal exists, and is still not enough.** A logistic probe on the
 generator's own frozen hidden states reaches **AUROC 0.6968** against 0.5742 for
@@ -166,7 +166,7 @@ first-bad recall from 0.3000 to 0.4500 and **eliminates** its AUROC advantage,
 dropping to 0.5735 against a 0.5742 baseline. Two objectives that trade against
 each other, and only one is what the system is paid on. The gain is significant
 against one reasonable comparator and not the other, and it does not make the
-gate worth running. (Chapter 7.6)
+gate worth running. (Chapter 8.6)
 
 **C10. The score quality the verifier needs is lower than assumed, and AUROC is
 the wrong way to measure it.** Sweeping a synthetic score of controlled AUROC
@@ -179,7 +179,7 @@ whole range rather than at one point. And equal AUROCs are not equally
 valuable — the probe converts its ranking into 0.7802 projected accuracy where a
 synthetic score of the same AUROC reaches 0.8206, because only the *first* bad
 step in a solution can be repaired and the probe ranks late ones.
-(Chapter 7.4)
+(Chapter 8.4)
 
 ## 1.5 The thesis statement
 
@@ -196,17 +196,17 @@ step in a solution can be repaired and the probe ranks late ones.
 
 Chapter 2 covers the background: conformal prediction and risk control, the
 impossibility bound, process reward models, the selective-labels problem, and
-prior work on error propagation. Chapter 3 sets out the framework — the
+prior work on error propagation. Chapter 4 sets out the framework — the
 local/global decomposition, the propagation model, verifier reach as a
 parameter, and the measurement apparatus.
 
-Chapters 4 through 7 are the measurements, in the order the argument needs
+Chapters 5 through 7 are the measurements, in the order the argument needs
 them: the size of the gap, the reach of verifiers, the shape of the optimal
-allocation, and the behaviour of the assembled system. Chapter 8 covers
-feasibility and the benchmark critique. Chapter 9 states the limitations
+allocation, and the behaviour of the assembled system. Chapter 9 covers
+feasibility and the benchmark critique. Chapter 10 states the limitations
 honestly, collects the negative results, and concludes.
 
-Three sections are worth reading even if the rest is skipped: §4.4 (the gap
-widens on a better generator), §5.4 (three tokenizer faults that each produced
-a confident wrong answer), and §7.4 (why the best verifier available loses
+Three sections are worth reading even if the rest is skipped: §5.4 (the gap
+widens on a better generator), §6.4 (three tokenizer faults that each produced
+a confident wrong answer), and §8.4 (why the best verifier available loses
 accuracy).

@@ -1,14 +1,14 @@
-# 5. Verifier reach
+# 6. Verifier reach
 
 > Reproduce: `python scripts/exp_verifier_scope.py`,
 > `python scripts/gpu_semantic_scope.py --analyse runs/semantic_scope_prm.json`
 
-Chapter 4 established that most globally-wrong steps are locally valid. The
+Chapter 5 established that most globally-wrong steps are locally valid. The
 design question that follows is whether a *better* verifier can see them, and
 what "better" means. This chapter measures reach across four verifier classes
 and finds it spans nearly the whole unit interval.
 
-## 5.1 Reach is not a window
+## 6.1 Reach is not a window
 
 The first hypothesis is that a verifier fails on inherited corruption because
 it looks at too little context. If so, widening the lookback should help.
@@ -53,7 +53,7 @@ lives.
 
 ![Arithmetic reach saturates at 0.1999 however wide the window, because 80% of inherited corruption has no upstream arithmetic error to find.](figures/fig3-lookback-saturation.png)
 
-**Figure 5.1.** Arithmetic reach saturates at 0.1999 however wide the window, because 80% of inherited corruption has no upstream arithmetic error to find.
+**Figure 6.1.** Arithmetic reach saturates at 0.1999 however wide the window, because 80% of inherited corruption has no upstream arithmetic error to find.
 
 That defines the remaining question precisely:
 
@@ -62,9 +62,9 @@ That defines the remaining question precisely:
 
 (28,433, not the 28,434 above: one of the steps with no upstream arithmetic
 error is still caught at k = 0, by its own bad arithmetic. That single
-detection is the `1` in the k = 0 row of §5.1's table.)
+detection is the `1` in the k = 0 row of §6.1's table.)
 
-## 5.2 The four arms
+## 6.2 The four arms
 
 Three verifier classes were run on that arithmetic-blind population, plus a
 control group of steps that are locally valid **and** globally correct — without
@@ -87,7 +87,7 @@ So the judges' scopes rest on 600 positives and their false-alarm rates on
 
 ![Scope and false-alarm rate across four verifier classes. Only the verifier that is both independent of the generator and task-trained closes the gap.](figures/fig2-verifier-reach.png)
 
-**Figure 5.2.** Scope and false-alarm rate across four verifier classes. Only the verifier that is both independent of the generator and task-trained closes the gap.
+**Figure 6.2.** Scope and false-alarm rate across four verifier classes. Only the verifier that is both independent of the generator and task-trained closes the gap.
 
 **The same-model critic detects zero errors.** It is the model that wrote these
 solutions, asked whether they are sound, and it approves everything — its
@@ -113,7 +113,7 @@ sandbox as interchangeable reliability mechanisms. They are not — they span 0.
 to 0.90 scope, and that axis is absent from the specification entirely.
 
 It is *not* absent from the literature, and an earlier draft of this chapter
-implied otherwise. Sherlock (Ro et al., §2.7) builds a learned per-node verifier
+implied otherwise. Sherlock (Ro et al., §3.3) builds a learned per-node verifier
 selector on exactly the observation that verifier accuracy and cost are not
 monotonically related. What this chapter contributes is not the observation that
 verifiers differ, but the decomposition: measured on the population deterministic
@@ -121,19 +121,19 @@ checking provably cannot see, reach requires generator-independence **and** task
 specialisation, and neither alone is sufficient — a distinction a cost-versus-
 accuracy selector cannot make, because both properties are invisible to it.
 
-## 5.3 Why there is no retrieval arm
+## 6.3 Why there is no retrieval arm
 
 GSM8K's premises are the problem statement, not an external corpus, so
 retrieval-plus-entailment has no meaning here. A genuine retrieval arm needs
-StrategyQA's evidence paragraphs — but Chapter 8 shows StrategyQA is 72.9% one
+StrategyQA's evidence paragraphs — but Chapter 9 shows StrategyQA is 72.9% one
 hop deep, so the arithmetic-blind population barely exists there. The
 measurement is not available on either benchmark, and saying so is more honest
 than substituting a proxy.
 
-## 5.4 Three measurement faults that each produced a confident wrong answer
+## 6.4 Three measurement faults that each produced a confident wrong answer
 
 This section is longer than the result it protects, deliberately. The first
-completed run of §5.2 reported the **opposite** conclusion — negative net scope
+completed run of §6.2 reported the **opposite** conclusion — negative net scope
 — and it was entirely an artifact.
 
 ### The symptom
@@ -197,7 +197,7 @@ It is recorded as an uninformative verifier, not as a harness fault, and the
 distinction is defensible only because the PRM passed the same gate on the same
 data.
 
-## 5.5 Scope decay with propagation distance
+## 6.5 Scope decay with propagation distance
 
 The propagation model assumes scope fades with distance from the corruption
 origin. Measuring it required fixing an instrumentation bug first: the initial
@@ -209,13 +209,13 @@ The measured decay is consistent with the 0.377 fitted from Singh & Pawar's
 escape probabilities, but the sample thins quickly with distance and the
 estimate is not precise enough to quote as a headline.
 
-## 5.6 What this chapter establishes for the rest
+## 6.6 What this chapter establishes for the rest
 
-Chapter 6 asks how to allocate a budget across steps; Chapter 7 runs the
+Chapter 7 asks how to allocate a budget across steps; Chapter 8 runs the
 assembled system. Both need scope as a *parameter*, not as whatever verifier
 happens to be wired in. `ScopedVerifier.from_measured` turns this chapter's
 table into a component, so the later chapters can be run at each measured
 reach and the results attributed to it.
 
-The number that turns out to matter most in Chapter 7 is not the 0.9033. It is
+The number that turns out to matter most in Chapter 8 is not the 0.9033. It is
 the **0.0987** next to it.

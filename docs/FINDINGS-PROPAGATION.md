@@ -1,13 +1,13 @@
 # Stress-test of the surviving contribution
 
-Step 2 of the workplan. Tests whether POSITIONING.md §4.1 (risk control over
-dependent steps) can carry a thesis, and whether §4.2 (influence-weighted
+Step 2 of the workplan. Tests whether POSITIONING.md §5.1 (risk control over
+dependent steps) can carry a thesis, and whether §5.2 (influence-weighted
 allocation) survives contact with numbers.
 
 Reproduce: `python scripts/exp_propagation.py`, `exp_allocation.py`, `exp_cost.py`.
 Model: `src/car/propagation.py`. Locked in by `tests/test_propagation.py` (26 tests).
 
-**Summary: §4.1 survives and is stronger than expected. §4.2 is dead. So is the
+**Summary: §5.1 survives and is stronger than expected. §5.2 is dead. So is the
 spec's hypothesis H3.**
 
 ---
@@ -64,7 +64,7 @@ therefore what conformal machinery can control. CSA controls exactly this
 quantity. Under propagation, controlling it at level α bounds nothing about the
 answer.
 
-**This is the strongest result here and it is what §4.1 should be built on.** It
+**This is the strongest result here and it is what §5.1 should be built on.** It
 is not "steps are dependent, so exchangeability is awkward" — it is that the
 certified quantity and the quantity of interest come apart, and the gap is
 unbounded.
@@ -113,7 +113,7 @@ Front-loading is the **worst** shape at every scope > 0. Verified robust across:
 
 This contradicts spec hypothesis H3 ("early verification will produce a larger
 reduction in propagated errors than end-only verification"), which is stated
-unconditionally. It also kills POSITIONING.md §4.2, since influence weighting
+unconditionally. It also kills POSITIONING.md §5.2, since influence weighting
 *is* front-loading: in a chain, descendant count decreases monotonically with
 position.
 
@@ -152,7 +152,7 @@ compared work.
 
 ### Keep
 
-**The certification gap (§4.1).** Existing conformal gating certifies local step
+**The certification gap (§5.1).** Existing conformal gating certifies local step
 correctness. Under propagation that bounds nothing about the answer, and Result 1
 measures the gap directly. This is sharper than the "dependence breaks
 exchangeability" framing — it is not a technical inconvenience, it is a
@@ -166,7 +166,7 @@ locally.
 
 ### Drop
 
-- **Influence-weighted allocation (§4.2).** Front-loading loses everywhere.
+- **Influence-weighted allocation (§5.2).** Front-loading loses everywhere.
 - **Hypothesis H3.** Not supported under any variant tested. If it is retained
   at all it must be restated conditionally, and the condition is not one this
   model produces.
@@ -241,7 +241,7 @@ Off-chain the two policies do separate, and influence is the better of the two
 on parallel. So the separation is real but small and not consistent in sign.
 
 **Influence weighting still loses to plain uniform on every topology tested**
-(+0.047 to +0.119). The §4.2 rejection stands — but now for a tested reason
+(+0.047 to +0.119). The §5.2 rejection stands — but now for a tested reason
 rather than a confounded one. Holds under decay = 0.377 and under weak scope
 (0.3).
 
@@ -262,7 +262,7 @@ The intuition is the reach story again, in structural form:
 
 Descendant count answers "how much damage could this cause?". Ancestor count
 answers "how much can I screen with one call?". Under a budget, the second is
-the question that matters — and it is the opposite of what the spec and §4.2
+the question that matters — and it is the opposite of what the spec and §5.2
 proposed.
 
 ## Caveats on the addendum
@@ -662,7 +662,7 @@ between allocation policies are unaffected.
 
 # Addendum 5: verifier scope, measured — reach is semantic, not structural
 
-Chapter 5's central experiment. Two parts: an arithmetic verifier measured on
+Chapter 6's central experiment. Two parts: an arithmetic verifier measured on
 CPU, and a semantic verifier measured on a Kaggle P100.
 
 ## Part 1 — arithmetic reach is a window, and it tops out at 20%

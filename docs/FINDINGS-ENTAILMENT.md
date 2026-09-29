@@ -1,6 +1,6 @@
 # The reference relation does not rescue the signal
 
-Chapter 7 reports that semantic divergence barely ranks step error, and that
+Chapter 8 reports that semantic divergence barely ranks step error, and that
 the number *moves with the clustering relation*: over all steps, numeric
 equivalence gives AUROC 0.5488 and re-clustering the same samples by string
 equality gives 0.4904, below chance. That leaves an obvious objection to the
@@ -58,7 +58,7 @@ What survives the interval is the thing that matters:
 
 Even the optimistic end of that interval is a signal nobody would gate on.
 
-> Chapter 7's negative result is not an artifact of the equivalence function.
+> Chapter 8's negative result is not an artifact of the equivalence function.
 > Swapping in the relation the literature uses moves the measurement by less
 > than its own sampling error, and leaves it weak.
 
@@ -108,7 +108,7 @@ generator looks almost entirely self-consistent.
 Of the 13,968 unordered pairs, **8,625 (61.7%)** have no extractable number on
 at least one side, so `numeric_equivalence` falls back to string equality and
 calls them distinct. Those are the narration and algebra-rearrangement steps —
-the same population §9.2 flags as 59% of what Qwen writes. The relations differ
+the same population §10.2 flags as 59% of what Qwen writes. The relations differ
 most exactly where neither is well defined.
 
 On the **5,343 pairs where both sides assert a number** the two relations agree
@@ -178,12 +178,12 @@ comment:
   project a GPU session once.
 
 The cache and both feature files are committed, so re-clustering under a
-different criterion — like the arithmetic veto in §3 — costs no GPU and no
+different criterion — like the arithmetic veto in §4 — costs no GPU and no
 NLI pass.
 
 ## 5. What this closes
 
-Chapter 9 listed bidirectional entailment as the cheapest untested alternative
+Chapter 10 listed bidirectional entailment as the cheapest untested alternative
 and noted the raw samples were committed so it could be run without a GPU. It
 has been run:
 
@@ -191,7 +191,7 @@ has been run:
 |---|---|
 | Did the reference relation find signal the cheap one missed? | **No** — 0.5625, CI [0.512, 0.614] |
 | Is it worse than numeric equivalence? | **Unknown, and the question is not interesting** — the gap's CI spans zero |
-| Is the ch. 7 result an artifact of the equivalence function? | **No** — across a 0.1%→78% permissiveness range the answer does not move |
+| Is the ch. 8 result an artifact of the equivalence function? | **No** — across a 0.1%→78% permissiveness range the answer does not move |
 | Do three relations give three independent confirmations? | **No** — they nest; see §2 |
 | Is the reference relation the right one here? | **Doubtful** — it merges 52% of the pairs that assert conflicting numbers |
 

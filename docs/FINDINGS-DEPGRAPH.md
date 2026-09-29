@@ -142,7 +142,7 @@ depth — now a fifth independent replication, and the spread grows with depth a
 before (0.0033 at depth 2 → 0.1279 at depth 6).
 
 **Unaffected entirely.** C1 (69.8% of wrong steps locally valid), the per-step
-error rate, and all of Chapter 5's verifier-scope results come from
+error rate, and all of Chapter 6's verifier-scope results come from
 Math-Shepherd step labels, not from derived GSM8K graphs. None of them touch
 this code path.
 

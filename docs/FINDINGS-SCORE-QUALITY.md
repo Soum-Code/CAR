@@ -1,6 +1,6 @@
 # How good does the score have to be? The crossing is at AUROC ≈ 0.65
 
-Chapter 7 ends with a verifier that detects 90.3% of globally-wrong steps and
+Chapter 8 ends with a verifier that detects 90.3% of globally-wrong steps and
 is still a *net loss* — behind the measured score it costs 4 points of
 projected accuracy, behind the probe it costs 2, and behind an oracle it gains
 17.6. So there is a score quality at which the task PRM stops being a
@@ -37,7 +37,7 @@ Everything else is held fixed and imported from `exp_gate_pipeline.py` rather
 than reimplemented — same corpus, same hash splits, same split-conformal
 calibrator, same 2-call budget, same verifier at its measured scope and
 false-alarm rate. If this script ran the loop its own way its rows would not be
-comparable to the Chapter 7 tables, which is the entire point. 64 seeds per
+comparable to the Chapter 8 tables, which is the entire point. 64 seeds per
 grid point; the confidence intervals below are over seeds.
 
 ---
@@ -86,7 +86,7 @@ crossing to find.
 > correct step is worth having however badly it is aimed; the whole question of
 > "how good does the score need to be" is created by the false-alarm rate.
 
-This is the sharpest available statement of §7.4's correction, and it is the
+This is the sharpest available statement of §8.4's correction, and it is the
 one a practitioner can act on: **halving a verifier's false-alarm rate moves
 the score quality you need more than raising its detection rate does.**
 
@@ -99,7 +99,7 @@ the score quality you need more than raising its detection rate does.**
 | selective risk | 0.1531 | 0.1399 | 0.1193 | 0.1024 | **0.0956** |
 
 **Never held.** The best any score quality manages is 0.0956 at AUROC 0.99 —
-still **1.9× the target**. §7.3 showed this at one point, using a binary
+still **1.9× the target**. §8.3 showed this at one point, using a binary
 oracle; this shows it across the whole range, and rules out the reading that
 the oracle's failure was an artifact of its degenerate score distribution.
 
@@ -134,7 +134,7 @@ corr(normalised step position, composite score)  -0.2766
 among globally-wrong steps only:  probe +0.2030,  composite -0.2242
 ```
 
-**The probe flags late steps. The composite flags early ones.** Chapter 6
+**The probe flags late steps. The composite flags early ones.** Chapter 7
 measured local error rate rising with position — `corr(position, local error)
 = +0.950`, doubling from 11% at step 1 to 22% at step 8 — so a score that
 chases positional difficulty is rewarded on AUROC. But the projection only pays
@@ -158,7 +158,7 @@ It does not overturn anything, and it sharpens two things:
 1. **The crossing in §1 above is an estimate for a well-behaved score.** A real
    score of AUROC 0.65 with a positional bias will land below the synthetic
    curve, so 0.65 is a floor on the requirement, not a specification.
-2. **Chapter 7's AUROCs are the right measurement of the wrong quantity.**
+2. **Chapter 8's AUROCs are the right measurement of the wrong quantity.**
    They are comparable to each other and to the literature, and they are not
    sufficient to predict what a score is worth in the loop. First-bad-step
    recall is closer to the quantity that matters.
@@ -176,7 +176,7 @@ binormal, and this experiment cannot say what a real score of a given AUROC
 would do beyond "at least as badly as the synthetic one, if it has structure
 the projection does not reward".
 
-**Projected accuracy is MODELLED throughout**, with the same assumptions §7.5
+**Projected accuracy is MODELLED throughout**, with the same assumptions §8.5
 sets out. Selective risk, verification rate, recall and first-bad recall are
 measured.
 

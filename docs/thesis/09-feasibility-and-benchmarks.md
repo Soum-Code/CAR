@@ -1,4 +1,4 @@
-# 8. Feasibility and benchmarks
+# 9. Feasibility and benchmarks
 
 > Reproduce: `python scripts/exp_measure_error_rate.py`,
 > `python scripts/exp_strategyqa_topology.py`,
@@ -10,12 +10,12 @@ all, and can the benchmark exhibit the phenomenon being studied?
 
 Both answers are negative for the choices the specification made.
 
-## 8.1 The risk target is constrained before any method is chosen
+## 9.1 The risk target is constrained before any method is chosen
 
 Kotte's Proposition 3: when base risk μ exceeds target α, any distribution-free
 method must verify or abstain on at least `(μ − α)/(1 − α)` of items.
 
-With the μ measured in Chapter 4 for Mistral-7B-SFT:
+With the μ measured in Chapter 5 for Mistral-7B-SFT:
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 | 0.40 |
 |---|---|---|---|---|---|
@@ -24,7 +24,7 @@ With the μ measured in Chapter 4 for Mistral-7B-SFT:
 **α = 0.10 — the specification's value — charges a third of the entire
 verification budget as an entry fee** before any method is admissible. It is
 not a modest target; against global risk it is close to infeasible, and it is
-only defensible against *local* risk, which Chapter 4 showed is not the
+only defensible against *local* risk, which Chapter 5 showed is not the
 quantity of interest.
 
 The configuration was changed to α = 0.30, where the 13.0% floor is affordable
@@ -35,7 +35,7 @@ than producing a flat results table that has to be diagnosed afterwards.
 
 ### The floor is a property of the generator
 
-Chapter 4 measured μ on two further generators, and the picture changes
+Chapter 5 measured μ on two further generators, and the picture changes
 completely:
 
 | α | 0.05 | 0.10 | 0.20 | 0.30 |
@@ -53,13 +53,13 @@ on a weak one, 23.9%.
 This thesis originally stated the floor as a property of the task, and that was
 wrong.
 
-Chapter 7 shows the sting in the tail: when μ falls below α, the target becomes
+Chapter 8 shows the sting in the tail: when μ falls below α, the target becomes
 *vacuous* rather than easy. At α = 0.30 against μ = 0.1578, verifying nothing
 satisfies the guarantee. A conformal result that is satisfied by the empty
-policy certifies nothing, and the sweep in §7.3 exists precisely to find where
+policy certifies nothing, and the sweep in §8.3 exists precisely to find where
 α starts to bind.
 
-## 8.2 StrategyQA cannot exercise the phenomenon it is used for
+## 9.2 StrategyQA cannot exercise the phenomenon it is used for
 
 StrategyQA was the original primary benchmark, chosen because it ships human
 annotated decompositions — apparently ideal for studying step-level reasoning.
@@ -91,19 +91,19 @@ GSM8K became the primary benchmark on evidence rather than preference. It has
 **2.7×** the propagation headroom (29.9% against 11.2%), depth reaching 8, and
 **6.2×** as many questions at depth ≥ 3 (3,815 against 615) — the ratios of the
 table above. An earlier draft said 2.4× and "five times", which were the
-pre-bug-fix values from before Chapter 6's dependency-extraction fix.
+pre-bug-fix values from before Chapter 7's dependency-extraction fix.
 
 What was given up is the annotated decomposition: GSM8K dependency graphs are
-**derived** from calculator-operand matching, not annotated. Chapter 6
+**derived** from calculator-operand matching, not annotated. Chapter 7
 hand-validates that derivation and measures its error at 5.7% of edges. That is
 a real cost, and it is quantified rather than waved at.
 
 StrategyQA is retained for calibration and for evidence-grounded verification,
 where its evidence paragraphs are genuinely useful — and it is the only place a
-retrieval verifier arm could run at all, though §5.3 explains why that arm is
+retrieval verifier arm could run at all, though §6.3 explains why that arm is
 not available in practice.
 
-## 8.3 A note on benchmark choice as a research decision
+## 9.3 A note on benchmark choice as a research decision
 
 Both findings in this chapter share a shape. The specification made a
 reasonable-looking choice — α = 0.10 because it sounds like a strong guarantee,

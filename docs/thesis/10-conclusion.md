@@ -1,6 +1,6 @@
-# 9. Limitations, negative results, and conclusion
+# 10. Limitations, negative results, and conclusion
 
-## 9.1 The negative results, collected
+## 10.1 The negative results, collected
 
 This thesis refuted more claims than it established, including most of its own.
 Each refutation carries a regression test so it cannot quietly stop
@@ -16,22 +16,22 @@ test fails if it stops reproducing.
 | Adaptive conformal under censored feedback is novel † | this project's specification | **scooped** | CSA Thm E.1, a stronger anytime guarantee |
 | Composite token-level uncertainty is the key signal | specification | **refuted** | AUROC 0.5589 |
 | Semantic entropy at intermediate steps is the key signal | specification | **refuted** | AUROC 0.5740; combining buys 0.0002 |
-| Influence weighting (descendant count) beats uniform | specification §4.2 | **refuted** | loses to uniform on 5 DAG families and 2 real corpora; the chain test could not have shown it (§6.2: influence ≡ front on a chain) |
+| Influence weighting (descendant count) beats uniform | specification §5.2 | **refuted** | loses to uniform on 5 DAG families and 2 real corpora; the chain test could not have shown it (§7.2: influence ≡ front on a chain) |
 | H3: verify early beats verify late | specification | **refuted** | worst policy at every scope > 0; corr(position, error) = +0.950 |
 | α = 0.10 is a workable target | specification | **close to infeasible on Mistral** | 32.3% Kotte entry fee at μ = 0.3908; 15.9% on Llama (μ = 0.2428); on Qwen (μ = 0.1221) the same target is comfortable |
 | StrategyQA is a suitable primary benchmark | specification | **wrong choice** | 72.9% of graphs one hop deep |
 | The best structural signal is benchmark-dependent | this thesis, earlier draft | **overturned** | artifact of the extraction bug; depth wins on both |
-| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific, and monotone** | 95.9% Mistral, 81.6% Llama, 66.4% Qwen — ordered by accuracy across three models |
-| C3's `net = scope − FA` is the figure of merit † | this thesis, ch. 5 | **corrected** | base-rate error; see §7.4 |
+| Corruption is near-absorbing | this thesis, ch. 5 | **generator-specific, and monotone** | 95.9% Mistral, 81.6% Llama, 66.4% Qwen — ordered by accuracy across three models |
+| C3's `net = scope − FA` is the figure of merit † | this thesis, ch. 6 | **corrected** | base-rate error; see §8.4 |
 | Selective verification with a calibrated gate controls risk | the whole premise | **refuted** | selective risk misses α by 3× at α = 0.05; three α bind and the misses are 3.0×, 1.5×, 1.0× |
-| The three failures are independent † | this thesis, ch. 7 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
-| Internal states do not carry a usable step signal | implied by ch. 7's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
-| A probe here will land near the PRM's 0.9033 | this thesis, ch. 9 prediction | **missed** | 0.6968 measured; doubling the training data recovers ~0.01, not the gap |
-| 0.6968 is a floor, pending more training data | this thesis, ch. 7.6 | **unsupported** | its curve was scored on the selection split; a clean test gives +0.0105, CI [−0.035, +0.057] |
-| A linear probe is the wrong instrument, and that explains the gap | this thesis, ch. 7.6 and ch. 9 | **null** | matched at layer, a non-linear head is worth +0.0051; the sign flips across layers and the one significant comparison favours linear |
-| The verifier needs a score "well above 0.70" | this thesis, ch. 7 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65, and 0.6968 sits inside the [0.625, 0.700] band the sweep cannot resolve — the probe is at the boundary, not past it |
+| The three failures are independent † | this thesis, ch. 8 first draft | **partly wrong** | the oracle shows the verifier result is downstream of the score |
+| Internal states do not carry a usable step signal | implied by ch. 8's first draft | **refuted** | a probe reaches AUROC 0.6968 against 0.5742, and improves the gate |
+| A probe here will land near the PRM's 0.9033 | this thesis, ch. 10 prediction | **missed** | 0.6968 measured; doubling the training data recovers ~0.01, not the gap |
+| 0.6968 is a floor, pending more training data | this thesis, ch. 8.6 | **unsupported** | its curve was scored on the selection split; a clean test gives +0.0105, CI [−0.035, +0.057] |
+| A linear probe is the wrong instrument, and that explains the gap | this thesis, ch. 8.6 and ch. 10 | **null** | matched at layer, a non-linear head is worth +0.0051; the sign flips across layers and the one significant comparison favours linear |
+| The verifier needs a score "well above 0.70" | this thesis, ch. 8 earlier draft | **wrong, and low** | the crossing is AUROC ≈ 0.65, and 0.6968 sits inside the [0.625, 0.700] band the sweep cannot resolve — the probe is at the boundary, not past it |
 | AUROC is the figure of merit for a step score | implicit everywhere in chs. 7 and 9 | **refuted** | equal-AUROC scores differ by 0.04 projected accuracy; what counts is first-bad-step recall |
-| The cheap equivalence relation was hiding the signal | the obvious objection to §7.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
+| The cheap equivalence relation was hiding the signal | the obvious objection to §8.2 | **refuted** | entailment 0.5625, CI [0.512, 0.614], across a 0.1%–78% permissiveness range |
 
 The row refuting *selective verification with a calibrated gate controls risk*
 is the thesis. Below it sits the correction the oracle baseline forced: of the three failure points, only two are separate. The
@@ -39,7 +39,7 @@ verifier's net-negative result is a consequence of aiming it with a near-chance
 score, and disappears when the score is perfect. What remains genuinely
 independent is the **signal** and the **budget**.
 
-## 9.2 Threats to validity
+## 10.2 Threats to validity
 
 **Generator mismatch, largely addressed.** The headline rates come from
 Mistral-7B-SFT via Math-Shepherd. C1 has been reproduced on two further
@@ -78,7 +78,7 @@ link, 4.2% elsewhere). That is a lower bound — dependencies routed through
 unannotated solution lines are invisible to any operand-matching scheme — and
 the adjudication was by LLM, not blind human annotation.
 
-**Uncheckable steps.** Under `notation="any"` — the single definition §4.4
+**Uncheckable steps.** Under `notation="any"` — the single definition §5.4
 adopts so the two corpora are comparable — 8.6% of Math-Shepherd steps and 59%
 of Qwen steps carry no arithmetic. (Under marker notation the Math-Shepherd
 figure is 11.3%, or 12.3% within the wrong-answer stratum; an earlier draft
@@ -89,7 +89,7 @@ every local rate is conditioned on checkability.
 **Modelling versus measurement.** The propagation model's assumptions — full
 repair on detection, i.i.d. per-step error — are known to be wrong. The i.i.d.
 one is wrong in a direction that makes the allocation conclusions
-*conservative*. Chapter 7's projected accuracy is pessimistic about false
+*conservative*. Chapter 8's projected accuracy is pessimistic about false
 alarms; the direction is isolated by the FA = 0 ablation, the magnitude is not
 robust.
 
@@ -102,7 +102,7 @@ word problems. Whether the local/global gap has the same size on code, on
 multi-hop retrieval, or on agentic tool use is untested. The *mechanism* has no
 obvious arithmetic dependence, but that is an argument, not a measurement.
 
-## 9.3 What a practitioner should take from this
+## 10.3 What a practitioner should take from this
 
 **Measure your base risk before choosing α.** It is two numbers and a closed
 form, and it will frequently tell you the target you wrote down is either
@@ -140,21 +140,21 @@ catch is correct and the allocation conclusion that follows from it is wrong,
 because later steps are measurably harder. If you must use structure, use
 ancestor count.
 
-## 9.4 Future work
+## 10.4 Future work
 
 **A better step-level signal is the bottleneck.** Two candidates were named here
 with a concrete, checkable prediction attached to each. One has since been run,
 and the result is recorded below alongside the prediction it missed.
 
 *Probes on frozen internal states — now tested, and the series is closed.*
-§7.6 reports AUROC **0.6968**, +0.12 over everything else measured here,
+§8.6 reports AUROC **0.6968**, +0.12 over everything else measured here,
 improving selective risk at α = 0.05 and 0.30 on fewer calls than the measured
 score (at α = 0.10 it spends more). It is not "worth continuing" in the sense
-an earlier draft meant: §7.6 varies the probe's training data, its target and
+an earlier draft meant: §8.6 varies the probe's training data, its target and
 its functional form, finds every effect inside its own interval, and concludes
 the binding constraint is the corpus rather than the probe. The prediction that it would land near
 0.9033 was wrong, and an earlier draft excused it as probe-scale training on
-670 steps against ReProbe's far larger sets. §7.6 measures that excuse and
+670 steps against ReProbe's far larger sets. §8.6 measures that excuse and
 finds it small: at fixed layer and C, doubling the training data moves the
 held-out AUROC by **+0.0105**, CI [−0.035, +0.057]. Positive, and nowhere near
 the 0.2 the prediction would need. The instrument excuse is now tested too and
@@ -170,7 +170,7 @@ gate hold α = 0.05 or 0.10 — α = 0.15 also binds and the probe does hold tha
 one — and it did not make the PRM worth having: projected accuracy 0.7802,
 still under the 0.8022 baseline, where the oracle reaches 0.9780.
 
-§7.4 then locates the threshold that earlier drafts could only gesture at. A
+§8.4 then locates the threshold that earlier drafts could only gesture at. A
 9.87%-false-alarm verifier turns from liability into gain at **AUROC ≈ 0.65**,
 net-negative to 0.625 and net-positive from 0.700 — *below* the probe's own
 0.6968. Two things follow, and they cut in opposite directions. The signal
@@ -186,8 +186,8 @@ result here. The probe has already settled the general question — step-level
 uncertainty *is* readable — so what embedding perturbation would add is a
 cheaper route to it, one that needs no labelled training steps at all.
 
-Chapter 7 is a result about token-level and sampling-based signals, not about
-all possible signals, and §7.6 is the demonstration of that. But §7.4 also
+Chapter 8 is a result about token-level and sampling-based signals, not about
+all possible signals, and §8.6 is the demonstration of that. But §8.4 also
 changes what "better" should mean. The target is not a higher AUROC: the
 verifier already turns positive at ≈ 0.65, and no AUROC at all holds α = 0.05
 at this budget. What is wanted is a score that ranks the **earliest** bad step
@@ -197,7 +197,7 @@ system is for, as the probe did.
 
 **Bidirectional entailment clustering — run, and it closed negatively.** This
 was listed here as the cheapest untested alternative, on the grounds that
-Chapter 7 shows the relation is load-bearing. §7.2 now reports it: the
+Chapter 8 shows the relation is load-bearing. §8.2 now reports it: the
 reference relation scores **0.5625** on test, 95% CI [0.512, 0.614], on the
 same 12,865 generations. It does not find signal the cheap relation missed. The
 0.0114 gap to numeric equivalence is *not* a ranking — its interval spans zero
@@ -212,7 +212,7 @@ same thing, not whether they compute the same number. A relation that *is*
 sensitive to the asserted quantity, and that also handles the 59% of steps
 carrying no arithmetic, remains unbuilt.
 
-**Verifier calibration rather than verifier reach.** §7.4 no longer merely
+**Verifier calibration rather than verifier reach.** §8.4 no longer merely
 suggests this, it measures it. The score quality a 90.3%-scope verifier needs
 before it is worth calling is AUROC ≈ 0.65 at a 9.87% false-alarm rate and
 *nothing at all* at a 0% one — the PRM is net-positive down to AUROC 0.55 once
@@ -222,20 +222,20 @@ would buy was not measured — scope is held at 0.9033 in every row of the sweep
 and the only verifier ablation is FA 0.0987 → 0 — so the comparison between the
 two levers is an argument, not a result.
 
-**Verify against verified premises, under a budget.** ARES (You et al., §2.7)
+**Verify against verified premises, under a budget.** ARES (You et al., §3.3)
 detects propagated errors at 90.3% F1 by scoring each step solely against
 *previously-verified* premises — on their own synthetic ClaimTrees corpus, so
-the number is not comparable with Chapter 5's 0.9033, which is a detection rate
-on Math-Shepherd's arithmetic-blind subset. §2.7 says so; both restatements
+the number is not comparable with Chapter 6's 0.9033, which is a detection rate
+on Math-Shepherd's arithmetic-blind subset. §3.3 says so; both restatements
 here had dropped the qualifier. That is the structural change C1 implies is
 necessary, and it works. It also assumes something a budgeted gate cannot
-supply: a verified prefix. Every verifier measured in Chapter 5 reads the
+supply: a verified prefix. Every verifier measured in Chapter 6 reads the
 generator's uncorrected context, which is why they top out where they do.
 
 What happens to ARES-style entailment scoring when only a fraction of the prefix
 has been verified — and how the gate should choose *which* fraction to make the
 conditioning set as useful as possible — is the most promising open question
-this thesis can hand on. It also reframes Chapter 6: allocation would no longer
+this thesis can hand on. It also reframes Chapter 7: allocation would no longer
 be about catching errors, but about building a trustworthy prefix to condition
 later checks on, and ancestor count is a much more natural signal for that
 objective than it is for the one tested here.
@@ -251,7 +251,7 @@ solve it.
 **Cross-domain replication.** The mechanism should not be arithmetic-specific.
 Testing it on code or multi-hop retrieval is the clearest way to find out.
 
-## 9.5 Conclusion
+## 10.5 Conclusion
 
 The thesis set out to build a calibrated gate for step-level verification and
 instead measured why one does not work. The final statement:

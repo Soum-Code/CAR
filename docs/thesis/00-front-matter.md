@@ -105,7 +105,7 @@ detection, i.i.d. per-step error — are known to be wrong. Where a modelled
 number appears it is labelled PROJECTED, and where the modelling assumption
 affects a conclusion the direction of the resulting bias is stated.
 
-The distinction matters most in Chapter 7, where final-answer accuracy under
+The distinction matters most in Chapter 8, where final-answer accuracy under
 gating cannot be measured on a fixed corpus and is therefore projected.
 
 ---
@@ -129,7 +129,7 @@ time are committed rather than regenerated: `runs/semantic_scope_*.json`,
 
 Every refuted claim in this thesis that rests on a *measurement* has a
 regression test that keeps it refuted, so a result cannot silently stop
-reproducing. Three rows of §9.1's table do not, and cannot: one is a literature
+reproducing. Three rows of §10.1's table do not, and cannot: one is a literature
 fact (the censored-feedback method was scooped), and two are claims whose
 refutation is a matter of scope rather than of a number that could move. They
 are marked in that table.
@@ -142,11 +142,11 @@ are marked in that table.
 |---|---|
 | 1 | [Introduction](01-introduction.md) |
 | 2 | [Background](02-background.md) |
-| 3 | [Framework](03-framework.md) |
-| 4 | [Measuring the gap](04-measuring-the-gap.md) |
-| 5 | [Verifier reach](05-verifier-reach.md) |
-| 6 | [Allocation](06-allocation.md) |
-| 7 | [The assembled gate](07-the-assembled-gate.md) |
-| 8 | [Feasibility and benchmarks](08-feasibility-and-benchmarks.md) |
-| 9 | [Limitations, negative results, conclusion](09-conclusion.md) |
-| — | [References](10-references.md) |
+| 3 | [Framework](04-framework.md) |
+| 4 | [Measuring the gap](05-measuring-the-gap.md) |
+| 5 | [Verifier reach](06-verifier-reach.md) |
+| 6 | [Allocation](07-allocation.md) |
+| 7 | [The assembled gate](08-the-assembled-gate.md) |
+| 8 | [Feasibility and benchmarks](09-feasibility-and-benchmarks.md) |
+| 9 | [Limitations, negative results, conclusion](10-conclusion.md) |
+| — | [References](11-references.md) |

@@ -1,8 +1,8 @@
 # A probe on internal states: the signal exists, and it is still not enough
 
-Chapter 7's negative result rests on AUROC 0.5742 — neither token-level
+Chapter 8's negative result rests on AUROC 0.5742 — neither token-level
 uncertainty nor sampling-based semantic divergence ranks a globally-wrong step.
-Chapter 9 named the untested alternative and committed to a prediction before
+Chapter 10 named the untested alternative and committed to a prediction before
 running it: ReProbe (Ni et al., [arXiv:2511.06209](https://arxiv.org/abs/2511.06209))
 trains a sub-10M-parameter probe on frozen internal states and matches PRMs up
 to 810× larger, but its margin is largest *out of domain* and strong PRMs reach
@@ -18,7 +18,7 @@ python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json
 One teacher-forced pass per solution over the committed 500-solution corpus,
 hidden states captured at each step's final token for all 29 hidden-state
 tensors (the embedding output plus 28 transformer layers), logistic
-probe per layer, same hash splits as Chapter 7.
+probe per layer, same hash splits as Chapter 8.
 
 ---
 
@@ -30,15 +30,15 @@ probe per layer, same hash splits as Chapter 7.
 | semantic divergence only | 0.5740 |
 | both | 0.5742 |
 | **probe on layer 25** | **0.6968** |
-| ch. 5 task PRM (scope, not AUROC) | 0.9033 |
+| ch. 6 task PRM (scope, not AUROC) | 0.9033 |
 
-**+0.12 AUROC over everything Chapter 7 measured.** This is the first score in
+**+0.12 AUROC over everything Chapter 8 measured.** This is the first score in
 the project that is clearly better than the token/sampling family, and it
-settles the question Chapter 9 posed: the AUROC 0.56 result was about *those
+settles the question Chapter 10 posed: the AUROC 0.56 result was about *those
 signals*, not about step-level uncertainty in general. The generator's internal
 states do encode something about whether the step it just wrote was sound.
 
-It also lands **below** Chapter 9's prediction of ~0.9033, not near it. See §4.
+It also lands **below** Chapter 10's prediction of ~0.9033, not near it. See §5.
 
 ### The layer profile says this is not a lucky draw
 
@@ -77,7 +77,7 @@ project.
 
 It also misses **every binding target**: 2.9× at α = 0.05, 1.4× at α = 0.10.
 
-> Chapter 7's conclusion survives, and is now better supported. The earlier
+> Chapter 8's conclusion survives, and is now better supported. The earlier
 > version could be read as "the signal happened to be absent." This shows the
 > signal is present, measurable, and improves the gate — and the gate still
 > does not hold its target.
@@ -105,7 +105,7 @@ and projected accuracy is still below the baseline. At AUROC 0.70 the gate is
 still pointing the verifier at correct steps often enough that false alarms
 dominate.
 
-This sharpens §7.4 rather than contradicting it. The relevant quantity is
+This sharpens §8.4 rather than contradicting it. The relevant quantity is
 `P(wrong | verified)`, and 0.70 does not raise it far enough. Only the oracle
 escapes, which puts the useful threshold for that particular problem somewhere
 well above 0.70 — and locates it as a question about score quality, not about
@@ -160,11 +160,11 @@ steps the budget binds regardless of ranking.
 
 ## What changes in the thesis
 
-**Chapter 7 gains a row and loses an ambiguity.** "The signal does not rank the
+**Chapter 8 gains a row and loses an ambiguity.** "The signal does not rank the
 risk" becomes "the signals *measured there* do not; a probe on internal states
 does, by +0.12 AUROC, and the gate still misses every binding α."
 
-**Chapter 9's prediction was wrong.** It predicted ~0.9033; the measured value
+**Chapter 10's prediction was wrong.** It predicted ~0.9033; the measured value
 is 0.6968. This document originally attributed the miss to probe-scale training
 on 670 steps and called the prediction worth re-running. Round two measures that
 excuse and finds it small: doubling the training data at fixed layer and C is

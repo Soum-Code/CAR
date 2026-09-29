@@ -1,4 +1,4 @@
-# 4. Measuring the gap
+# 5. Measuring the gap
 
 > Reproduce: `python scripts/exp_measure_error_rate.py`,
 > `python scripts/exp_generator_transfer.py`
@@ -7,7 +7,7 @@ Every propagation result in the original design assumed a local error rate of
 0.15. This chapter measures it, on 93,129 real steps, and in doing so measures
 the local/global gap that the model only simulated.
 
-## 4.1 Why the numbers must be stratified
+## 5.1 Why the numbers must be stratified
 
 Math-Shepherd is a constructed PRM *training* set. It samples multiple
 completions per problem and keeps a deliberate mix of good and bad ones, so its
@@ -19,7 +19,7 @@ Every rate below is therefore reported per stratum — solutions whose final
 answer is correct, and solutions whose final answer is wrong — and
 post-stratified to the model's reported accuracy, with the sensitivity shown.
 
-## 4.2 The headline measurement
+## 5.2 The headline measurement
 
 Mistral-7B-SFT, 25,971 solutions, 93,129 steps, marker notation (the
 `<<expr=result>>` check, byte-for-byte Math-Shepherd's own):
@@ -54,20 +54,20 @@ C1_all = 0.4961 / 0.7106 = 0.6982
 ```
 
 **69.8% of globally-wrong steps are arithmetically perfect** by this
-estimator (`C1_all`). §4.4 shows it is the wrong one to carry across
+estimator (`C1_all`). §5.4 shows it is the wrong one to carry across
 generators and replaces it with `C1_checkable` = **78.5%**, which is the figure
 quoted elsewhere. Under the
 checkable-conditioned estimator on the same data the figure is **0.7848**.
 
 Controlling local selective risk at level α bounds nothing about the answer.
 
-## 4.3 Corruption is close to absorbing
+## 5.3 Corruption is close to absorbing
 
 ![Corruption as a transition system: entering it is common, leaving it almost never happens.](figures/diag3-absorption.png)
 
-**Figure 4.1.** The process the persistence and recovery numbers describe.
+**Figure 5.1.** The process the persistence and recovery numbers describe.
 Entering corruption does not depend on the verifier; escaping it does — which
-is why Chapter 5 treats reach rather than budget as the controlling variable.
+is why Chapter 6 treats reach rather than budget as the controlling variable.
 
 | | Mistral-7B-SFT |
 |---|---|
@@ -91,9 +91,9 @@ Zero recoveries in the 14,573 solutions that could have recovered is the
 strongest single piece of evidence
 that the local/global gap cannot be closed by more of the same verification.
 
-## 4.4 The gap widens on a stronger generator
+## 5.4 The gap widens on a stronger generator
 
-The obvious objection to §4.2 is that Mistral-7B-SFT is a weak 2023 model at
+The obvious objection to §5.2 is that Mistral-7B-SFT is a weak 2023 model at
 ~45% on GSM8K, and a better generator would close the gap by itself.
 
 To test it, 500 GSM8K **test** problems were solved by Qwen2.5-7B-Instruct and
@@ -154,7 +154,7 @@ on Math-Shepherd reproduces the published C1 of **0.6982** exactly.
 ### The result
 
 A third generator was added after the first draft of this chapter.
-Llama 3.1 8B Instruct is licence-gated on Kaggle, which is why §4.6 originally
+Llama 3.1 8B Instruct is licence-gated on Kaggle, which is why §5.6 originally
 recorded it as named but unrunnable; once the licence was accepted the same
 harness ran unmodified. 500 GSM8K test problems, K = 4 rollouts, temperature
 0.7, 4-shot — identical settings to the Qwen run — 5,752 rollouts, 6h11m on two
@@ -175,7 +175,7 @@ ordered by generator accuracy:
 | 95% CI on C1 (Wilson) | [0.781, 0.789] | [0.832, 0.906] | [0.840, 0.944] |
 
 **C1 is monotone in generator accuracy across all three.** 0.7848 at 45%,
-0.8738 at 68.4%, 0.9040 at 80%. The third point was not fitted: §4.4 was
+0.8738 at 68.4%, 0.9040 at 80%. The third point was not fitted: §5.4 was
 written with two generators and predicted that a model between them would fall
 between them, and Llama does. Its interval excludes Mistral's value and
 overlaps Qwen's, which is what a monotone relationship measured on 309 and 125
@@ -191,7 +191,7 @@ corruption does.
 
 ![Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.](figures/fig1-the-gap.png)
 
-**Figure 4.2.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
+**Figure 5.2.** Global error decomposes into the part a verifier can see and the part it cannot. The inherited share rises from 78% to 90% on the stronger generator.
 
 The intervals do not overlap. **The gap does not close on a stronger
 generator — it widens.**
@@ -218,7 +218,7 @@ reasoning. The two agree closely when coverage is high, which is why the
 distinction never surfaced before. `C1_checkable` is the estimator to quote
 across generators.
 
-## 4.5 What is generator-dependent, and how
+## 5.5 What is generator-dependent, and how
 
 Three quantities were stated as properties of the task and are properties of
 the generator. With two models that was all that could be said. With three it
@@ -241,7 +241,7 @@ and the latter is the one comparable to the other two rows.
 
 The impossibility bound has not weakened; the base risk it applies to has, and
 it does so smoothly. Any statement about attainable α must name its model.
-(Chapter 8 develops this.)
+(Chapter 9 develops this.)
 
 **Absorption.**
 
@@ -269,19 +269,19 @@ four and six bins holding at least 30.
 Qwen writes too little checkable arithmetic to establish a gradient: 59% of its
 steps assert none, and the deepest bin with 30 usable steps is step 5. Llama
 carries 64.3% checkable steps against Qwen's 40.7%, which is why it resolves a
-gradient where Qwen cannot. Chapter 6's allocation conclusion rested on the
+gradient where Qwen cannot. Chapter 7's allocation conclusion rested on the
 Mistral measurement alone for exactly that reason, and now has an independent
 confirmation on a generated corpus.
 
 An earlier draft reported **+0.866** for Qwen. That figure comes from three
 bins whose local-error rates are 0.0000, 0.0000 and 0.0133 — √3/2 is the exact
 Pearson r of that pattern — under the marker extractor this chapter itself
-calls unusable on Qwen (§4.4: it reports 0.0027, "which is nonsense"). It was
+calls unusable on Qwen (§5.4: it reports 0.0027, "which is nonsense"). It was
 an artifact of the bin count, not a replication. Its numerical closeness to
 Llama's genuine +0.876 is a coincidence and should not be read as
 corroboration.
 
-## 4.6 Limits
+## 5.6 Limits
 
 - **n = 309 and n = 125.** Llama's and Qwen's globally-wrong checkable steps,
   against Mistral's 46,555. Both Wilson intervals exclude the Mistral value, so
@@ -298,7 +298,7 @@ corroboration.
   only 31.0% of steps against the 0.60 floor, so the run continued in
   non-strict mode. The `notation="any"` fallback is what makes the corpus
   usable at all, lifting checkability from 30.9% to 64.3%. Every Llama figure
-  here therefore depends on that extension being sound, which §4.4 argues from
+  here therefore depends on that extension being sound, which §5.4 argues from
   its near-inertness on the baseline rather than assuming.
 - **Llama's propagation signature is not measurable.** Only 1.2% of its
   solutions contain any arithmetic error, which leaves **4** locally-valid
@@ -315,6 +315,6 @@ corroboration.
   estimates of "leads to a correct answer", not proofs. A lucky wrong step can
   be labelled `+`, which makes the measured global error rate a lower bound.
 - **Three points, one family.** All three generators are 7–8B instruction-tuned
-  models evaluated on GSM8K. The monotone relationship in §4.5 is measured
+  models evaluated on GSM8K. The monotone relationship in §5.5 is measured
   across a narrow band of the design space, and nothing here establishes that
   it continues to a 70B model or to a different task.

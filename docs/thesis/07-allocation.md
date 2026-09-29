@@ -1,4 +1,4 @@
-# 6. Allocation
+# 7. Allocation
 
 > Reproduce: `python scripts/exp_allocation.py`, `python scripts/exp_topology.py`,
 > `python scripts/validate_dependency_graphs.py score`
@@ -12,7 +12,7 @@ The intuition about *cost* is correct. The inference about *allocation* is
 false, and it took five separate tests to establish that, two of which were
 confounded and had to be discarded.
 
-## 6.1 "Verify early" is false
+## 7.1 "Verify early" is false
 
 Front-loading is the worst allocation shape at every verifier scope above zero.
 This was tested on:
@@ -21,7 +21,7 @@ This was tested on:
 2. **Five synthetic DAG families** — chain, tree, converging, diamond, wide.
 3. **Real StrategyQA graphs** — all 2,272 annotated decompositions.
 4. **Real GSM8K graphs** — 6,974 derived from calculator annotations.
-5. **The corrected GSM8K graphs**, after the extraction bug in §6.3.
+5. **The corrected GSM8K graphs**, after the extraction bug in §7.3.
 
 Final-answer error by allocation policy (lower is better), on real extracted
 graphs at matched budget:
@@ -58,13 +58,13 @@ is about. At depth 6, front-loading costs 12.8 points of final accuracy against
 ancestor-count allocation.
 
 This is also why the aggregate comparison on StrategyQA is uninformative:
-Chapter 8 shows 72.9% of its graphs are one hop deep, which is the regime where
+Chapter 9 shows 72.9% of its graphs are one hop deep, which is the regime where
 every policy is within 0.003 of every other.
 
 
 ![Allocation policies by reasoning-graph depth. The choice is irrelevant on shallow graphs and worth 12.8 points at depth 6.](figures/fig4-allocation-by-depth.png)
 
-**Figure 6.1.** Allocation policies by reasoning-graph depth. The choice is irrelevant on shallow graphs and worth 12.8 points at depth 6.
+**Figure 7.1.** Allocation policies by reasoning-graph depth. The choice is irrelevant on shallow graphs and worth 12.8 points at depth 6.
 
 ### Why the intuition misleads
 
@@ -92,7 +92,7 @@ would restore the case for front-loading. **Measurement closes it.**
 
 ![Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.](figures/fig5-position-gradient.png)
 
-**Figure 6.2.** Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.
+**Figure 7.2.** Local and global error by step position. Later steps are harder, and the widening gap between the curves is inherited corruption accumulating.
 
 `corr(position, local error rate) = +0.950` on Math-Shepherd, and **+0.26 to +0.36** on
 the independently generated Qwen corpus. The local error rate **doubles** from
@@ -104,7 +104,7 @@ The global column is a second reading of the same table: it climbs from 0.31 to
 inherited corruption accumulating — the local rate roughly doubles while the
 global rate triples.
 
-## 6.2 Influence weighting is dead, and the first test could not have shown it
+## 7.2 Influence weighting is dead, and the first test could not have shown it
 
 The surviving method claim from the literature review was
 `verification_value = P(wrong) × downstream_influence`, weighting each step by
@@ -138,7 +138,7 @@ count**, not descendant count: verify where the most upstream reasoning
 converges, not where the most downstream damage could occur. That is the
 opposite of the proposed rule, and it is stable across both benchmarks.
 
-## 6.3 Hand-validating the derived dependency graphs
+## 7.3 Hand-validating the derived dependency graphs
 
 Every GSM8K dependency edge in this thesis is **derived**, not annotated: line
 `i` is linked to line `j` when an operand of `i` equals the result of `j`. That
@@ -186,7 +186,7 @@ The collapse of the `other` category is the strongest evidence the fix is
 right: those graphs were *fragmented* into unclassifiable pieces by the missing
 edges, and they resolve into ordinary chains and converging structures once the
 edges return. Every measure moves in the direction that strengthens the
-benchmark switch of Chapter 8.
+benchmark switch of Chapter 9.
 
 ### One published conclusion overturned
 
@@ -227,7 +227,7 @@ queued against; the corrected extractor flags 12.6% of graphs — which
 over-counts one way and
 under-counts the other.
 
-## 6.4 Two methodological notes
+## 7.4 Two methodological notes
 
 **Adjudication was by LLM, not by blind human annotation.** The derived edges
 were visible during adjudication, so this measures *agreement with a careful
@@ -240,7 +240,7 @@ in scope. Solutions routinely contain unannotated reasoning lines
 (`gsm8k_4767`: `"$100 - $60 = $40"` has no `<<>>`), and a dependency routed
 through one is invisible to any operand-matching scheme.
 
-## 6.5 The general lesson
+## 7.5 The general lesson
 
 The audit was queued to quantify a known caveat — the 9.6% ambiguous-link rate.
 It instead found a bug an order of magnitude more consequential, one that had

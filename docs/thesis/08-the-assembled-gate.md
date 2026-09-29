@@ -1,9 +1,9 @@
-# 7. The assembled gate
+# 8. The assembled gate
 
 > Reproduce: `python scripts/exp_gate_pipeline.py`
 > Null control: `python scripts/exp_gate_pipeline.py --synthetic-signal 0.0`
 
-Chapters 4, 5 and 6 measured one component each. This chapter runs the whole
+Chapters 5, 5 and 6 measured one component each. This chapter runs the whole
 control loop on real model output — real generator uncertainty, real step
 labels, real conformal calibration, real budget — and asks the only question
 the assembled system can answer:
@@ -14,7 +14,7 @@ the assembled system can answer:
 It does not. That negative result is the most useful thing this project has
 measured.
 
-## 7.1 Setup
+## 8.1 Setup
 
 500 Qwen2.5-7B-Instruct solutions on GSM8K test, 2,573 steps, split
 175 dev / 143 calibration / 182 test by hash of example id. Uncertainty
@@ -30,12 +30,12 @@ updates, and an **oracle score** — the same split-conformal calibrator driven 
 a score that reads the label. The oracle is not deployable. It is the ceiling, and it
 separates "the gate is bad" from "the task is hard at this budget".
 
-Verifiers, parameterised by the reach measured in Chapter 5: step-local
+Verifiers, parameterised by the reach measured in Chapter 6: step-local
 arithmetic (scope 0.0000), independent judge (0.2283 at 2.0% false alarm), task
 PRM (0.9033 at 9.87%), and an **ablation** of the task PRM with its false-alarm
 rate forced to zero.
 
-## 7.2 The signal does not rank the risk
+## 8.2 The signal does not rank the risk
 
 ```
 score AUROC for detecting a globally-wrong step   0.5589   token-level only
@@ -53,7 +53,7 @@ a one-standard-deviation separation gives AUROC **0.8668**, and on pure noise
 ### A probe on internal states does rank it
 
 The obvious objection — that the signal might exist somewhere the measured
-features do not reach — is testable, and §7.6 tests it. A logistic probe on the
+features do not reach — is testable, and §8.6 tests it. A logistic probe on the
 generator's own frozen hidden states reaches **AUROC 0.6968**, +0.12 over
 everything above. So the result in this section is about *these signals*, not
 about step-level uncertainty in general. It does not change the conclusions
@@ -62,7 +62,7 @@ below, and why it does not is the more interesting half.
 
 ![ROC for detecting a globally-wrong step. All three real signals hug the diagonal; the dashed control shows what the same harness does when a signal exists.](figures/fig6-roc.png)
 
-**Figure 7.1.** ROC for detecting a globally-wrong step. All three real signals hug the diagonal; the dashed control shows what the same harness does when a signal exists.
+**Figure 8.1.** ROC for detecting a globally-wrong step. All three real signals hug the diagonal; the dashed control shows what the same harness does when a signal exists.
 
 ### Semantic divergence does not rescue it
 
@@ -89,7 +89,7 @@ This is the same conclusion Wen et al.
 direction: they argue embedding perturbation reflects intermediate-step
 uncertainty better than sampling-based agreement, and this is the
 sampling-based half measured on a second benchmark. Their alternative signal
-is not tested here — see Chapter 9.
+is not tested here — see Chapter 10.
 
 ### The equivalence relation was load-bearing
 
@@ -166,7 +166,7 @@ rank step error on this corpus.*
 out unanimous, against 39% under numeric equivalence. Most of that gap is not
 NLI error: **61.7%** of pairs have no extractable number on one side, so
 `numeric_equivalence` falls back to string equality and calls them distinct.
-Those are the narration and algebra-rearrangement steps, which §9.2 notes are
+Those are the narration and algebra-rearrangement steps, which §10.2 notes are
 59% of what Qwen writes — the relations differ most exactly where neither is
 well defined. On the 5,343 pairs where both sides assert a number they agree
 85.5% of the time.
@@ -191,7 +191,7 @@ paired difference −0.0048, CI [−0.018, +0.011]: no measurable direction eith
 way. The relation is a poor fit for arithmetic steps, and fixing that does not
 recover a signal.
 
-## 7.3 So the calibration certifies nothing useful
+## 8.3 So the calibration certifies nothing useful
 
 Base risk on test steps is **0.1578**. Any α above that is satisfied by
 verifying nothing, so only α < 0.1578 tests anything at all — and the
@@ -255,12 +255,12 @@ number. And it misses α = 0.05 by **2.9×**.
 > be absent." It is not. A better signal exists, improves the gate, uses fewer
 > calls — and the gate still does not hold its target.
 
-Figure 7.7 plots risk against score quality for all three; §7.6 is where the
+Figure 8.7 plots risk against score quality for all three; §8.6 is where the
 probe itself is measured.
 
 ![Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.](figures/fig7-alpha-sweep.png)
 
-**Figure 7.2.** Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.
+**Figure 8.2.** Measured selective risk against the target. The gate misses every α that binds, and the measured risk barely responds to the target at all.
 
 ### Why conformal calibration does not save it
 
@@ -280,9 +280,9 @@ documentation carried from the start, finally measured.
 
 ![The accuracy–cost trade-off against Kotte's impossibility floor. Verification climbs from 4.6% to 21.8% and risk moves by 0.005.](figures/fig8-pareto-with-floor.png)
 
-**Figure 7.3.** The accuracy–cost trade-off against Kotte's impossibility floor. Verification climbs from 4.6% to 21.8% and risk moves by 0.005.
+**Figure 8.3.** The accuracy–cost trade-off against Kotte's impossibility floor. Verification climbs from 4.6% to 21.8% and risk moves by 0.005.
 
-## 7.4 The best verifier available is net-negative
+## 8.4 The best verifier available is net-negative
 
 Projected final-answer accuracy against a no-gate baseline of **0.8022**:
 
@@ -300,9 +300,9 @@ false-alarm rate and the same verifier gains **12 points**.
 
 ![Projected accuracy for the same verifier at the same 9.87% false-alarm rate under three scores. The FA = 0 ablation isolates the mechanism; the oracle column shows the score controls it. MODELLED, not measured.](figures/fig9-verifier-value.png)
 
-**Figure 7.4.** Projected accuracy for the same verifier at the same 9.87% false-alarm rate under three scores. The FA = 0 ablation isolates the mechanism; the oracle column shows the score controls it. MODELLED, not measured.
+**Figure 8.4.** Projected accuracy for the same verifier at the same 9.87% false-alarm rate under three scores. The FA = 0 ablation isolates the mechanism; the oracle column shows the score controls it. MODELLED, not measured.
 
-The difference is a base-rate effect. Chapter 5 reported
+The difference is a base-rate effect. Chapter 6 reported
 `net = scope − false alarm = 0.8047`, measured on a population *conditioned on
 being arithmetic-blind inherited corruption* — every item in it was wrong. In
 deployment the verifier is pointed at whatever the gate selects, and behind a
@@ -384,20 +384,20 @@ verifier's false-alarm rate switched off and there is no crossing to find:
 At FA = 0 the verifier is worth having at *every* score quality tested,
 including 0.55 — a score barely better than a coin. The entire question "how
 good does the score need to be" is created by the false-alarm rate, which makes
-this the sharpest form of §7.4's correction and the one a practitioner can act
+this the sharpest form of §8.4's correction and the one a practitioner can act
 on: halving a verifier's false-alarm rate lowers the score quality you need
 more than raising its detection rate does.
 
 **And no score quality holds a binding α at this budget.** At α = 0.05 the best
 any row manages is selective risk 0.0956, at AUROC 0.99 — still 1.9× the
-target. §7.3 showed that at a single point with a binary oracle; the sweep shows
+target. §8.3 showed that at a single point with a binary oracle; the sweep shows
 it across the whole range, which rules out reading the oracle's failure as an
 artifact of its degenerate score distribution. Score quality is not the binding
 constraint on risk control. The budget is.
 
 ![Left: projected accuracy against score AUROC, with and without false alarms. Right: first-bad-step recall, where the two real scores come apart from the synthetic curve.](figures/fig12-score-quality.png)
 
-**Figure 7.5.** Where the verifier stops being a liability, and why AUROC does
+**Figure 8.5.** Where the verifier stops being a liability, and why AUROC does
 not predict it. Shaded column on the left is the interval the sweep cannot
 resolve.
 
@@ -420,7 +420,7 @@ corr(normalised step position, probe score)      +0.1813
 corr(normalised step position, composite score)  -0.2766
 ```
 
-**The probe flags late steps; the composite flags early ones.** Chapter 6
+**The probe flags late steps; the composite flags early ones.** Chapter 7
 measured local error rising with position — corr(position, error) = +0.950,
 doubling from 11% at step 1 to 22% at step 8 — so a score that chases positional
 difficulty is rewarded on AUROC. But the projection only pays for the **first**
@@ -436,7 +436,7 @@ Two consequences for how the rest of this chapter should be read. The crossing
 above is an estimate for a *well-behaved* score, so 0.65 is a floor on the
 requirement rather than a specification — a real score with a positional bias
 lands below the synthetic curve, exactly as the probe does. And the AUROCs in
-§7.2 are the right measurement of the wrong quantity: comparable to each other
+§8.2 are the right measurement of the wrong quantity: comparable to each other
 and to the literature, but not sufficient to predict what a score is worth in
 the loop.
 
@@ -446,7 +446,7 @@ single pair of rows differs by two or three trajectories. The claim rests on the
 monotone trend across 13 grid points × 64 seeds (0.2853 → 0.7736), not on the
 probe-versus-synthetic pair alone.
 
-## 7.5 What is measured and what is modelled
+## 8.5 What is measured and what is modelled
 
 The corpus is fixed, so the gate cannot change what the model writes.
 `traj.correct` is therefore identical under every condition, and reporting it
@@ -471,15 +471,15 @@ a correct step as fatal to the answer, where a real system might revise a
 correct step to another correct value. The *direction* of the false-alarm
 result is isolated by the FA = 0 ablation; the *magnitude* is not robust.
 
-## 7.6 A probe on internal states
+## 8.6 A probe on internal states
 
 > Reproduce: `python scripts/gpu_probe_states.py`, then
 > `python scripts/exp_gate_pipeline.py --probe runs/probe_qwen25_7b.json`
 > Full writeup: [docs/FINDINGS-PROBE.md](../FINDINGS-PROBE.md)
 
-ReProbe (Ni et al., §2.4) trains a sub-10M-parameter probe on a frozen model's
+ReProbe (Ni et al., §2.3) trains a sub-10M-parameter probe on a frozen model's
 internal states and matches PRMs up to 810× larger. That makes it the cheapest
-available test of whether §7.2's result is about the *particular* signals
+available test of whether §8.2's result is about the *particular* signals
 measured there.
 
 One teacher-forced pass per solution over the same corpus, hidden states taken
@@ -491,11 +491,11 @@ the same hash splits — so the AUROCs compare step for step.
 
 ![Left: AUROC by hidden layer, every layer tried. Right: the held-out learning curve over a shuffled pool.](figures/fig10-probe-layers.png)
 
-**Figure 7.6.** The probe's layer profile and learning curve. Left: a smooth rise through the network peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates. Right: the held-out curve over a shuffled pooled training set; it rises, and at fixed layer and C the doubling is worth +0.0105 with the interval spanning zero. This panel has been wrong twice — first plotting the selection-split curve, then an unshuffled pool whose composition drifted with its size.
+**Figure 8.6.** The probe's layer profile and learning curve. Left: a smooth rise through the network peaking at layers 24-27 — the shape of a real encoded property, not selection noise over 29 candidates. Right: the held-out curve over a shuffled pooled training set; it rises, and at fixed layer and C the doubling is worth +0.0105 with the interval spanning zero. This panel has been wrong twice — first plotting the selection-split curve, then an unshuffled pool whose composition drifted with its size.
 
 ![Selective risk against score AUROC, with the alpha targets and the no-gate line.](figures/fig11-score-vs-risk.png)
 
-**Figure 7.7.** Same corpus, calibrator and budget; only the score differs — the measured signals at 0.5742, the probe at 0.6968, an oracle at 1.0. A better score helps monotonically and still does not reach either target.
+**Figure 8.7.** Same corpus, calibrator and budget; only the score differs — the measured signals at 0.5742, the probe at 0.6968, an oracle at 1.0. A better score helps monotonically and still does not reach either target.
 
 
 ### Two things that stop this being over-read
@@ -504,7 +504,7 @@ the same hash splits — so the AUROCs compare step for step.
 **0.8748** against 0.6968 on test — a **0.18 gap**, from choosing the best of 29
 layers × 5 regularisation strengths on 287 selection steps. Had the layer been
 chosen on test, this section would report ~0.87 and claim the probe beats the
-ch. 5 PRM. `select_and_fit` does not take test indices as a parameter, and a
+ch. 6 PRM. `select_and_fit` does not take test indices as a parameter, and a
 test asserts its signature cannot grow one; the discipline is worth 0.18 AUROC
 of wrongness here.
 
@@ -545,9 +545,9 @@ invalid, and the honest measurement neither establishes nor rules it out.
 
 ### AUROC was also the wrong thing to train it on
 
-§7.4 showed the projection only pays for the **first** globally-wrong step in a
+§8.4 showed the projection only pays for the **first** globally-wrong step in a
 solution, and that this probe's score correlates positively with step position
-— it spends its ranking power on late steps no repair can rescue. (§7.4 reports
+— it spends its ranking power on late steps no repair can rescue. (§8.4 reports
 +0.1813 and the table below +0.2327: the same probe's score under two monotone
 transforms, with Spearman 1.0 between them. Pearson is not invariant to that,
 AUROC and first-bad recall are, and every comparison here rests on those.) That is a
@@ -566,7 +566,7 @@ Training on the right target raises the quantity that pays and **removes the
 probe's AUROC advantage**: 0.5735 sits level with the 0.5742 token+semantic
 baseline whose failure is this chapter's central negative result. The 0.0007
 gap is far inside the interval on either number, so "level with" is as far as
-it goes — §7.2 declines to rank a 0.0114 gap for the same reason. That trade is the chapter's own point made concrete: ranked by
+it goes — §8.2 declines to rank a 0.0114 gap for the same reason. That trade is the chapter's own point made concrete: ranked by
 AUROC the first-bad probe is the worst of the four, and the one that best does
 the job the system is for.
 
@@ -612,7 +612,7 @@ corpus is too small to show it buys anything deployable.
 
 Every probe above is a logistic regression on one layer, and ReProbe's are not.
 Testing that needs the layer held fixed — comparing each arm's own best layer
-measures instrument *plus* layer re-selection — the confound §7.6 already
+measures instrument *plus* layer re-selection — the confound §8.6 already
 corrected once for the data lever.
 
 | training set | layer | linear | non-linear | difference | 95% CI |
@@ -645,7 +645,7 @@ on selection bought a 0.0749 loss on test.**
 > The probe series has reached the resolution limit of this corpus. The binding
 > constraint is not which probe, how much training data, or what target — it is
 > that 287 selection steps and 925 test steps cannot separate effects of this
-> size. Every lever measured in §7.6 sits inside its own interval.
+> size. Every lever measured in §8.6 sits inside its own interval.
 
 That is also the honest status of the three-lever comparison an earlier draft
 of this section tabulated: the data lever (+0.0105), the instrument (+0.0051 at
@@ -658,8 +658,8 @@ them was a mistake.
 
 ### What it changes
 
-Chapter 9 predicted, before the run, that a probe here would land near the
-ch. 5 PRM's 0.9033 rather than above it — reasoning that ReProbe's margin is
+Chapter 10 predicted, before the run, that a probe here would land near the
+ch. 6 PRM's 0.9033 rather than above it — reasoning that ReProbe's margin is
 largest out of domain while strong PRMs reach parity on GSM8K. The measured
 0.6968 is **below** that, and nothing about the probe closes the gap: reaching
 0.9033 needs **+0.21**, while more training data is worth +0.0105 and a
@@ -671,7 +671,7 @@ What the section cannot say is anything sharper than that. Every effect it
 measures is smaller than the interval around it, and smaller than the swing
 produced by an arbitrary layer choice.
 
-## 7.7 What this chapter establishes
+## 8.7 What this chapter establishes
 
 Three failure points, each with a number and a regression test — and, as the
 oracle run below shows, not three *independent* ones:
@@ -709,7 +709,7 @@ negative one the most interesting. It arrived by a different route than
 predicted — not because reach is universally low, but because the failures are
 distributed across the whole pipeline.
 
-## 7.8 Limits
+## 8.8 Limits
 
 - **182 test questions, 925 test steps.** The α-sweep gap (0.149 against a 0.05
   target) is far too large to be sampling noise, but finer between-condition
@@ -718,13 +718,13 @@ distributed across the whole pipeline.
   the sampled text rather than from the sampling pass. That measures how
   surprising the model finds the step, which is what the gate consumes, but it
   is not identical to the generation-time distribution.
-- **Three equivalence relations, one family.** §7.2 now reports bidirectional
+- **Three equivalence relations, one family.** §8.2 now reports bidirectional
   entailment alongside numeric equivalence and exact match, but the three nest
   on a single permissiveness axis and share the generations, K, temperature and
   clustering algorithm. A relation sensitive to the *asserted quantity* on
   arithmetic steps while still handling the 59% that carry none would be a
   genuinely different probe, and does not exist here.
-- **The corpus, not the probe.** §7.6 varies training data (+0.0105), target
+- **The corpus, not the probe.** §8.6 varies training data (+0.0105), target
   and functional form (+0.0051 at matched layer) and cannot separate any of
   them from zero. An arbitrary layer choice moves test AUROC by up to 0.0750,
   which is larger than every effect measured. So statements here about what
@@ -735,7 +735,7 @@ distributed across the whole pipeline.
 - **108 first-bad steps in the corpus, 40 in test.** The first-bad-target result
   trains on 49 positives pooled and 27 gate-safe, and its significance depends
   on which global-target probe it is compared against. That is the binding
-  constraint on §7.6's constructive half, and more solutions would relieve it —
+  constraint on §8.6's constructive half, and more solutions would relieve it —
   the one purpose extra data would clearly serve here.
 - **Chain topology.** Replay assumes each step depends on the previous one.
   Influence weighting is off by default, having lost to uniform five times, so

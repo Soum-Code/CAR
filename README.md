@@ -62,7 +62,7 @@ first. Measured on GSM8K within wrong-answer solutions:
 **78.5% of bad steps are arithmetically perfect.** That is `C1_checkable` — the
 share among globally-wrong steps that *have* arithmetic to check. The
 whole-step version `C1_all` gives 69.8% here, but collapses to 0.25 on a
-generator that writes little arithmetic, so §4.4 names `C1_checkable` as the
+generator that writes little arithmetic, so §5.4 names `C1_checkable` as the
 estimator to quote across generators. Controlling local selective risk at
 level α bounds nothing about the answer either way.
 
@@ -404,11 +404,11 @@ every number reproducible from the scripts named at the head of each one.
 
 | ch | | ch | |
 |---|---|---|---|
-| 1 | [Introduction](docs/thesis/01-introduction.md) | 6 | [Allocation](docs/thesis/06-allocation.md) |
-| 2 | [Background](docs/thesis/02-background.md) | 7 | [The assembled gate](docs/thesis/07-the-assembled-gate.md) |
-| 3 | [Framework](docs/thesis/03-framework.md) | 8 | [Feasibility and benchmarks](docs/thesis/08-feasibility-and-benchmarks.md) |
-| 4 | [Measuring the gap](docs/thesis/04-measuring-the-gap.md) | 9 | [Limitations and conclusion](docs/thesis/09-conclusion.md) |
-| 5 | [Verifier reach](docs/thesis/05-verifier-reach.md) | | |
+| 1 | [Introduction](docs/thesis/01-introduction.md) | 6 | [Allocation](docs/thesis/07-allocation.md) |
+| 2 | [Background](docs/thesis/02-background.md) | 7 | [The assembled gate](docs/thesis/08-the-assembled-gate.md) |
+| 3 | [Framework](docs/thesis/04-framework.md) | 8 | [Feasibility and benchmarks](docs/thesis/09-feasibility-and-benchmarks.md) |
+| 4 | [Measuring the gap](docs/thesis/05-measuring-the-gap.md) | 9 | [Limitations and conclusion](docs/thesis/10-conclusion.md) |
+| 5 | [Verifier reach](docs/thesis/06-verifier-reach.md) | | |
 
 ---
 

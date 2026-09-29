@@ -1,6 +1,6 @@
 # The assembled gate, end to end — and why it does not work
 
-Chapters 4, 5 and 6 measured one piece each. This runs the whole control loop
+Chapters 5, 5 and 6 measured one piece each. This runs the whole control loop
 on real model output: real generator uncertainty, real step labels, real
 conformal calibration, real budget.
 
@@ -143,7 +143,7 @@ The highest-scope verifier available **loses 4 points of accuracy** at its
 measured operating point, and more verification makes it worse. Zero out its
 false-alarm rate and the same verifier gains **12 points**.
 
-The whole difference is a base-rate effect. Chapter 5 reported
+The whole difference is a base-rate effect. Chapter 6 reported
 `net = scope − false alarm = 0.8047`, measured on a population *conditioned on
 being arithmetic-blind inherited corruption* — every item in it was wrong. In
 deployment the verifier is pointed at all steps, and **84.2% of them are

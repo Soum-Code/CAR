@@ -230,7 +230,7 @@ over twelve configurations.
 Its assumptions are wrong in two known ways, and the *direction* is stated each
 time. Full repair on detection makes the model optimistic about verification.
 I.i.d. per-step error is false (later steps are harder), which makes it
-*conservative* about back-loading — the direction that makes Chapter 6's
+*conservative* about back-loading — the direction that makes Chapter 7's
 conclusion safer rather than weaker.
 
 ---
@@ -308,7 +308,7 @@ as:* the primary benchmark.
 implicit multi-hop reasoning questions shipping **human-annotated
 decompositions**, which is why it looked like the ideal benchmark for
 step-level work. *Used as:* the original primary benchmark, and now the subject
-of Chapter 8's critique — its decompositions are too shallow to exhibit
+of Chapter 9's critique — its decompositions are too shallow to exhibit
 propagation at all.
 
 **Wang et al., *Math-Shepherd*** (ACL 2024, arXiv:2312.08935). The dataset the
@@ -351,16 +351,16 @@ domain** — on planning and StrategyQA — while strong PRMs reach parity with 
 to land near the PRM rather than above it. And Ni et al. report that combining
 probe and PRM beats either alone, which points at hybrid verifiers rather than
 replacement. *Used as:* the efficiency bar any "better step score" proposal has
-to clear, the signal class §7.6 tests directly, and the source of a prediction
+to clear, the signal class §8.6 tests directly, and the source of a prediction
 this thesis made and then missed.
 
 **Wen et al., *Embedding Perturbation may Better Reflect Intermediate-Step
 Uncertainty*** (arXiv:2602.02427). Argues that perturbing embeddings reflects
 step-level uncertainty better than sampling-based agreement does, and that
 sampling-agreement methods "struggle to pinpoint the intermediate uncertainty."
-*Used as:* Chapter 7 measures the sampling-based half and finds it near chance,
+*Used as:* Chapter 8 measures the sampling-based half and finds it near chance,
 which is Wen et al.'s conclusion reached from the other direction. Their
-alternative signal is untouched by this thesis's negative result, and Chapter 9
+alternative signal is untouched by this thesis's negative result, and Chapter 10
 names it as future work.
 
 **Farquhar, Kossen, Kuhn & Gal, *Detecting Hallucinations Using Semantic
@@ -368,14 +368,14 @@ Entropy*** (Nature 2024). Samples several answers independently, clusters them
 into meaning-equivalence classes by **bidirectional entailment** under an NLI
 model, and takes entropy over the cluster distribution. The strongest of the
 sampling-based signals at whole-answer level. *Used as:* the reference relation
-§7.2 implements and tests at *step* level, where it does not carry.
+§8.2 implements and tests at *step* level, where it does not carry.
 
 ### 4.4 Verification, self-correction and propagation
 
 **Huang et al., *LLMs Cannot Self-Correct Reasoning Yet*** (ICLR 2024,
 arXiv:2310.01798). A model asked to check its own reasoning without external
 feedback doesn't reliably improve and sometimes gets worse. *Used as:* the
-negative control for Chapter 5, and confirmed there at step level with a
+negative control for Chapter 6, and confirmed there at step level with a
 measured scope of exactly 0.0000.
 
 **Singh & Pawar, *The Hallucination Snowball*** (arXiv:2608.14588). Models
@@ -396,8 +396,8 @@ verification cost than Monte-Carlo-search placement.
 Their motivation is an observation this thesis arrives at independently:
 *"verifier behavior varies significantly across tasks, and their accuracy-cost
 relationship is highly non-linear."* Chapter 2 states the overlap honestly —
-Sherlock's second mechanism occupies the same ground as Chapter 5, and this
-thesis doesn't claim that observation as new. What Chapter 5 adds is the
+Sherlock's second mechanism occupies the same ground as Chapter 6, and this
+thesis doesn't claim that observation as new. What Chapter 6 adds is the
 *decomposition*: measured on the population deterministic checking provably
 can't see, reach requires generator-independence **and** task specialisation,
 and neither alone suffices. That's a distinction a cost-versus-accuracy
@@ -417,10 +417,10 @@ Macro-F1 (+8.2), and on long synthetic chains it detects propagated errors at
 This is a result the thesis has to accommodate rather than dismiss. It shows
 the inherited-corruption population isn't *intrinsically* invisible — it's
 invisible to a verifier reading a step against the generator's **unverified**
-context, which is what every verifier in Chapter 5 does. So the correct reading
+context, which is what every verifier in Chapter 6 does. So the correct reading
 of C1 is narrower than "no verifier can see these steps." Two things stop the
 numbers being comparable, and the thesis says so: ARES's 90.3% is F1 on their
-own synthetic ClaimTrees corpus while Chapter 5's 0.9033 is a detection rate on
+own synthetic ClaimTrees corpus while Chapter 6's 0.9033 is a detection rate on
 Math-Shepherd's arithmetic-blind subset, and the coincidence is exactly that.
 And ARES assumes a verified prefix exists, which is precisely what a budgeted
 gate can't supply.
@@ -444,8 +444,8 @@ not a label of "no error."
 Mistral-7B-SFT, the generator behind Math-Shepherd's solutions, ~45% on GSM8K.
 
 **Qwen Team, *Qwen2.5 Technical Report*** (arXiv:2412.15115) — Qwen2.5-7B-Instruct
-is the second generator (Chapter 4, measured at 80.0% GSM8K) and the
-independent judge (Chapter 5).
+is the second generator (Chapter 5, measured at 80.0% GSM8K) and the
+independent judge (Chapter 6).
 
 **Llama Team, *The Llama 3 Herd of Models*** (arXiv:2407.21783) — the third
 generator the thesis names but could not run at draft time, because the model
@@ -473,7 +473,7 @@ is a viva question and the honest answer involves this episode.
 
 ## 5. What the project found
 
-### 5.1 The gap is large, and it widens as models improve (Chapter 4)
+### 5.1 The gap is large, and it widens as models improve (Chapter 5)
 
 Mistral-7B-SFT via Math-Shepherd, 25,971 solutions, 93,129 steps. Every rate is
 reported per stratum and post-stratified, because Math-Shepherd is a PRM
@@ -551,7 +551,7 @@ recovery *rate* is the one quantity that doesn't order strictly (Llama's 8.5%
 sits just above Qwen's 7.2%), but on 141 and 83 eligible solutions that gap is
 inside sampling noise.
 
-### 5.2 Reach is semantic, not structural (Chapter 5)
+### 5.2 Reach is semantic, not structural (Chapter 6)
 
 If a verifier misses inherited corruption because it sees too little context,
 widening the lookback should help. On 35,535 real steps:
@@ -589,9 +589,9 @@ The original specification listed calculator, retrieval and sandbox as
 interchangeable reliability mechanisms. They span 0.00 to 0.90 scope.
 
 **The number that turns out to matter most isn't the 0.9033. It's the 0.0987
-next to it** — and Chapter 7 is where that becomes clear.
+next to it** — and Chapter 8 is where that becomes clear.
 
-### 5.3 "Verify early" is false (Chapter 6)
+### 5.3 "Verify early" is false (Chapter 7)
 
 The original hypothesis H3: verify early, because an error caught at step 1
 costs one call while the same error at step 5 has already contaminated four
@@ -655,7 +655,7 @@ With corrected graphs **`depth` wins on both**. The measured edge error rate is
 > The caveat you set out to quantify is rarely the one that matters. Auditing a
 > derivation is worth more than characterising its known limitation.
 
-### 5.4 The assembled gate fails, at three points (Chapter 7)
+### 5.4 The assembled gate fails, at three points (Chapter 8)
 
 The core chapter, and the longest. 500 Qwen solutions, 2,573 steps, split
 175 dev / 143 calibration / 182 test by hash of example id.
@@ -760,7 +760,7 @@ verification. The same verifier at the same 9.87% false-alarm rate moves from
 > The score sets that conditioning. The PRM isn't a bad verifier being
 > oversold, it's a good verifier being aimed badly.
 
-That's a correction to how Chapter 5's headline should be stated, and the
+That's a correction to how Chapter 6's headline should be stated, and the
 thesis records it as one.
 
 **But the oracle still misses α = 0.05 by 1.8×.** At two calls per question
@@ -769,7 +769,7 @@ they're ranked. So there are **two** bottlenecks, and they're separable: the
 score is worth 0.154 → 0.089, and the budget is what stands between 0.089 and
 0.05. The third failure point isn't independent — it's downstream of the first.
 
-### 5.5 A better signal exists, and it isn't enough (§7.6)
+### 5.5 A better signal exists, and it isn't enough (§8.6)
 
 ReProbe makes the cheapest available test: does a probe on the generator's own
 frozen hidden states rank what the measured signals can't? One teacher-forced
@@ -777,7 +777,7 @@ pass, hidden states at each step's final token across all 29 tensors, a
 logistic probe per layer, same hash splits.
 
 **AUROC 0.6968 on test**, against 0.5742 for the best measured signal. So the
-§7.2 result is about *those signals*, not about step-level uncertainty in
+§8.2 result is about *those signals*, not about step-level uncertainty in
 general.
 
 **Two things stop it being over-read, and both are instructive.**
@@ -786,7 +786,7 @@ The **winner's curse is large and visible**: the selection-split AUROC is
 0.8748 against 0.6968 on test, a **0.18 gap**, from choosing the best of 29
 layers × 5 regularisation strengths on 287 selection steps. Had the layer been
 chosen on test, this section would report ~0.87 and claim the probe beats the
-Chapter 5 PRM. `select_and_fit` doesn't take test indices as a parameter and a
+Chapter 6 PRM. `select_and_fit` doesn't take test indices as a parameter and a
 test asserts its signature can't grow one.
 
 And **an earlier draft called 0.6968 a floor on evidence that couldn't support
@@ -798,7 +798,7 @@ nowhere near what the leaked curve implied. The claim is recorded as
 **unsupported** rather than refuted: its evidence was invalid, which isn't the
 same as being false.
 
-**AUROC was also the wrong thing to train on.** §7.4 showed the projection only
+**AUROC was also the wrong thing to train on.** §8.4 showed the projection only
 pays for the **first** globally-wrong step, and this probe correlates
 *positively* with step position — it spends its ranking power on late steps no
 repair can rescue. Retraining on the first-bad label:
@@ -832,7 +832,7 @@ layer 28 (selection 0.8667, test 0.6896) over layer 19 (selection 0.8655, test
 > that 287 selection steps and 925 test steps can't separate effects of this
 > size.
 
-### 5.6 How good does the score need to be? (§7.4)
+### 5.6 How good does the score need to be? (§8.4)
 
 Score quality can be made a dial. Under the binormal model a wrong step draws
 from N(d, 1) and a correct step from N(0, 1), so `AUROC = Φ(d/√2)` and the
@@ -878,7 +878,7 @@ probe flags late steps; only the first bad step can be repaired.
 > Two scores with identical AUROC are worth different amounts. Rank by AUROC if
 > you must compare to the literature; select on first-bad-step recall.
 
-### 5.7 Feasibility and the benchmark critique (Chapter 8)
+### 5.7 Feasibility and the benchmark critique (Chapter 9)
 
 **The risk target is constrained before any method is chosen.** With
 μ = 0.3908, Kotte's floor at α = 0.10 charges **32.3%** of the entire budget as
@@ -926,7 +926,7 @@ Roughly **75 numerical and analytical errors** were found and fixed across
 several adversarial verification passes. Several were the same class of
 mistake:
 
-**Three tokenizer faults in Chapter 5** each produced a confident wrong answer.
+**Three tokenizer faults in Chapter 6** each produced a confident wrong answer.
 The first completed run reported the *opposite* conclusion — negative net scope
 — because the PRM flagged 94.9% of the control group, which are steps carrying
 its own training labels. Cause: `tok.encode` yielded `▁+`=648 locally but
@@ -947,7 +947,7 @@ broken configurations before the fourth passed at 0.5788.
 **Denominator errors, found four separate times.** The entailment result was
 initially conditioned on the NLI model's own verdict. Probe round two compared
 different layers and attributed the difference to data. The non-linear probe
-repeated it. And §4.3 once copied a denominator from the wrong table.
+repeated it. And §5.3 once copied a denominator from the wrong table.
 
 **The sampling trap.** The Math-Shepherd file is sorted into contiguous blocks
 by label, so **any prefix read is close to single-class** — the first 80 MB is
@@ -962,7 +962,7 @@ asserts a prefix read is more skewed than a strided one.
 |---|---|
 | `check_citations.py` | a cited arXiv id with no bibliography entry |
 | `check_prose.py --baseline/--compare` | an editing pass silently moving a number or flipping a hedge |
-| figures 7.1–7.3 computed at render time | a plot disagreeing with the table above it |
+| figures 8.1–7.3 computed at render time | a plot disagreeing with the table above it |
 | regression tests on refuted claims | a refutation quietly stopping reproducing |
 | annotation-rate and solve-rate gates | a rate measured on a biased subset of steps |
 | feasibility check at config time | a run whose budget sits below its own Kotte floor |
@@ -980,7 +980,7 @@ simulation to within 0.015 over twelve configurations and whose assumptions are
 known to be wrong. Every modelled number is labelled PROJECTED, and where the
 assumption affects a conclusion the direction of the bias is stated.
 
-This matters most in Chapter 7: final-answer accuracy under gating **cannot** be
+This matters most in Chapter 8: final-answer accuracy under gating **cannot** be
 measured on a fixed corpus, because the gate can't change what the model wrote.
 A regression test pins that with scope 0 and no false alarms the projection
 reduces *exactly* to observed accuracy. A projection that moves when nothing was
@@ -1003,17 +1003,17 @@ were its own. Every row that pins a measurement carries a regression test.
 | α = 0.10 is workable | spec | **close to infeasible on Mistral** |
 | StrategyQA is a suitable primary benchmark | spec | **wrong choice** |
 | The best structural signal is benchmark-dependent | this thesis, earlier draft | **overturned** — extraction-bug artifact |
-| Corruption is near-absorbing | this thesis, ch. 4 | **generator-specific, and monotone** — 95.9% / 81.6% / 66.4% across three models |
-| `net = scope − FA` is the figure of merit † | this thesis, ch. 5 | **corrected** — base-rate error |
+| Corruption is near-absorbing | this thesis, ch. 5 | **generator-specific, and monotone** — 95.9% / 81.6% / 66.4% across three models |
+| `net = scope − FA` is the figure of merit † | this thesis, ch. 6 | **corrected** — base-rate error |
 | A calibrated gate controls risk | **the whole premise** | **refuted** — misses α by 3× |
-| The three failures are independent † | ch. 7 first draft | **partly wrong** — verifier is downstream of score |
-| Internal states carry no usable step signal | implied by ch. 7 first draft | **refuted** — probe reaches 0.6968 |
-| A probe here will land near 0.9033 | ch. 9 prediction | **missed** — 0.6968 |
-| 0.6968 is a floor pending more data | ch. 7.6 | **unsupported** — curve was on the selection split |
-| A non-linear probe is the right instrument | ch. 7.6, ch. 9 | **null** — +0.0051, sign flips by layer |
-| The verifier needs a score "well above 0.70" | ch. 7 earlier draft | **wrong, and low** — crossing is ≈ 0.65 |
+| The three failures are independent † | ch. 8 first draft | **partly wrong** — verifier is downstream of score |
+| Internal states carry no usable step signal | implied by ch. 8 first draft | **refuted** — probe reaches 0.6968 |
+| A probe here will land near 0.9033 | ch. 10 prediction | **missed** — 0.6968 |
+| 0.6968 is a floor pending more data | ch. 8.6 | **unsupported** — curve was on the selection split |
+| A non-linear probe is the right instrument | ch. 8.6, ch. 10 | **null** — +0.0051, sign flips by layer |
+| The verifier needs a score "well above 0.70" | ch. 8 earlier draft | **wrong, and low** — crossing is ≈ 0.65 |
 | AUROC is the figure of merit for a step score | implicit throughout | **refuted** — first-bad recall is |
-| The cheap relation was hiding the signal | the obvious objection to §7.2 | **refuted** — entailment 0.5625 |
+| The cheap relation was hiding the signal | the obvious objection to §8.2 | **refuted** — entailment 0.5625 |
 
 † Three rows have no regression test, because what they refute isn't a number
 that could move: one is a literature fact, two are corrections to how a
@@ -1035,7 +1035,7 @@ the difference.
 1. **No related-work chapter separate from background.** For a paper submission
    these would split. Cheap to fix.
 
-2. **More first-bad-step labels.** §7.6 trains a score against the right target
+2. **More first-bad-step labels.** §8.6 trains a score against the right target
    and it works, but on 49 training positives and 40 test ones. Only 108 such
    steps exist in the whole corpus, and that's the binding constraint on the
    section's only constructive result.
@@ -1058,7 +1058,7 @@ the difference.
    necessary. It assumes a verified prefix, which is exactly what a budgeted
    gate can't supply. What happens when only a fraction of the prefix is
    verified — and how the gate should choose *which* fraction — is the most
-   promising question this thesis can hand on. It also reframes Chapter 6:
+   promising question this thesis can hand on. It also reframes Chapter 7:
    allocation would stop being about catching errors and become about building
    a trustworthy prefix, for which ancestor count is a far more natural signal
    than it is for the objective actually tested.
@@ -1138,7 +1138,7 @@ borrowed models, regression tests that pin refuted claims, a projection that
 provably reduces to observed accuracy when nothing is repaired, and a
 documented habit of recomputing rather than trusting. Roughly 75 errors were
 caught this way, several of which would otherwise have produced confident,
-publishable, wrong results. The three tokenizer faults in Chapter 5 are the
+publishable, wrong results. The three tokenizer faults in Chapter 6 are the
 clearest case: without the validation gate the project would have published a
 negative result produced entirely by a tokenizer mismatch.
 
@@ -1151,7 +1151,7 @@ a verifier's *false-alarm* rate, not its detection rate, sets how good your
 score has to be — at FA = 0 the crossing disappears entirely.
 
 **What's weak, and should be said first rather than defended.** The end-to-end
-corpus is small: 182 test questions, 925 test steps, 108 first-bad steps. §7.6's
+corpus is small: 182 test questions, 925 test steps, 108 first-bad steps. §8.6's
 entire constructive half sits inside its own confidence intervals, and the
 thesis says so rather than ranking effects it can't separate. The second
 generator contributes only 125 globally-wrong checkable steps. Everything is

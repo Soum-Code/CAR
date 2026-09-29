@@ -1,6 +1,6 @@
 # The instrument is not identifiable, because layer choice is not resolvable
 
-Chapter 7.6 varied two things about the probe and never varied the
+Chapter 8.6 varied two things about the probe and never varied the
 **instrument**: every probe in this thesis is a logistic regression on one
 layer, and the ReProbe prediction that a probe here would reach ~0.9033 was
 made about a setting whose probes are not linear.
@@ -40,7 +40,7 @@ lets each arm choose its own hyper-parameters on the selection split:
 is held fixed.** Three of four intervals span zero, and the only one that does
 not favours the *linear* probe.
 
-At the published probe's own layer — 25, the configuration Chapter 7.6 actually
+At the published probe's own layer — 25, the configuration Chapter 8.6 actually
 reports — the instrument is worth **+0.0051, CI [−0.031, +0.042]**. That is
 *half* the data lever (+0.0105), not a multiple of it.
 
@@ -114,15 +114,15 @@ excluding zero is well inside this spread.
 
 | | before | after |
 |---|---|---|
-| §7.6 "the untested variable is the instrument" | an argument for future work | **tested, and null** — no matched-layer comparison separates the instruments |
+| §8.6 "the untested variable is the instrument" | an argument for future work | **tested, and null** — no matched-layer comparison separates the instruments |
 | the proposed C13, "the instrument is the largest lever" | drafted | **withdrawn before publication** — it was layer re-selection |
-| ch. 9, the ReProbe prediction | missed, instrument excuse open | the excuse is closed: at matched layer the instrument is worth +0.005, against the +0.21 the prediction needs |
+| ch. 10, the ReProbe prediction | missed, instrument excuse open | the excuse is closed: at matched layer the instrument is worth +0.005, against the +0.21 the prediction needs |
 | what limits the probe series | open | **the corpus** — a 0.0012 selection margin moves test AUROC by 0.0749 |
 
 The honest summary of the three levers is now that **none of them is
 identifiable at 925 test steps**, and that the measurement which *is* solid is
 the negative one: nothing about the probe — its training data, its target, or
-its functional form — closes the gap to the ch. 5 PRM's 0.9033.
+its functional form — closes the gap to the ch. 6 PRM's 0.9033.
 
 See [FINDINGS-PROBE.md](FINDINGS-PROBE.md) for round one and
 [FINDINGS-PROBE2.md](FINDINGS-PROBE2.md) for the data and target levers.

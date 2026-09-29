@@ -58,9 +58,9 @@ reviewer who finds the scoop themselves will discount everything else.
 | 8 | Benchmark analysis — StrategyQA has no propagation headroom | done |
 | 9 | Limitations, negative results, conclusion | ongoing |
 
-Chapters 4, 4b, 5, 7 and 8 are now complete on measured data. Chapter 5 returned
+Chapters 5, 4b, 5, 7 and 8 are now complete on measured data. Chapter 6 returned
 the high-scope outcome: reach is semantic rather than structural. Chapter 4b
-answers the most obvious reviewer objection to chapter 4 and answers it in the
+answers the most obvious reviewer objection to chapter 5 and answers it in the
 direction that helps: on a generator at 80% GSM8K rather than 45%, the fraction
 of globally-wrong steps that are arithmetically perfect rises from 0.78 to 0.90.
 The practical statement is that a deterministic verifier gets LESS useful as the
@@ -114,7 +114,7 @@ not measurement, and the thesis must not blur the two.
 
 ---
 
-## Chapter 5 result: reach is semantic, not structural
+## Chapter 6 result: reach is semantic, not structural
 
 | verifier | scope | false alarm | net |
 |---|---|---|---|
@@ -175,7 +175,7 @@ independent PRM closes the gap. Retrieval+entailment has no meaning on GSM8K
 
 | # | task | cost | blocks |
 |---|---|---|---|
-| 1 | ~~Measure verifier scope (ch. 5), all arms~~ | done | — |
+| 1 | ~~Measure verifier scope (ch. 6), all arms~~ | done | — |
 | 2 | ~~Hand-validate ~50 GSM8K dependency graphs~~ | done | found a systematic extraction bug; edge error measured at 5.7% |
 | 3 | ~~Full gate pipeline end-to-end on GSM8K~~ | done | negative result; see FINDINGS-PIPELINE |
 | 4 | ~~Re-measure error rates on a second and third generator~~ | done | Qwen2.5-7B, then Llama 3.1 8B once the licence was accepted; C1, μ and persistence all monotone in accuracy |
@@ -270,7 +270,7 @@ each of the three has a measured number and a regression test.
 Realistic targets: an ACL/EMNLP short paper, or a NeurIPS/ICLR workshop on
 LLM evaluation or uncertainty. The measurement plus benchmark critique is a
 credible short-paper contribution. A main-conference submission would need
-ch. 5 to produce a strong, surprising scope result.
+ch. 6 to produce a strong, surprising scope result.
 
 For the M.Tech thesis this is comfortably sufficient: a clear question,
 measured answers, refuted hypotheses recorded honestly, and a working system.

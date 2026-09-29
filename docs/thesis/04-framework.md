@@ -1,6 +1,6 @@
-# 3. Framework
+# 4. Framework
 
-## 3.1 The decomposition
+## 4.1 The decomposition
 
 Every measurement in this thesis rests on separating two failure modes of a
 reasoning step:
@@ -11,9 +11,9 @@ global_correct(t)  =  local_valid(t)  AND  NOT premise_corrupt(t)
 
 ![A step fails two separable ways: local arithmetic, and whether its premises were already corrupt. A calculator reads only one axis.](figures/diag1-decomposition.png)
 
-**Figure 3.1.** The decomposition every later chapter measures against. A
+**Figure 4.1.** The decomposition every later chapter measures against. A
 verifier reports the horizontal axis; the answer depends on both. The top-left
-cell — arithmetically perfect, wrong anyway — is what Chapter 4 measures and
+cell — arithmetically perfect, wrong anyway — is what Chapter 5 measures and
 what nothing in the original design could see.
 
 The two are separately observable on GSM8K, which is what makes the study
@@ -32,7 +32,7 @@ inherited_corruption(t)  =  local_valid(t)  AND  NOT global_correct(t)
 
 A step that is arithmetically perfect and still wrong. No deterministic
 verifier can see it, and none of the four verifier classes measured in
-Chapter 5 can either — but §2.7 records one structural change that does lift
+Chapter 6 can either — but §3.3 records one structural change that does lift
 the ceiling: scoring each step against *previously-verified* premises rather
 than against the generator's own unverified context. The population is
 therefore invisible to a verifier reading generated context, which is a
@@ -56,16 +56,16 @@ small. On a generator whose steps are 59% prose it collapses the estimate to
 0.25 and says nothing about reasoning.
 
 `C1_checkable` conditions on checkability in both numerator and denominator and
-is the estimator to quote across generators. Chapter 4 reports both.
+is the estimator to quote across generators. Chapter 5 reports both.
 
 ![The control loop, annotated with which chapter measures which component.](figures/diag2-gate-loop.png)
 
-**Figure 3.2.** The assembled system, and where each measurement lands.
-Chapters 4 to 6 measure one component each in isolation; Chapter 7 runs the
+**Figure 4.2.** The assembled system, and where each measurement lands.
+Chapters 5 to 6 measure one component each in isolation; Chapter 8 runs the
 whole loop. Measuring the parts separately is what makes the assembled
 negative result attributable rather than merely disappointing.
 
-## 3.2 Verifier reach
+## 4.2 Verifier reach
 
 A verifier is characterised by two numbers, both measurable:
 
@@ -73,7 +73,7 @@ A verifier is characterised by two numbers, both measurable:
 - **false alarm** — `P(flag | step is globally correct)`
 
 Scope is not a property of the verification *budget*; it is a property of the
-verifier class. Chapter 5 measures it across four classes and finds it spans
+verifier class. Chapter 6 measures it across four classes and finds it spans
 0.0000 to 0.9033.
 
 The modelling decision that carries the most weight appears in
@@ -86,9 +86,9 @@ for a step that has one.
 So a low-scope verifier does not merely help less. It feeds the calibrator
 systematically wrong labels, and the calibrator converges on a threshold that
 is confident about a risk it cannot see. That is a prediction of C3, and
-Chapter 7 shows it rather than asserting it.
+Chapter 8 shows it rather than asserting it.
 
-## 3.3 The propagation model
+## 4.3 The propagation model
 
 Entering corruption and escaping it are asymmetric, and the asymmetry drives
 every simulated result. As an age-indexed Markov chain with `v_t` the
@@ -115,10 +115,10 @@ wrong in two ways, and the direction matters:
   partial, so the model is optimistic about verification.
 - **I.i.d. per-step error.** Measured, this is false: corr(position, local
   error) = +0.950. Later steps are harder, which makes the model *conservative*
-  about the value of back-loading — the direction that makes Chapter 6's
+  about the value of back-loading — the direction that makes Chapter 7's
   conclusion safer rather than weaker.
 
-## 3.4 The measurement apparatus
+## 4.4 The measurement apparatus
 
 ### Splits by hash, not by index
 
@@ -144,14 +144,14 @@ the bug is in the implementation. Setting `signal_strength = 0.0` gives the
 null hypothesis: uncertainty is pure noise and the gate should show no gain
 over random allocation at matched budget.
 
-This is used directly in Chapter 7. The same pipeline scores AUROC 0.8668 on
+This is used directly in Chapter 8. The same pipeline scores AUROC 0.8668 on
 synthetic features with one-standard-deviation separation and 0.4828 on pure
 noise, which is what licenses the interpretation of the measured 0.5589 as a
 property of the signal rather than of the harness.
 
 ### One loop, components swapped
 
-Every condition in Chapter 7 — plain chain-of-thought, always-verify, random
+Every condition in Chapter 8 — plain chain-of-thought, always-verify, random
 gate at matched budget, quantile gate, split conformal, adaptive conformal —
 runs through the same `CARAgent` loop with one component replaced. Baselines
 implemented as parallel code paths drift, and a Pareto plot comparing two
@@ -164,7 +164,7 @@ The two baselines most often skipped are the two that matter most:
   calibration will rescue it.
 - **Oracle score.** The upper bound: the same calibrator, budget and verifier
   driven by a score that reads the label. It separates "the gate is bad" from
-  "the task is hard at this budget", and Chapter 7 reports it as a row in every
+  "the task is hard at this budget", and Chapter 8 reports it as a row in every
   table.
 
 ### Replay, and what it forbids
@@ -172,7 +172,7 @@ The two baselines most often skipped are the two that matter most:
 Generation costs GPU time and runs once, writing a corpus; everything
 downstream reads that corpus on CPU. `ReplayStepGenerator` satisfies the same
 protocol as the live generator, so the gate, calibration and budget code paths
-exercised in Chapter 7 are the real ones.
+exercised in Chapter 8 are the real ones.
 
 The cost is a hard limit on what can be claimed. The step text is fixed, so the
 gate cannot change what the model writes, and a verified-and-corrected step
@@ -186,10 +186,10 @@ premise. Therefore:
 | final-answer accuracy under gating | **not measurable — projected** |
 
 Reporting measured final-answer accuracy off a fixed corpus would be claiming
-an intervention that never happened. Chapter 7 projects it under an explicitly
+an intervention that never happened. Chapter 8 projects it under an explicitly
 stated repair model and labels every such number PROJECTED.
 
-## 3.5 Datasets
+## 4.5 Datasets
 
 **GSM8K** (Cobbe et al., 2021) is the primary benchmark. Grade-school word
 problems with worked solutions carrying inline `<<expr=result>>` calculator
@@ -200,8 +200,8 @@ annotations, which supply the deterministic local check. 7,473 train problems,
 Mistral-7B-SFT solutions, each step carrying `+`/`-`.
 
 **StrategyQA** (Geva et al., TACL 2021) was the original primary benchmark and
-is retained for the benchmark critique in Chapter 8. It ships annotated
-decompositions, which is why it looked attractive; Chapter 8 shows those
+is retained for the benchmark critique in Chapter 9. It ships annotated
+decompositions, which is why it looked attractive; Chapter 9 shows those
 decompositions are too shallow to exhibit propagation.
 
 **A generated corpus** produced for this thesis: 500 GSM8K test problems solved

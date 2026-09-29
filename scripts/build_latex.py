@@ -535,6 +535,13 @@ def main():
     (out / "chapters").mkdir(parents=True, exist_ok=True)
     (out / "figures").mkdir(parents=True, exist_ok=True)
 
+    # Clear the chapter directory first. The build only ever writes, so a
+    # renumbering left both 03-framework.tex and 04-framework.tex on disk --
+    # harmless while main.tex \inputs only the current set, but exactly the
+    # state in which a stale chapter gets picked up later and nobody notices.
+    for stale in (out / "chapters").glob("*.tex"):
+        stale.unlink()
+
     # figures: the PDFs, because LaTeX prefers vector and they already exist
     n_fig = 0
     for pdf in sorted(FIGS.glob("*.pdf")):
@@ -575,6 +582,11 @@ def main():
             inner = "\n".join(lines[start + 1:end]).strip()
             body = convert("# Abstract\n\n" + inner, chapter_title="Abstract")
             body = body.split("\n", 1)[1].lstrip()      # drop the \chapter line
+            # Star the headings inside it. The abstract is an unnumbered
+            # chapter, so a numbered \section under it comes out as "0.1
+            # Declaration on what is measured" in the table of contents.
+            body = body.replace(r"\section{", r"\section*{").replace(
+                r"\subsection{", r"\subsection*{")
             abstract = (r"\chapter*{Abstract}" "\n"
                         r"\addcontentsline{toc}{chapter}{Abstract}" "\n\n" + body)
             print(f"  {md.name} -> abstract in main.tex "

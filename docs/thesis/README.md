@@ -1,20 +1,26 @@
 # Thesis draft
 
-Full draft, 2026-09-06. Nine chapters plus front matter.
+Full draft, 2026-09-29. Ten chapters plus front matter.
 
 | ch | title | reproduces with |
 |---|---|---|
 | — | [Front matter and abstract](00-front-matter.md) | — |
 | 1 | [Introduction](01-introduction.md) | — |
 | 2 | [Background](02-background.md) | — |
-| 3 | [Framework](03-framework.md) | `pytest` |
-| 4 | [Measuring the gap](04-measuring-the-gap.md) | `exp_measure_error_rate.py`, `exp_generator_transfer.py` |
-| 5 | [Verifier reach](05-verifier-reach.md) | `exp_verifier_scope.py`, `gpu_semantic_scope.py --analyse` |
-| 6 | [Allocation](06-allocation.md) | `exp_allocation.py`, `exp_topology.py`, `validate_dependency_graphs.py score` |
-| 7 | [The assembled gate](07-the-assembled-gate.md) | `exp_gate_pipeline.py` |
-| 8 | [Feasibility and benchmarks](08-feasibility-and-benchmarks.md) | `exp_strategyqa_topology.py`, `exp_benchmark_compare.py` |
-| 9 | [Limitations and conclusion](09-conclusion.md) | — |
-| — | [References](10-references.md) | `check_citations.py --markdown` |
+| 3 | [Related work](03-related-work.md) | — |
+| 4 | [Framework](04-framework.md) | `pytest` |
+| 5 | [Measuring the gap](05-measuring-the-gap.md) | `exp_measure_error_rate.py`, `exp_generator_transfer.py` |
+| 6 | [Verifier reach](06-verifier-reach.md) | `exp_verifier_scope.py`, `gpu_semantic_scope.py --analyse` |
+| 7 | [Allocation](07-allocation.md) | `exp_allocation.py`, `exp_topology.py`, `validate_dependency_graphs.py score` |
+| 8 | [The assembled gate](08-the-assembled-gate.md) | `exp_gate_pipeline.py` |
+| 9 | [Feasibility and benchmarks](09-feasibility-and-benchmarks.md) | `exp_strategyqa_topology.py`, `exp_benchmark_compare.py` |
+| 10 | [Limitations and conclusion](10-conclusion.md) | — |
+| — | [References](11-references.md) | `check_citations.py --markdown` |
+
+Chapter 2 covers the machinery the thesis uses; chapter 3 the prior work it is
+positioned against, including the result that scooped its original
+contribution. They were one chapter until 2026-09-29, and an examiner reads the
+second as related work.
 
 ## Relationship to the findings documents
 
@@ -24,12 +30,12 @@ discarded, not only what worked.
 
 | chapter | primary source |
 |---|---|
-| 4 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 4, [FINDINGS-GENERATOR.md](../FINDINGS-GENERATOR.md) |
-| 5 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 5 |
-| 6 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 1–3, [FINDINGS-DEPGRAPH.md](../FINDINGS-DEPGRAPH.md) |
-| 7 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md), [FINDINGS-PROBE-NONLINEAR.md](../FINDINGS-PROBE-NONLINEAR.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md) |
-| 8 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 2–3 |
-| 2, 9 | [POSITIONING.md](../POSITIONING.md) |
+| 5 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 4, [FINDINGS-GENERATOR.md](../FINDINGS-GENERATOR.md) |
+| 6 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addendum 5 |
+| 7 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 1–3, [FINDINGS-DEPGRAPH.md](../FINDINGS-DEPGRAPH.md) |
+| 8 | [FINDINGS-PIPELINE.md](../FINDINGS-PIPELINE.md), [FINDINGS-PROBE.md](../FINDINGS-PROBE.md), [FINDINGS-PROBE2.md](../FINDINGS-PROBE2.md), [FINDINGS-PROBE-NONLINEAR.md](../FINDINGS-PROBE-NONLINEAR.md), [FINDINGS-SCORE-QUALITY.md](../FINDINGS-SCORE-QUALITY.md), [FINDINGS-ENTAILMENT.md](../FINDINGS-ENTAILMENT.md) |
+| 9 | [FINDINGS-PROPAGATION.md](../FINDINGS-PROPAGATION.md) Addenda 2–3 |
+| 3, 10 | [POSITIONING.md](../POSITIONING.md) |
 
 [THESIS.md](../THESIS.md) is the working plan and claim-to-evidence map, kept
 current as the index of what is measured and what is not.
@@ -98,7 +104,7 @@ Overleaf run, and it is where any remaining errors will surface.
 ## Bibliography
 
 [`references.bib`](references.bib), 21 entries.
-[10-references.md](10-references.md) is generated from it — never edited by
+[11-references.md](11-references.md) is generated from it — never edited by
 hand, so the two cannot disagree.
 
 ```bash

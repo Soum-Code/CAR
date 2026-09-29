@@ -84,10 +84,10 @@ like, and it is not worthless either.
 
 ## 2. AUROC is the wrong training target
 
-§7.4 measured that two scores of equal AUROC are worth different amounts,
+§8.4 measured that two scores of equal AUROC are worth different amounts,
 because the propagation model only pays for the **first** globally-wrong step
 in a solution, and this probe's score correlates positively with step position —
-it spends its ranking power on late steps no repair can rescue. (§7.4 reports
+it spends its ranking power on late steps no repair can rescue. (§8.4 reports
 **+0.1813** and the table below **+0.2327**. Same probe, same 925 test steps,
 Spearman 1.0 between them: the two committed artifacts store different monotone
 transforms of one score, and Pearson is not invariant to that. AUROC and
@@ -107,9 +107,9 @@ probe; all are evaluated on test with first-bad recall measured at a **fixed
 
 Training on the first-bad label raises the quantity that pays and costs global
 AUROC. At 0.5735 it lands level with the 0.5742 token+semantic baseline whose
-failure is Chapter 7's central negative result — a 0.0007 gap, far inside the
+failure is Chapter 8's central negative result — a 0.0007 gap, far inside the
 interval on either number, so the honest statement is that **the probe's AUROC
-advantage is gone**, not that it is measurably worse than the baseline. §7.2
+advantage is gone**, not that it is measurably worse than the baseline. §8.2
 declines to rank a 0.0114 gap for exactly this reason and the same restraint
 applies here.
 
@@ -186,9 +186,9 @@ Neither stands in for the other.
 |---|---|---|
 | C9c "0.6968 is a floor" | asserted, on a selection-split curve | **unsupported** — evidence invalid; a clean test gives +0.01, CI spanning zero |
 | "doubling the data does not move it" | this document, first version | **withdrawn** — confounded with layer re-selection; the sign is positive |
-| §7.4 "AUROC is not a sufficient figure of merit" | a diagnosis | **actionable, partially demonstrated** — significant against one comparator, not the other |
+| §8.4 "AUROC is not a sufficient figure of merit" | a diagnosis | **actionable, partially demonstrated** — significant against one comparator, not the other |
 | the gate table | probe rows only | the token+semantic baseline restored, with per-call recall |
 
 See [FINDINGS-PROBE.md](FINDINGS-PROBE.md) for round one and
-[FINDINGS-SCORE-QUALITY.md](FINDINGS-SCORE-QUALITY.md) for the §7.4 result this
+[FINDINGS-SCORE-QUALITY.md](FINDINGS-SCORE-QUALITY.md) for the §8.4 result this
 acts on.
