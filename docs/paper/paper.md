@@ -1,4 +1,4 @@
-# Coverage Is Not Risk: Locating Where Selective Verification of LLM Reasoning Fails
+# CAR: Measuring Where Step-Level Verification Fails
 
 *Workshop submission draft — target: NeurIPS/ICLR workshop on LLM evaluation or
 uncertainty. ~8 pages excluding references.*
@@ -56,14 +56,19 @@ checker. Assembling them is a natural system.
 We assembled it. It does not control risk, and the reasons are separable and
 measurable.
 
-**What makes attribution possible.** Every condition reported here runs through
-one control loop with a single component swapped, rather than through parallel
+**CAR is the instrument, not the claim.** Conformalized Agentic Reasoning is
+the harness we built to run that loop: a generator, a step-level score, a
+conformal calibrator, a budgeted gate and a pluggable verifier, all behind one
+interface. We make no claim that it works, and the paper is not a system
+paper. Its value here is that every condition below runs through *the same*
+loop with a single component swapped, rather than through parallel
 implementations of each baseline. That design is what upgrades "the system
-failed" into "the failure is here and not there." Two controls do the
-separating work: an **oracle score** that reads the label while holding the
-calibrator, budget and verifier fixed, and an **ablation** of the verifier's
-false-alarm rate to zero while holding its detection rate. Neither is
-deployable. Both are diagnostics.
+failed" into "the failure is here and not there."
+
+Two controls do the separating work: an **oracle score** that reads the label
+while holding the calibrator, budget and verifier fixed, and an **ablation** of
+the verifier's false-alarm rate to zero while holding its detection rate.
+Neither is deployable. Both are diagnostics.
 
 **Contributions.**
 
