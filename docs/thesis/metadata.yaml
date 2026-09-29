@@ -21,25 +21,24 @@ branch: "FILL: e.g. Computer Science and Engineering"
 institution: "Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar"
 department: "School of Computer Science and Engineering"
 
-# INTERNAL supervisor -- the institutional guide. Most M.Tech programmes
-# require this signature on the certificate even when the work is mentored
-# externally.
-supervisor: "FILL: internal KIIT faculty guide's name"
-supervisor_designation: "FILL: e.g. Assistant Professor"
-supervisor_organisation: "School of Computer Science and Engineering"
-supervisor_location: "Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar"
-
-# EXTERNAL supervisor / industry mentor. Leave the name blank if there is none
-# and the second signature block disappears.
+# The guide, who signs the certificate. Confirmed 2026-09-29 that he signs
+# alone and no KIIT faculty member countersigns.
 #
 # Each supervisor carries their OWN affiliation. The template used to print the
-# student's department and institution under whichever name it was given, which
-# is right for an internal guide and would have shown an external one as KIIT
-# faculty.
-co_supervisor: "Ponsuresh Manoharan"
-co_supervisor_designation: "Subject Matter Expert -- Cyber Security"
-co_supervisor_organisation: "L&T EduTech"
-co_supervisor_location: "Chennai"
+# student's department and institution under whichever name it was given --
+# correct for an internal faculty guide, and it would have shown an external
+# one as KIIT faculty.
+supervisor: "Ponsuresh Manoharan"
+supervisor_designation: "Subject Matter Expert -- Cyber Security"
+supervisor_organisation: "L&T EduTech"
+supervisor_location: "Chennai"
+
+# A second guide, if one is ever added. Leaving the name blank drops the second
+# signature block, and the certificate stays in the singular.
+co_supervisor: ""
+co_supervisor_designation: ""
+co_supervisor_organisation: ""
+co_supervisor_location: ""
 
 # Month and year printed on the title page, e.g. "September 2026".
 submission_date: "FILL: month and year of submission"
