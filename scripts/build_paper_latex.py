@@ -166,11 +166,27 @@ def protect_citations(md: str) -> tuple[str, list[str]]:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--out", type=Path, default=OUT)
-    ap.add_argument("--author", default="P. Somnath Reddy")
-    ap.add_argument("--institution", default=r"\emph{institution}")
-    ap.add_argument("--department", default=r"\emph{department}")
-    ap.add_argument("--email", default=r"\emph{email}")
+    ap.add_argument("--author")
+    ap.add_argument("--institution")
+    ap.add_argument("--department")
+    ap.add_argument("--email", default="p.somnathreddy26@gmail.com")
+    ap.add_argument("--allow-placeholders", action="store_true",
+                    help="build even though metadata.yaml has FILL: values")
     args = ap.parse_args()
+
+    # One source of truth. These values also set the thesis title page, and
+    # keeping a second copy behind argparse defaults is how the thesis ended up
+    # emitting a PDF that said "university name" in italics.
+    meta = B.load_metadata(allow_placeholders=True)
+    unfilled = [k for k in ("author", "institution", "department")
+                if str(meta.get(k, "")).startswith("FILL:")]
+    if unfilled and not args.allow_placeholders:
+        print(f"unfilled in {B.META}: {', '.join(unfilled)}")
+        print("Fill them, or pass --allow-placeholders for a draft.")
+        return 1
+    args.author = args.author or meta.get("author", "")
+    args.institution = args.institution or meta.get("institution", "")
+    args.department = args.department or meta.get("department", "")
 
     if not SRC.exists():
         print(f"missing {SRC}")
