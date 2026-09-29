@@ -17,6 +17,7 @@ inside the abstract. The fix slices from `## Abstract` to `## Contents`, and
 that slice has to keep the two substantive sections that sit below it.
 """
 
+import re
 import sys
 from pathlib import Path
 
@@ -121,6 +122,47 @@ def test_code_blocks_gate_on_unrenderable_unicode():
 
     with pytest.raises(SystemExit):
         build_latex.check_listing_chars("```\n☃\n```\n", "bad.md")
+
+
+INTERNAL = {"supervisor": "Dr A", "supervisor_designation": "Professor",
+            "supervisor_organisation": "School of CSE",
+            "supervisor_location": "Some University",
+            "institution": "Some University", "department": "School of CSE"}
+EXTERNAL = dict(INTERNAL, co_supervisor="Mr B",
+                co_supervisor_designation="Subject Matter Expert",
+                co_supervisor_organisation="L&T EduTech",
+                co_supervisor_location="Chennai")
+
+
+def test_certificate_has_one_signature_block_per_supervisor():
+    one = build_latex.signature_blocks(INTERNAL)
+    assert one.count(r"\begin{minipage}") == 1
+    two = build_latex.signature_blocks(EXTERNAL)
+    assert two.count(r"\begin{minipage}") == 2
+    assert "Mr B" in two and "L\\&T EduTech" in two
+
+
+def test_each_supervisor_signs_over_their_own_affiliation():
+    """An external mentor must not appear over the student's institution."""
+    two = build_latex.signature_blocks(EXTERNAL)
+    ext = two[two.index("Mr B"):]
+    assert "L\\&T EduTech" in ext
+    assert "Some University" not in ext
+
+
+def test_title_page_omits_an_affiliation_that_is_the_students_own():
+    """It is already printed at the top of the page; repeating it overflows."""
+    block = build_latex.supervisor_block(EXTERNAL)
+    assert "Dr A" in block and "Mr B" in block
+    assert block.count("Some University") == 0      # internal guide's, redundant
+    assert "L\\&T EduTech" in block                 # external one is not
+
+
+def test_ampersand_in_an_affiliation_is_escaped():
+    """"L&T EduTech" is a real value and a bare & breaks the compile."""
+    out = build_latex.signature_blocks(EXTERNAL)
+    assert "L\\&T" in out
+    assert not re.search(r"(?<!\\)&", out)
 
 
 def test_footnoted_url_survives_escaping():

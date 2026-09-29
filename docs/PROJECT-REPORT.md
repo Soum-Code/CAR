@@ -44,7 +44,7 @@ That's an unusual shape for a thesis, and section 2 explains how it got there.
 **Scale of the work.** 48 commits between 2026-08-31 and 2026-09-28. A
 24,620-word draft (front matter, nine chapters, references), 17,008 words of
 findings documents plus the positioning review and the planning ledger, 28
-experiment and utility scripts, 356 tests, 15 figures, 21 bibliography entries.
+experiment and utility scripts, 360 tests, 15 figures, 21 bibliography entries.
 Measurements on 93,129 labelled steps from Math-Shepherd plus a 2,573-step
 corpus generated for this work.
 
@@ -969,7 +969,7 @@ asserts a prefix read is more skewed than a strided one.
 | `select_and_fit` can't take test indices | the winner's curse becoming the headline |
 | hash-based splits | an example migrating between splits as data grows |
 
-**356 tests**, no GPU and no network required.
+**360 tests**, no GPU and no network required.
 
 ### 6.3 Measured versus modelled
 

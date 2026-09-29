@@ -21,18 +21,25 @@ branch: "FILL: e.g. Computer Science and Engineering"
 institution: "Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar"
 department: "School of Computer Science and Engineering"
 
-supervisor: "Ponsuresh Manoharan"
-supervisor_designation: "Subject Matter Expert -- Cyber Security"
-# The supervisor's OWN affiliation. Printed under the signature on the
-# certificate instead of the student's department and institution, which is
-# what the template used to do -- correct for an internal faculty supervisor,
-# wrong for an external one, and it would have read as though he were KIIT
+# INTERNAL supervisor -- the institutional guide. Most M.Tech programmes
+# require this signature on the certificate even when the work is mentored
+# externally.
+supervisor: "FILL: internal KIIT faculty guide's name"
+supervisor_designation: "FILL: e.g. Assistant Professor"
+supervisor_organisation: "School of Computer Science and Engineering"
+supervisor_location: "Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar"
+
+# EXTERNAL supervisor / industry mentor. Leave the name blank if there is none
+# and the second signature block disappears.
+#
+# Each supervisor carries their OWN affiliation. The template used to print the
+# student's department and institution under whichever name it was given, which
+# is right for an internal guide and would have shown an external one as KIIT
 # faculty.
-supervisor_organisation: "L&T EduTech"
-supervisor_location: "Chennai"
-# Delete these two if there is no co-supervisor.
-co_supervisor: ""
-co_supervisor_designation: ""
+co_supervisor: "Ponsuresh Manoharan"
+co_supervisor_designation: "Subject Matter Expert -- Cyber Security"
+co_supervisor_organisation: "L&T EduTech"
+co_supervisor_location: "Chennai"
 
 # Month and year printed on the title page, e.g. "September 2026".
 submission_date: "FILL: month and year of submission"

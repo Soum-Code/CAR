@@ -426,18 +426,14 @@ of the requirements for the degree of}}\\[0.7cm]
 This is to certify that the thesis entitled \textbf{``%(title)s''} submitted by
 \textbf{%(author)s} (%(roll_number)s) to %(institution)s in partial fulfilment
 of the requirements for the award of the degree of %(degree)s in %(branch)s is
-a record of bona fide work carried out under my supervision during the academic
-year %(academic_year)s.
+a record of bona fide work carried out under %(our_supervision)s during the
+academic year %(academic_year)s.
 
-To the best of my knowledge the content of this thesis has not been submitted
-to any other institute or university for the award of any degree or diploma.
+To the best of %(our_knowledge)s the content of this thesis has not been
+submitted to any other institute or university for the award of any degree or
+diploma.
 
-\vspace{2.5cm}
-\noindent\rule{6cm}{0.4pt}\\
-%(supervisor)s\\
-%(supervisor_designation)s\\
-%(supervisor_organisation)s\\
-%(supervisor_location)s
+%(signature_blocks)s
 
 \chapter*{Declaration}
 \addcontentsline{toc}{chapter}{Declaration}
@@ -504,23 +500,68 @@ def load_metadata(allow_placeholders: bool) -> dict:
     return meta
 
 
+def _person(meta: dict, prefix: str) -> tuple[str, str, str, str] | None:
+    """The four lines describing one supervisor, or None if unnamed."""
+    name = esc(str(meta.get(prefix, "") or "").strip())
+    if not name:
+        return None
+    return (name,
+            esc(str(meta.get(f"{prefix}_designation", "") or "").strip()),
+            esc(str(meta.get(f"{prefix}_organisation", "") or "").strip()),
+            esc(str(meta.get(f"{prefix}_location", "") or "").strip()))
+
+
+def signature_blocks(meta: dict) -> str:
+    """Certificate signature lines: one per supervisor, side by side.
+
+    Most M.Tech programmes want the internal faculty guide's signature even
+    when the work was mentored externally, so both appear, each over their own
+    affiliation rather than over the student's.
+    """
+    people = [p for p in (_person(meta, "supervisor"),
+                          _person(meta, "co_supervisor")) if p]
+    if not people:
+        return ""
+
+    def block(p, width):
+        name, desig, org, loc = p
+        body = "\\\\\n".join(x for x in (name, desig, org, loc) if x)
+        # \raggedright, because these columns are narrow enough that justified
+        # text hyphenates an institution name across lines ("Technol-ogy").
+        return (rf"\begin{{minipage}}[t]{{{width}\textwidth}}" "\n"
+                r"\raggedright\small" "\n"
+                r"\rule{5.5cm}{0.4pt}\\" "\n" + body + "\n" + r"\end{minipage}")
+
+    if len(people) == 1:
+        return r"\vspace{2.5cm}" "\n" r"\noindent" "\n" + block(people[0], "0.6")
+    return (r"\vspace{2.5cm}" "\n" r"\noindent" "\n"
+            + block(people[0], "0.46") + "\n" + r"\hfill" + "\n"
+            + block(people[1], "0.46"))
+
+
 def supervisor_block(meta: dict) -> str:
-    """The supervisor lines, with the co-supervisor only when there is one."""
-    sup = esc(meta.get("supervisor", ""))
-    desig = esc(meta.get("supervisor_designation", ""))
-    org = esc(meta.get("supervisor_organisation", ""))
-    loc = esc(meta.get("supervisor_location", ""))
-    where = ", ".join(x for x in (org, loc) if x)
-    lines = [r"{\large\textit{Under the supervision of}}\\[0.6cm]",
-             rf"{{\large\bfseries {sup}}}\\[0.2cm]",
-             rf"{{\large {desig}}}"]
-    if where:
-        lines.append(rf"\\[0.2cm]{{\large {where}}}")
-    co = (meta.get("co_supervisor") or "").strip()
-    if co:
-        lines += [r"\\[0.8cm]",
-                  rf"{{\large\bfseries {co}}}\\[0.2cm]",
-                  rf"{{\large {meta.get('co_supervisor_designation', '')}}}"]
+    """Title-page supervision lines, listing whoever is named."""
+    people = [p for p in (_person(meta, "supervisor"),
+                          _person(meta, "co_supervisor")) if p]
+    if not people:
+        return ""
+    label = ("Under the supervision of" if len(people) == 1
+             else "Under the supervision of")
+    lines = [rf"{{\large\textit{{{label}}}}}\\[0.5cm]"]
+    # The student's own institution is already printed at the top of this page,
+    # so repeating it under an internal guide's name costs three lines and
+    # pushes the submission date onto a second page. Only an affiliation that
+    # DIFFERS from the student's is worth the space.
+    home = {esc(str(meta.get("institution", ""))),
+            esc(str(meta.get("department", "")))}
+    for n, (name, desig, org, loc) in enumerate(people):
+        if n:
+            lines.append(r"\\[0.5cm]")
+        lines.append(rf"{{\large\bfseries {name}}}\\[0.15cm]")
+        lines.append(rf"{{\large {desig}}}")
+        if org and org not in home:
+            where = ", ".join(x for x in (org, loc) if x)
+            lines.append(rf"\\[0.15cm]{{\normalsize {where}}}")
     return "\n".join(lines)
 
 
@@ -619,6 +660,13 @@ def main():
     # "L&T EduTech" alone would break the compile on an unescaped ampersand.
     fields = {k: esc(str(v)) for k, v in fields.items()}
     fields["supervisor_block"] = supervisor_block(meta)
+    fields["signature_blocks"] = signature_blocks(meta)
+    # "under my supervision" reads wrong over two signature lines.
+    n_sup = len([p for p in (_person(meta, "supervisor"),
+                             _person(meta, "co_supervisor")) if p])
+    fields["our_supervision"] = ("our joint supervision" if n_sup > 1
+                                 else "my supervision")
+    fields["our_knowledge"] = "our knowledge" if n_sup > 1 else "my knowledge"
     fields["abstract"] = abstract
     front = FRONT % fields
     body = "\n\n".join(rf"\input{{chapters/{c}}}" for c in chapters)

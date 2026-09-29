@@ -522,7 +522,7 @@ break it.
 ## Reproducibility
 
 All code, data-fetching scripts, measurement outputs and GPU-run artifacts are
-in a public repository. 356 tests, no GPU and no network required. Every refuted
+in a public repository. 360 tests, no GPU and no network required. Every refuted
 claim that rests on a measurement carries a regression test, so a result cannot
 silently stop reproducing.
 
