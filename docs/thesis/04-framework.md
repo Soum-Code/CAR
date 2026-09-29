@@ -61,7 +61,7 @@ is the estimator to quote across generators. Chapter 5 reports both.
 ![The control loop, annotated with which chapter measures which component.](figures/diag2-gate-loop.png)
 
 **Figure 4.2.** The assembled system, and where each measurement lands.
-Chapters 5 to 6 measure one component each in isolation; Chapter 8 runs the
+Chapters 5 to 7 measure one component each in isolation; Chapter 8 runs the
 whole loop. Measuring the parts separately is what makes the assembled
 negative result attributable rather than merely disappointing.
 

@@ -194,13 +194,16 @@ step in a solution can be repaired and the probe ranks late ones.
 
 ## 1.6 Structure
 
-Chapter 2 covers the background: conformal prediction and risk control, the
-impossibility bound, process reward models, the selective-labels problem, and
-prior work on error propagation. Chapter 4 sets out the framework — the
-local/global decomposition, the propagation model, verifier reach as a
-parameter, and the measurement apparatus.
+Chapter 2 covers the background this thesis builds on: conformal prediction and
+risk control, the impossibility bound, process reward models and step labels,
+and the selective-labels problem. Chapter 3 covers the work it is positioned
+against — the result that scooped its original contribution, the contested
+status of step-level uncertainty, and prior work on error propagation and
+verifier placement. Chapter 4 sets out the framework: the local/global
+decomposition, the propagation model, verifier reach as a parameter, and the
+measurement apparatus.
 
-Chapters 5 through 7 are the measurements, in the order the argument needs
+Chapters 5 through 8 are the measurements, in the order the argument needs
 them: the size of the gap, the reach of verifiers, the shape of the optimal
 allocation, and the behaviour of the assembled system. Chapter 9 covers
 feasibility and the benchmark critique. Chapter 10 states the limitations

@@ -68,6 +68,31 @@ def main() -> int:
         if not m:
             continue
 
+    # Ranges need naming separately. A renumbering pass shifts "Chapters 4
+    # through 7" to "Chapters 5 through 7", because only the first number
+    # follows the word "Chapters" and the second is just a bare digit. Both
+    # ends still resolve, so the check above cannot see it -- the reference is
+    # structurally fine and semantically wrong. Two survived the 2026-09-29
+    # split that way, one of them in the introduction's own chapter summary.
+    ranges: list[str] = []
+    for md in referrers:
+        t = md.read_text(encoding="utf-8")
+        for m in re.finditer(
+                r"\b[Cc]hapters (\d+) (?:through|to|and|-|–) (\d+)", t):
+            lo, hi = int(m.group(1)), int(m.group(2))
+            flag = ""
+            if lo not in chapters or hi not in chapters:
+                flag = " -- an end is not a chapter"
+            elif lo >= hi:
+                flag = " -- range runs backwards or is empty"
+            ranges.append(f"{md.name}: \"{m.group(0)}\"{flag}")
+
+    if ranges:
+        print(f"\n{len(ranges)} chapter range(s) -- confirm each end by hand, "
+              "a renumber only shifts the first:")
+        for r in ranges:
+            print(f"    {r}")
+
     if bad:
         print(f"\n{len(bad)} broken reference(s):")
         for b in sorted(set(bad)):

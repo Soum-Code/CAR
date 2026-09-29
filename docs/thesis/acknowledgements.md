@@ -37,7 +37,9 @@ et al., and its inline calculator annotations are what make local validity
 checkable with no model and no judge. The generators are open weights from
 Mistral AI, the Qwen team and Meta.
 
-Every GPU measurement in Chapters 5 through 8 ran on Kaggle's free allocation.
-Three of those runs took six to eight hours each. A student without access to
-that allocation could not have produced this thesis, and it is worth recording
-that the work was gated on donated compute rather than on ideas.
+Every GPU measurement in this thesis — the generator transfer of Chapter 5, the
+verifier scope of Chapter 6, and the uncertainty, divergence and probe runs of
+Chapter 8 — ran on Kaggle's free allocation. Three of those runs took six to
+eight hours each. A student without access to that allocation could not have
+produced this thesis, and it is worth recording that the work was gated on
+donated compute rather than on ideas.
