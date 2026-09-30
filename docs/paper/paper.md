@@ -283,8 +283,8 @@ that entire range the measurement does not move.
 | 0.30 | 0.1538 | 21.8% |
 
 At α = 0.05 measured selective risk is **three times the target**. Risk barely
-moves across the sweep (0.1491 → 0.1587) while verification climbs from 4.6% to
-26.9%. The gate spends budget and buys nothing.
+moves across the sweep (0.1491 → 0.1538) while verification climbs from 4.6% to
+21.8%. The gate spends budget and buys nothing.
 
 The mechanism is that split conformal fits the threshold so the acceptance
 region *covers* 1 − α of correct steps. That is coverage. With an uninformative

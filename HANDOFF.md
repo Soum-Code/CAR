@@ -35,7 +35,44 @@ cd thesis-latex && pdflatex main && bibtex main && pdflatex main && pdflatex mai
 
 ---
 
+## The paper has NOT been verified to the same standard as the thesis
+
+This is the single most important thing to know before submitting it anywhere.
+
+The thesis went through three adversarial review passes **with** verification:
+84 findings claimed, 56 confirmed, all fixed. The paper got one pass whose
+verification stage died on a session limit. Four findings have since been
+confirmed by hand and fixed:
+
+- the oracle table's recall column mixed first-bad recall (0.3590, 0.3077) with
+  global recall (0.4366) from a different thesis table, under one heading;
+- the abstract paired a no-gate risk baseline with a split-conformal accuracy
+  baseline and a split-conformal call ratio;
+- "gains 17.6 points on a third of the calls" — that comparison is a fifth;
+- "risk barely moves across the sweep (0.1491 → 0.1587) while verification
+  climbs from 4.6% to 26.9%" — those endpoints span the split-conformal AND
+  the CAR column of the thesis table. The paper tabulates only split conformal,
+  so its prose contradicted its own table. Now 0.1491 → 0.1538 and 4.6% → 21.8%.
+
+**Eight remain unverified.** They are recoverable from the workflow journal at
+`.claude/.../subagents/workflows/wf_4165863f-acc/journal.jsonl`. The two worth
+settling first, both being hedges lost in compression:
+
+- the AUROC ≈ 0.65 crossing may be stated without the thesis's caveat that
+  0.6968 sits *inside* the [0.625, 0.700] band the sweep cannot resolve — "at
+  the boundary, not past it";
+- the claim that halving false alarms beats raising detection, which §10.4
+  calls "an argument, not a result" because scope was pinned at 0.9033 in every
+  sweep row and detection was never varied.
+
+Note that `check_paper.py` passes on all of these. Every numeric literal in the
+paper does appear in the thesis — they are attached to the wrong comparison,
+which is exactly the gap a numeric checker cannot close.
+
 ## What is outstanding
+
+**Verify the paper's remaining eight findings** before it goes to anyone — see
+the section above. Everything else below is administrative.
 
 **Three administrative items**, none technical, all named on slide 20 of the deck:
 
