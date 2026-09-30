@@ -22,7 +22,7 @@ further generators this fraction rises monotonically with model accuracy: 0.7848
 verifier becomes *less* useful as generators improve. Second, the assembled gate
 holds its conformal coverage guarantee while missing its selective-risk target
 by 3× at α = 0.05, and reports nothing amiss. Third, an oracle score takes
-selective risk 0.1554 → 0.0885 and projected accuracy 0.79 → 0.98 on a third of
+selective risk 0.154 → 0.089 and projected accuracy 0.79 → 0.98 on a third of
 the verification calls, which shows the verifier was never the defect. It was
 being aimed by a near-chance score. The oracle still misses α = 0.05 by 1.8×,
 isolating the budget as the one genuinely separate bottleneck.
@@ -301,18 +301,18 @@ interest is untouched.
 Projected final-answer accuracy against a no-gate baseline of 0.8022, with the
 task PRM at its measured operating point:
 
-| score | calls/q | first-bad recall | selective risk | PROJ accuracy |
+| score | calls/q | recall | selective risk | PROJ accuracy |
 |---|---|---|---|---|
 | no gate | 0.00 | — | 0.1554 | 0.8022 |
-| real, split conformal | 1.09 | 0.3590 | 0.1538 | 0.7912 |
-| real, always verify | 1.89 | — | — | **0.7637** |
-| probe (AUROC 0.6968) | 0.96 | 0.3077 | 0.1394 | 0.7802 |
+| real, split conformal | 1.09 | 0.1761 | 0.1538 | 0.7912 |
+| real, always verify | 1.89 | 0.2606 | — | **0.7637** |
+| probe (AUROC 0.6968) | 0.96 | 0.2465 | 0.1394 | 0.7802 |
 | **oracle** | **0.37** | **0.4366** | **0.0885** | **0.9780** |
 
 The highest-reach verifier available **loses 4 points of accuracy** at its
 measured operating point, and more verification makes it worse. Behind a perfect
 score the *same verifier at the same 9.87% false-alarm rate* gains **17.6
-points**, on a third of the calls.
+points**, on a fifth of the calls.
 
 This is a base-rate effect. §4 reported `net = scope − FA = 0.8047`, measured on
 a population conditioned on being inherited corruption, where every item was
