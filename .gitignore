@@ -91,3 +91,6 @@ thesis-latex/
 # IEEE paper build product: regenerate with scripts/build_paper_latex.py.
 # docs/paper/paper.md is the single source.
 paper-latex/
+
+# Office lock files, created while a document is open
+~$*
