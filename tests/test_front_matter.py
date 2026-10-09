@@ -214,3 +214,27 @@ def test_substantive_sections_survive_the_slice():
     kept = "\n".join(lines[start:end]).lower()
     assert "what is measured and what is modelled" in kept
     assert "reproducibility" in kept
+
+
+# --- the paper's author block ------------------------------------------------
+
+def test_paper_lists_the_guide_as_second_author_from_metadata():
+    """The guide on the paper must be the guide on the certificate, same fields."""
+    import build_paper_latex
+    block = build_paper_latex.author_blocks(
+        EXTERNAL, "Student", "Dept", "Inst", "s@example.org")
+    assert block.count(r"\IEEEauthorblockN") == 2
+    assert r"\and" in block
+    # student first, guide second, each over their own affiliation
+    assert block.index("Student") < block.index("Dr A")
+    assert r"\textit{Dept}" in block.split(r"\and")[0]
+    assert "Some University" in block.split(r"\and")[1]
+    assert "Inst" not in block.split(r"\and")[1]
+
+
+def test_paper_has_one_author_block_when_no_guide_is_named():
+    import build_paper_latex
+    block = build_paper_latex.author_blocks(
+        dict(INTERNAL, supervisor=""), "Student", "Dept", "Inst", "s@example.org")
+    assert block.count(r"\IEEEauthorblockN") == 1
+    assert r"\and" not in block

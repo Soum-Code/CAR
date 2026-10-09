@@ -528,9 +528,8 @@ silently stop reproducing.
 
 ## Acknowledgment
 
-The author thanks Ponsuresh Manoharan of L&T EduTech, Chennai, for supervising
-this work, and the School of Computer Engineering at the Kalinga Institute of
-Industrial Technology for the environment in which it was carried out.
+The authors thank the School of Computer Engineering at the Kalinga Institute of
+Industrial Technology for the environment in which this work was carried out.
 
 This research received no specific grant from any funding agency in the public,
 commercial or not-for-profit sectors. Every GPU measurement reported here ran

@@ -77,11 +77,7 @@ PREAMBLE = r"""\documentclass[conference]{IEEEtran}
 
 \title{%(title)s}
 
-\author{\IEEEauthorblockN{%(author)s}
-\IEEEauthorblockA{\textit{%(department)s} \\
-\textit{%(institution)s} \\
-%(email)s}
-}
+\author{%(authors)s}
 
 \maketitle
 
@@ -161,6 +157,29 @@ def protect_citations(md: str) -> tuple[str, list[str]]:
     # print as literal brackets.
     md = re.sub(r"\[((?:[a-z]+\d{4}[a-z0-9]*)(?:[;,][^\]]*)?)\]", sub, md)
     return md, cites
+
+
+def author_blocks(meta: dict, author: str, department: str, institution: str,
+                  email: str) -> str:
+    """IEEE author block: the student first, then the guide if one is named.
+
+    The guide's name, designation and affiliation come from the same
+    metadata.yaml fields the thesis certificate uses, so the two cannot
+    disagree. An empty `supervisor` drops the second block.
+    """
+    first = (rf"\IEEEauthorblockN{{{author}}}" "\n"
+             rf"\IEEEauthorblockA{{\textit{{{department}}} \\" "\n"
+             rf"\textit{{{institution}}} \\" "\n"
+             rf"{email}}}")
+    guide = B._person(meta, "supervisor")
+    if not guide:
+        return first
+    name, desig, org, loc = guide
+    where = ", ".join(x for x in (org, loc) if x)
+    lines = [rf"\textit{{{desig}}}" if desig else "", where]
+    second = (rf"\IEEEauthorblockN{{{name}}}" "\n"
+              rf"\IEEEauthorblockA{{" + " \\\\\n".join(x for x in lines if x) + "}")
+    return first + "\n\\and\n" + second
 
 
 def main() -> int:
@@ -249,9 +268,10 @@ def main() -> int:
     ))
 
     text = (PREAMBLE % {
-        "title": B.esc(title), "author": args.author,
-        "institution": args.institution, "department": args.department,
-        "email": args.email, "abstract": abstract,
+        "title": B.esc(title),
+        "authors": author_blocks(meta, args.author, args.department,
+                                 args.institution, args.email),
+        "abstract": abstract,
         "keywords": "conformal prediction, LLM reasoning, step verification, "
                     "selective risk, uncertainty estimation",
     } + body + TAIL)
