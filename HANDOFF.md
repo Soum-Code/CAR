@@ -1,6 +1,6 @@
 # Session handoff
 
-*State as of 2026-09-30. Read this, then `docs/thesis/README.md`.*
+*State as of 2026-10-09. Read this, then `docs/thesis/README.md`.*
 
 Everything below is committed and pushed to `Soum-Code/CAR` on `main`.
 
@@ -76,7 +76,10 @@ the section above. Everything else below is administrative.
 
 **Three administrative items**, none technical, all named on slide 20 of the deck:
 
-1. **Plagiarism report** — not generated. Needs the institute's tool.
+1. **Plagiarism report** — requested 2026-10-09 from the KIIT library
+   (lakshminarayan.ghosh@kiit.ac.in) from `25167023@kiit.ac.in`, with the paper
+   PDF attached. Awaiting reply on the procedure and whether a Word file is
+   needed. The thesis was deliberately NOT sent — the paper only.
 2. **Publication status** — the paper is written and compiles but has not been
    submitted. Before it goes anywhere: the guide reads it, a venue is chosen,
    and that venue's LLM-usage disclosure policy is checked.
