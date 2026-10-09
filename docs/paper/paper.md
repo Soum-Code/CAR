@@ -534,8 +534,8 @@ Industrial Technology for the environment in which it was carried out.
 
 This research received no specific grant from any funding agency in the public,
 commercial or not-for-profit sectors. Every GPU measurement reported here ran
-on Kaggle's free allocation, three of the generation runs taking six to eight
-hours each. The study measures publicly released artifacts throughout: the
+on Kaggle's free allocation, the two generation runs taking 7h40m and
+6h11m. The study measures publicly released artifacts throughout: the
 Math-Shepherd corpus, GSM8K, and open model weights from Mistral AI, the Qwen
 team and Meta.
 

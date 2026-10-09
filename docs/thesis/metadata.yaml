@@ -32,6 +32,8 @@ supervisor: "Ponsuresh Manoharan"
 supervisor_designation: "Subject Matter Expert -- Cyber Security"
 supervisor_organisation: "L&T EduTech"
 supervisor_location: "Chennai"
+# Shown under his name in the paper author block. Leave blank to omit the line.
+supervisor_email: ""
 
 # A second guide, if one is ever added. Leaving the name blank drops the second
 # signature block, and the certificate stays in the singular.

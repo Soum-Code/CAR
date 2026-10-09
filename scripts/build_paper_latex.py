@@ -77,11 +77,7 @@ PREAMBLE = r"""\documentclass[conference]{IEEEtran}
 
 \title{%(title)s}
 
-\author{\IEEEauthorblockN{%(author)s}
-\IEEEauthorblockA{\textit{%(department)s} \\
-\textit{%(institution)s} \\
-%(email)s}
-}
+\author{%(author_block)s}
 
 \maketitle
 
@@ -134,6 +130,38 @@ def convert_table_2col(rows: list[str]) -> str:
     return "\n".join(out)
 
 
+def author_block(meta: dict, args) -> str:
+    """IEEE author block, one \\IEEEauthorblock per author, side by side.
+
+    The guide is a co-author on this paper and is listed first, which is the
+    convention the author's department follows. Each author carries their OWN
+    affiliation -- the guide is at L&T EduTech, not at KIIT, and printing the
+    student's department under his name would misattribute him.
+    """
+    people = [
+        (meta.get("supervisor", ""),
+         meta.get("supervisor_designation", ""),
+         meta.get("supervisor_organisation", ""),
+         meta.get("supervisor_location", ""),
+         meta.get("supervisor_email", "")),
+        (args.author, "",
+         meta.get("department", ""),
+         meta.get("institution", ""),
+         args.email),
+    ]
+    out = []
+    for name, desig, org, loc, email in people:
+        if not str(name).strip():
+            continue
+        lines = [rf"\IEEEauthorblockN{{{B.esc(name)}}}"]
+        body = [B.esc(x) for x in (desig, org, loc, email) if str(x).strip()]
+        lines.append(r"\IEEEauthorblockA{" + " \\\\\n".join(
+            rf"\textit{{{b}}}" if b not in (B.esc(email),) else b
+            for b in body) + "}")
+        out.append("\n".join(lines))
+    return "\n\\and\n".join(out)
+
+
 def protect_citations(md: str) -> tuple[str, list[str]]:
     """[key], [k1; k2] and [key, Prop. 3] become \\cite, via a safe sentinel.
 
@@ -169,7 +197,7 @@ def main() -> int:
     ap.add_argument("--author")
     ap.add_argument("--institution")
     ap.add_argument("--department")
-    ap.add_argument("--email", default="p.somnathreddy26@gmail.com")
+    ap.add_argument("--email", default="25167023@kiit.ac.in")
     ap.add_argument("--allow-placeholders", action="store_true",
                     help="build even though metadata.yaml has FILL: values")
     args = ap.parse_args()
@@ -249,9 +277,8 @@ def main() -> int:
     ))
 
     text = (PREAMBLE % {
-        "title": B.esc(title), "author": args.author,
-        "institution": args.institution, "department": args.department,
-        "email": args.email, "abstract": abstract,
+        "title": B.esc(title), "author_block": author_block(meta, args),
+        "abstract": abstract,
         "keywords": "conformal prediction, LLM reasoning, step verification, "
                     "selective risk, uncertainty estimation",
     } + body + TAIL)
