@@ -28,7 +28,8 @@ being aimed by a near-chance score. The oracle still misses α = 0.05 by 1.8×,
 isolating the budget as the one genuinely separate bottleneck.
 
 A sweep over synthetic scores of controlled AUROC locates the score quality the
-verifier needs at **AUROC ≈ 0.65**, below a probe we already trained, and shows
+verifier needs at **AUROC ≈ 0.65**, a floor our best probe (0.6968) sits at the
+boundary of rather than past, and shows
 that threshold is made entirely of false alarms: at a 0% false-alarm rate the
 same verifier pays for itself down to AUROC 0.55. The sweep also refutes the
 metric it is built on. Two scores of identical AUROC differ by 0.04 projected
@@ -112,7 +113,8 @@ verifier reports, so it calibrates local validity.
 
 The two are separately observable on GSM8K [cobbe2021gsm8k], which is what makes
 this study possible. Inline `<<expr=result>>` annotations give local validity
-deterministically, with no model and no judge. Math-Shepherd
+deterministically, with no model and no judge, wherever a step is written in
+GSM8K's notation. Math-Shepherd
 [wang2024mathshepherd] supplies global labels by Monte-Carlo rollout: a step is
 `+` if any completion from that prefix reaches the gold answer. So the label is
 *global* correctness, and a step inherits `-` from a corrupted premise even when
@@ -145,6 +147,14 @@ can be read off it; every rate is reported per stratum and post-stratified.
 GSM8K test problems, K = 4 rollouts, temperature 0.7, 4-shot) and written in
 Math-Shepherd's own format so one analysis path reads all three:
 Qwen2.5-7B-Instruct (2,573 steps) and Llama 3.1 8B Instruct (1,938 steps).
+Both write most arithmetic as LaTeX rather than GSM8K markers. Markers cover
+14.5% of Qwen's steps and 30.9% of Llama's, failing the harness's 0.60
+annotation floor, so both runs continued in non-strict mode behind a
+normaliser that rewrites LaTeX and unicode arithmetic before the same
+deterministic check. Applied to all three corpora it lifts checkability to
+40.7% and 64.3% while moving the baseline's local error only from 0.1305 to
+0.1364, so every generated-corpus rate below rests on an extension that is
+near-inert where markers already exist.
 
 **The instrument.** All conditions in §5 run through the same agent loop with
 one component replaced: plain chain-of-thought, always-verify, a random gate at
@@ -183,10 +193,9 @@ generator closes the gap by itself. It does the opposite.
 | *n* globally-wrong checkable steps | 46,555 | 309 | 125 |
 | 95% Wilson CI | [0.781, 0.789] | [0.832, 0.906] | [0.840, 0.944] |
 
-C1 is **monotone in generator accuracy**. The Llama point was a prediction
-before it was a measurement: this table had two rows, and the claim that a model
-between the two would fall between them was written down first. Mistral's
-interval is disjoint from both others.
+C1 is **monotone in generator accuracy**. Llama was run after this section was
+drafted, on settings fixed by the Qwen run, with no parameter chosen to place
+it. Mistral's interval is disjoint from both others.
 
 Local error is monotone on the same ordering (0.1708, 0.1034, 0.0813) and that
 is the mechanism. Global error is *not* monotone, so C1 does not rise because
@@ -206,10 +215,13 @@ idiosyncrasy of one model.
 [kotte2026certify, Prop. 3] shows that when base risk μ exceeds target α, any
 distribution-free method must verify or abstain on at least `(μ − α)/(1 − α)` of
 items. This is a closed form checkable in advance, and it is not a small
-constraint: at μ = 0.3908 a target of α = 0.10 charges **32.3%** of the budget
-as an entry fee. The floor falls monotonically with generator accuracy (32.3%,
-15.9%, 2.5%), so any statement about attainable α must name its model. We use
-the floor as a reference line rather than a result.
+constraint: at μ = 0.3908 a target of α = 0.10 charges **32.3%** of all steps
+as an entry fee. That μ is post-stratified to an assumed 45% accuracy inside
+the model's reported 41–52% band, and it is sensitive to the assumption: over
+the 40–52% span the floor runs from 36.3% down to 26.8%. The floor also falls
+monotonically with generator accuracy (32.3%, 15.9%, 2.5%), so
+any statement about attainable α must name its model. We use the floor as a
+reference line rather than a result.
 
 ---
 
@@ -221,7 +233,8 @@ widening the lookback should help. On 35,535 steps, arithmetic reach rises from
 structural: **80.0%** of those steps have no upstream arithmetic error at all.
 The mistake is in the setup, not the calculation.
 
-On the population arithmetic provably cannot see:
+On the population arithmetic provably cannot see (PRM arm: 1,500
+arithmetic-blind steps + 750 controls; both judge arms: 600 + 300):
 
 | verifier | independent? | task-trained? | scope | false alarm |
 |---|---|---|---|---|
@@ -231,8 +244,11 @@ On the population arithmetic provably cannot see:
 | task PRM (Math-Shepherd-7B) | yes | **yes** | **0.9033** | 0.0987 |
 
 The same-model critic detects zero errors. The model that wrote these
-solutions, asked whether they are sound, approves everything. That is
-[huang2024selfcorrect] measured directly at step level.
+solutions, asked whether they are sound, approves everything. Its separation on
+known labels is 0.0000 as well, the signature we otherwise read as a broken
+harness, so this counts as a finding only because the task PRM cleared the
+same validation on the same data. That is [huang2024selfcorrect] measured
+directly at step level.
 
 > Reach is not how far back you look. It requires independence from the
 > generator **and** task specialisation; neither alone suffices.
@@ -263,9 +279,9 @@ the same information. Against the synthetic control at 0.8668 and noise at
 
 Semantic divergence is the signal the original design weighted most heavily, and
 measuring it required deciding when two sampled continuations mean the same
-thing. That choice is load-bearing: under exact string matching, AUROC falls
-*below chance* to 0.4904, because measured disagreement then tracks notational
-variety rather than doubt. Had the library default been used, this section would
+thing. That choice is load-bearing: under exact string matching, AUROC drops to
+0.5287 on test and *below chance* to 0.4904 over all 2,573 steps, because
+measured disagreement then tracks notational variety rather than doubt. Had the library default been used, this section would
 have reported that semantic divergence is anti-predictive: a clean, believable,
 wrong conclusion. We also implement the reference relation, bidirectional
 entailment under an NLI model [farquhar2024semantic], and it does not rescue the
@@ -369,13 +385,19 @@ seeds.
 | **0.700** | 0.1405 | 0.4635 | **0.8119** | **net +** |
 | 0.990 | 0.1258 | 0.7736 | 0.8712 | net + |
 
-The crossing is at AUROC ≈ 0.65, below the probe that already exists.
+The crossing is at AUROC ≈ 0.65: net-negative up to 0.625, net-positive from
+0.700. It is an interval, not a point, and the probe's 0.6968 sits inside it,
+at the boundary rather than past it. The figure is also a floor for a
+*well-behaved* score rather than a specification: a real score with positional
+bias lands below the synthetic curve (§6.1), which is why the probe row in §5.3
+is net-negative at 0.7802.
 
 And the threshold is made entirely of false alarms. Rerun with the
 verifier's false-alarm rate switched off and there is no crossing to find: at
 FA = 0 the same verifier is worth having at *every* score quality tested, down
-to 0.55. Halving a verifier's false-alarm rate lowers the score quality you need
-more than raising its detection rate does.
+to 0.55. Calibration therefore looks like the cheaper lever than reach. But
+scope is held at 0.9033 in every row and the only ablation is FA 0.0987 → 0, so
+that comparison is an argument, not a result.
 
 No score quality holds a binding α at this budget. The best any row manages
 at α = 0.05 is 0.0956, at AUROC 0.99, still 1.9× the target. §5.3 showed that
@@ -403,9 +425,11 @@ corr(normalised step position, probe score)      +0.1813
 corr(normalised step position, composite score)  -0.2766
 ```
 
-The probe flags late steps. Local error rises with position (corr = +0.950,
-doubling from 11% at step 1 to 22% at step 8), so a score that chases positional
-difficulty is rewarded on AUROC. But the projection only pays for the **first**
+The probe flags late steps. Local error rises with position (corr = +0.950 on
+Math-Shepherd, doubling from 11% at step 1 to 22% at step 8), so a score that
+chases positional difficulty is rewarded on AUROC. The sign replicates on all
+three generators, but the magnitude resolves on two: on this corpus it falls to
++0.26–+0.36, where 59% of steps assert no arithmetic. But the projection only pays for the **first**
 bad step, because everything downstream inherits corruption that repairing a
 later step does not undo.
 
@@ -499,7 +523,8 @@ Conformal calibration then holds its coverage guarantee while missing selective
 risk by 3×, and reports nothing amiss. The verifier with real reach is
 net-negative at its measured operating point. But that third failure is *not*
 independent: behind a perfect score the same verifier gains 17.6 points, and it
-turns positive at AUROC ≈ 0.65, below a probe we already trained.
+turns positive at AUROC ≈ 0.65 for a well-behaved score, a floor a probe we
+already trained sits at the boundary of rather than past.
 
 What survives as genuinely separate is the **signal** and the **budget**. A
 perfect score still misses α = 0.05 by 1.8×, and no score quality up to 0.99
@@ -508,8 +533,8 @@ calibration cannot help while the score does not rank; and the verifier was
 never the problem.
 
 Two results transfer beyond this setting. A deterministic verifier gets *less*
-useful as generators improve, measured across three models with disjoint
-intervals. And AUROC is the wrong figure of merit for a step-level score under
+useful as generators improve, measured across three models with Mistral's
+interval disjoint from both others. And AUROC is the wrong figure of merit for a step-level score under
 propagation: two scores of identical AUROC differ by 0.04 projected accuracy,
 because only the first bad step can be repaired.
 

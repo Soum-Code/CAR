@@ -35,44 +35,49 @@ cd thesis-latex && pdflatex main && bibtex main && pdflatex main && pdflatex mai
 
 ---
 
-## The paper has NOT been verified to the same standard as the thesis
-
-This is the single most important thing to know before submitting it anywhere.
+## The paper's review is now closed
 
 The thesis went through three adversarial review passes **with** verification:
-84 findings claimed, 56 confirmed, all fixed. The paper got one pass whose
-verification stage died on a session limit. Four findings have since been
-confirmed by hand and fixed:
+84 findings claimed, 56 confirmed, all fixed. The paper's first pass died on a
+session limit with its verification stage unrun, leaving 20 findings filed by
+two finder agents (`numbers-in-context` and `dropped-hedges`, overlapping) in
+`.claude/.../subagents/workflows/wf_4165863f-acc/journal.jsonl`.
 
-- the oracle table's recall column mixed first-bad recall (0.3590, 0.3077) with
-  global recall (0.4366) from a different thesis table, under one heading;
-- the abstract paired a no-gate risk baseline with a split-conformal accuracy
-  baseline and a split-conformal call ratio;
-- "gains 17.6 points on a third of the calls" — that comparison is a fifth;
-- "risk barely moves across the sweep (0.1491 → 0.1587) while verification
-  climbs from 4.6% to 26.9%" — those endpoints span the split-conformal AND
-  the CAR column of the thesis table. The paper tabulates only split conformal,
-  so its prose contradicted its own table. Now 0.1491 → 0.1538 and 4.6% → 21.8%.
+Four were confirmed by hand and fixed on 2026-09-30: the oracle table's recall
+column mixing first-bad with global recall; the abstract's mismatched
+baselines; "a third of the calls" where the comparison is a fifth; and sweep
+endpoints spanning two methods (now 0.1491 → 0.1538 and 4.6% → 21.8%).
 
-**Eight remain unverified.** They are recoverable from the workflow journal at
-`.claude/.../subagents/workflows/wf_4165863f-acc/journal.jsonl`. The two worth
-settling first, both being hedges lost in compression:
+The remaining **14 were verified on 2026-10-10** — one verifier re-reading both
+documents per finding, then two refuters each (one re-deriving from sources,
+one judging whether 6 pages may compress the caveat). Run
+`wf_9d4bc15c-b75/journal.jsonl`, 40 agents. Outcome: **10 fixed, 4 dropped.**
 
-- the AUROC ≈ 0.65 crossing may be stated without the thesis's caveat that
-  0.6968 sits *inside* the [0.625, 0.700] band the sweep cannot resolve — "at
-  the boundary, not past it";
-- the claim that halving false alarms beats raising detection, which §10.4
-  calls "an argument, not a result" because scope was pinned at 0.9033 in every
-  sweep row and detection was never varied.
+The four dropped matter more than the ten fixed, because three of them were
+*wrong*, and two would have put a new error into the paper:
 
-Note that `check_paper.py` passes on all of these. Every numeric literal in the
-paper does appear in the thesis — they are attached to the wrong comparison,
-which is exactly the gap a numeric checker cannot close.
+- **`abstract-call-ratio` was a false alarm.** 0.154 is split conformal's
+  0.1538, not no-gate's 0.1554, and 0.79 is 0.7912. Both arrows run from the
+  same row, so 0.37 / 1.09 = "a third" is correctly denominated. The abstract
+  is tighter than the thesis here. Do not "fix" it.
+- **`c1-denominator`** claimed 78.5% should be 69.8%. It should not: ch1 §1.4,
+  the front matter, ch10 and `THESIS.md` all use the unqualified phrasing with
+  78.5%, and §2.2 of the paper stipulates `C1_checkable` as the reported
+  estimator. The finder's own arithmetic did not reproduce either.
+- **`teacher-forcing`** wanted the AUROC block labelled as teacher-forced
+  features. Semantic divergence *cannot* be teacher-forced — it is defined over
+  independently sampled continuations, `gpu_score_uncertainty.py:18-22` says so
+  and writes 0.0 as a placeholder, and the paper already says "resampled" three
+  lines above. The fix would have contradicted the paper against itself.
+- **`recovery-monotone`**: the paper prints counts over visibly different
+  denominators (0/14,573, 12/141, 6/83), never the rates, and ch1 of the thesis
+  compresses it identically.
+
+Note that `check_paper.py` passed on all 20 throughout. Every numeric literal
+does appear in a source — the defects were numbers attached to the wrong
+comparison, which is exactly the gap a numeric checker cannot close.
 
 ## What is outstanding
-
-**Verify the paper's remaining eight findings** before it goes to anyone — see
-the section above. Everything else below is administrative.
 
 **Three administrative items**, none technical, all named on slide 20 of the deck:
 
@@ -80,6 +85,10 @@ the section above. Everything else below is administrative.
    (lakshminarayan.ghosh@kiit.ac.in) from `25167023@kiit.ac.in`, with the paper
    PDF attached. Awaiting reply on the procedure and whether a Word file is
    needed. The thesis was deliberately NOT sent — the paper only.
+   **The attached copy is now stale**: it predates the 2026-10-10 review fixes.
+   Resend `outputs/Somnath_Reddy_25167023_Paper.pdf` if he has not run the
+   check yet, or let it stand — the edits are hedges and denominators, so a
+   similarity score will not move.
 2. **Publication status** — the paper is written and compiles but has not been
    submitted. Before it goes anywhere: the guide reads it, a venue is chosen,
    and that venue's LLM-usage disclosure policy is checked.
