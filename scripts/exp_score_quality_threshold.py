@@ -1,6 +1,6 @@
 """How good does the score have to be before the verifier is worth having? [CPU]
 
-Chapter 7 leaves this open in two places and chapter 9 repeats it. The task PRM
+Chapter 8 leaves this open in two places and chapter 10 repeats it. The task PRM
 detects 90.3% of globally-wrong steps and false-alarms on 9.87% of correct
 ones. Behind the measured score (AUROC 0.5742) it is worth -4 points of
 projected accuracy; behind the probe (0.6968) it is still negative; behind a
@@ -23,7 +23,7 @@ Three sweeps, because the interesting answer differs by question:
      crossing to find -- the verifier is positive everywhere.
   C  alpha = 0.05, PRM at its measured false alarm.
      Does ANY score quality let the gate hold a binding alpha at this budget?
-     Ch. 7 says no even for the oracle; this checks the whole range.
+     Ch. 8 says no even for the oracle; this checks the whole range.
 
     python scripts/exp_score_quality_threshold.py
     python scripts/exp_score_quality_threshold.py --seeds 12   # tighter CIs
@@ -32,7 +32,7 @@ WHAT THIS IS NOT
 
 The binormal draw is exchangeable across wrong steps: it is as likely to rank a
 first-step error highly as a last-step one. A real score with a position bias
-would land somewhere else, and ch. 6 measured that real step difficulty rises
+would land somewhere else, and ch. 7 measured that real step difficulty rises
 with position. So the crossing here is where a *well-behaved* score of that
 quality turns the verifier positive, and a real score of the same AUROC could
 do worse. Reported as an estimate, not a threshold to design against.
@@ -61,7 +61,7 @@ from car.uncertainty.synthetic import SyntheticAUROCScorer  # noqa: E402
 from car.verification.scoped import MEASURED_SCOPE, ScopedVerifier  # noqa: E402
 
 # Imported rather than reimplemented: if this script ran the loop its own way,
-# its rows would not be comparable to the ch. 7 tables, which is the entire
+# its rows would not be comparable to the ch. 8 tables, which is the entire
 # point of the experiment.
 from exp_gate_pipeline import CORPUS, FEATURES, WEIGHTS, run_condition  # noqa: E402
 
@@ -74,9 +74,9 @@ OUT = Path("runs/score_quality_threshold.json")
 # Measured elsewhere in the project, printed alongside the sweep so the
 # comparison is on the page rather than left to the reader.
 REFERENCE = {
-    "token + semantic (ch. 7)": (0.5742, 0.7912),
-    "probe, layer 25 (sec. 7.6)": (0.6968, 0.7802),
-    "oracle, binary (sec. 7.4)": (1.0000, 0.9780),
+    "token + semantic (ch. 8)": (0.5742, 0.7912),
+    "probe, layer 25 (sec. 8.6)": (0.6968, 0.7802),
+    "oracle, binary (sec. 8.4)": (1.0000, 0.9780),
 }
 
 
@@ -131,7 +131,7 @@ def position_correlation(scores_by_step, by_id, splits, *, wrong_only=False):
 
     The diagnostic that explains sweep D. `SyntheticAUROCScorer` draws
     independently per step, so its correlation with position is zero by
-    construction -- a real score's is not, and ch. 6 measured that real step
+    construction -- a real score's is not, and ch. 7 measured that real step
     difficulty RISES with position. A score that chases that difficulty ranks
     well on AUROC and badly on the projection, which only pays for the first
     bad step in a solution.
@@ -242,7 +242,7 @@ def main():
     ap.add_argument("--features", type=Path, default=FEATURES)
     ap.add_argument("--gsm8k", type=Path, default=Path("data/raw/gsm8k/test.jsonl"))
     ap.add_argument("--alpha", type=float, default=0.30,
-                    help="matches ch. 7 section 7.4, so the rows are comparable")
+                    help="matches ch. 8 section 8.4, so the rows are comparable")
     ap.add_argument("--binding-alpha", type=float, default=0.05)
     ap.add_argument("--budget", type=int, default=2)
     ap.add_argument("--seeds", type=int, default=8)
@@ -316,7 +316,7 @@ def main():
     print(f"corpus    {args.corpus}   {len(corpus)} solutions")
     print(f"splits    {splits.summary()}")
     print(f"verifier  task PRM, scope={scope:.4f}, false alarm={fa:.4f}  "
-          f"(measured, ch. 5)")
+          f"(measured, ch. 6)")
     print(f"budget    {args.budget} verification calls per question")
     print(f"seeds     {args.seeds} per grid point")
     print(f"baseline  projected accuracy with no gate at all: {baseline:.4f}")
@@ -379,7 +379,7 @@ def main():
               f"{best['auroc_target']:.2f} --")
         print(f"  {best['selective_risk'] / args.binding_alpha:.1f}x the target. "
               f"Score quality is not the binding constraint here; the")
-        print(f"  budget is, exactly as the oracle row in section 7.3 says.")
+        print(f"  budget is, exactly as the oracle row in section 8.3 says.")
 
     sweep_d = [summarise(sweep_point(a, alpha=args.alpha, false_alarm=fa,
                                      fixed_rate=args.match_rate, **common))
@@ -393,7 +393,7 @@ def main():
         "probe row needs.",
         sweep_d, baseline=baseline)
 
-    probe_auroc, probe_acc = REFERENCE["probe, layer 25 (sec. 7.6)"]
+    probe_auroc, probe_acc = REFERENCE["probe, layer 25 (sec. 8.6)"]
     near = min(sweep_d, key=lambda p: abs(p["auroc_measured"] - probe_auroc))
     draws = np.asarray(near["projected_accuracy_draws"])
     pct = float(np.mean(draws <= probe_acc))
@@ -427,7 +427,7 @@ def main():
           f", composite "
           f"{position_correlation(comp_pos, by_id, splits, wrong_only=True):+.4f}")
     print()
-    print("  The probe flags LATE steps; the composite flags EARLY ones. Ch. 6")
+    print("  The probe flags LATE steps; the composite flags EARLY ones. Ch. 7")
     print("  measured error rate rising with position, so chasing it is what")
     print("  earns the probe its AUROC -- and the projection only pays for the")
     print("  FIRST bad step, because everything after it inherits corruption a")

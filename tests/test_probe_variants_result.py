@@ -88,7 +88,7 @@ def test_the_first_bad_gain_is_reported_against_both_comparators():
 @needs_run
 def test_the_right_target_eliminates_the_auroc_advantage():
     """Not 'halves'. 0.5735 is below the 0.5742 token+semantic baseline whose
-    failure is chapter 7's central negative result."""
+    failure is chapter 8's central negative result."""
     v = by_variant()
     baseline = blob()["reference"]["token + semantic"]
     assert v["C"]["auroc_test"] < baseline

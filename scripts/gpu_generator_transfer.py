@@ -36,7 +36,7 @@ TWO GATES, BOTH BEFORE ANY NUMBER IS BELIEVED
               comparable if the model actually imitates the exemplar format;
               if it does not, the local rate is measured on a biased subset.
 
-This is the same discipline the ch. 5 PRM run needed: on a borrowed model the
+This is the same discipline the ch. 6 PRM run needed: on a borrowed model the
 harness must reproduce known behaviour before a novel number from it counts.
 
 NO QUANTISATION. Elsewhere the README allows 4-bit for a judge, because only
@@ -116,7 +116,7 @@ def load_model(model_id: str, token: str | None = None):
         tok.pad_token = tok.eos_token
     # LEFT padding for batched decoder-only generation. Right padding puts pad
     # tokens between prompt and continuation, so the model generates from
-    # padding -- the bug that made the first ch. 5 judge run untrustworthy.
+    # padding -- the bug that made the first ch. 6 judge run untrustworthy.
     tok.padding_side = "left"
 
     # bf16 is emulated below sm_80, so gate on capability rather than on
@@ -310,7 +310,7 @@ class StubGenerator:
     downstream of the model call -- prompt assembly, truncation, step
     splitting, answer extraction, rollout accounting, serialisation, the
     Math-Shepherd round trip, the analysis script -- can be exercised on CPU
-    with a KNOWN answer before a Kaggle session is spent on it. The ch. 5 run
+    with a KNOWN answer before a Kaggle session is spent on it. The ch. 6 run
     burned three sessions on faults that were all visible without a GPU.
 
     Corruption propagates: once a prefix contains a corrupted value, every

@@ -54,7 +54,7 @@ JUDGEMENTS = Path("data/processed/depgraph_judgements.json")
 
 # Corpus-level stratum weights, measured over all 6,974 usable graphs with the
 # CORRECTED extractor -- the same one the adjudication packets were built with.
-# These were 0.1163 / 0.0961 until the ch. 1-8 verification pass: those are the
+# These were 0.1163 / 0.0961 until the 2026-09-28 verification pass: those are the
 # PRE-bug-fix rates, so the stratified figures were reweighting correct strata
 # with stale weights.
 P_AMBIGUOUS_GRAPH = 0.1260   # 879 of 6,974

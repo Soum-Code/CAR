@@ -10,7 +10,7 @@ in closed form and does not need the corpus.
 The crossing and the position-bias finding are pinned against the committed run
 artifact, in the same spirit as every other refuted claim here: the numbers are
 in the thesis, so a change to the scorer, the splits or the calibrator that
-moves them should fail loudly rather than quietly rewrite chapter 7.
+moves them should fail loudly rather than quietly rewrite chapter 8.
 """
 
 import json
@@ -97,7 +97,7 @@ def test_crossing_is_below_the_probes_own_auroc():
     """C10. The draft guessed "well above 0.70"; the measurement says ~0.65.
 
     The direction is the claim: the score quality the verifier needs is already
-    reached by the probe in section 7.6. If this ever flips back above 0.6968
+    reached by the probe in section 8.6. If this ever flips back above 0.6968
     the chapter's conclusion changes.
     """
     blob = json.loads(RUN.read_text(encoding="utf-8"))
@@ -139,7 +139,7 @@ def test_probe_underperforms_its_own_auroc_at_matched_budget():
     probe and the synthetic score is which steps they rank highly.
     """
     blob = json.loads(RUN.read_text(encoding="utf-8"))
-    probe_auroc, probe_acc = blob["reference"]["probe, layer 25 (sec. 7.6)"]
+    probe_auroc, probe_acc = blob["reference"]["probe, layer 25 (sec. 8.6)"]
     near = min(blob["sweep_d"],
                key=lambda p: abs(p["auroc_measured"] - probe_auroc))
     assert probe_acc < near["projected_accuracy_lo"]

@@ -1,6 +1,6 @@
 """Is 0.6968 a property of the states, or of logistic regression? [CPU]
 
-Chapter 7.6 settles the two variables it could. Training data is a small lever
+Chapter 8.6 settles the two variables it could. Training data is a small lever
 (+0.0105 for a doubling, CI spanning zero), and the training target matters a
 lot (first-bad recall 0.30 -> 0.45). What it never varied is the **instrument**:
 every probe in this thesis is a logistic regression on one layer. ReProbe's are
@@ -15,7 +15,7 @@ DESIGN, AND WHY IT IS NOT A FRESH 145-CONFIGURATION SEARCH
 The layer is chosen ONCE, by the linear probe on the selection split, and both
 instruments are then compared on the layers it liked. Re-running a full layer
 sweep for the MLP would make the comparison "best of 145 linear vs best of many
-more non-linear", and the winner's curse would do the work. §7.6 already paid
+more non-linear", and the winner's curse would do the work. §8.6 already paid
 0.18 AUROC for that lesson once.
 
   stage 1   linear probe per layer, selection split      -> a layer ranking
@@ -23,7 +23,7 @@ more non-linear", and the winner's curse would do the work. §7.6 already paid
   stage 3   both scored on test, paired bootstrap on the difference
 
 Test indices are not an argument to any selection function here, same as
-`select_and_fit`. Both instruments are run at both training sizes, because §7.6
+`select_and_fit`. Both instruments are run at both training sizes, because §8.6
 showed size is worth about +0.01 and confounding it with the instrument is
 exactly the mistake that produced the first wrong headline in that section.
 
@@ -322,7 +322,7 @@ def main():
                                  " probe." if neg else "."))
         elif pos:
             print("A non-linear head wins at every layer tested. That is an")
-            print("instrument effect and ch. 7.6 should say so.")
+            print("instrument effect and ch. 8.6 should say so.")
         elif neg:
             print("The linear probe wins at every layer tested.")
         else:

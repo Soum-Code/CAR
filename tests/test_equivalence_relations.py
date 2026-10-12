@@ -1,6 +1,6 @@
 """Pins the entailment comparison: the reference relation does not rescue it.
 
-Chapter 7's semantic-divergence result has one obvious escape hatch -- that
+Chapter 8's semantic-divergence result has one obvious escape hatch -- that
 `numeric_equivalence` is a cheap stand-in and the relation the literature uses
 would find the signal it misses. The measurement closes that, and these tests
 keep it closed: the numbers are in the thesis, and a change to the clustering,

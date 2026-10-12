@@ -1,6 +1,6 @@
 """Three meaning-equivalence relations over one fixed set of samples. [CPU]
 
-Chapter 7 reports that semantic divergence barely ranks step error (AUROC
+Chapter 8 reports that semantic divergence barely ranks step error (AUROC
 0.5740 on test, 0.5488 over all steps) and that the result is *relation-
 dependent*: re-clustering the same samples by string equality drives it to
 0.4904, below chance. That raises an obvious objection to the negative result.
@@ -54,7 +54,7 @@ RELATIONS = [
     ("bidirectional entailment", Path("runs/uncertainty_qwen25_7b_entail.jsonl")),
 ]
 
-# Chapter 7's composite, with semantic divergence carrying a weight.
+# Chapter 8's composite, with semantic divergence carrying a weight.
 WEIGHTS = {
     "token_entropy": 1.0,
     "max_surprisal": 0.5,
@@ -81,7 +81,7 @@ def measure(name, features, corpus_path, gsm8k):
     div, ok = np.asarray(div, dtype=float), np.asarray(ok, dtype=bool)
 
     # Scaler on dev only, exactly as the pipeline fits it -- otherwise the
-    # composite AUROC here would not be the one chapter 7 reports.
+    # composite AUROC here would not be the one chapter 8 reports.
     scorer = CompositeScorer(WEIGHTS).fit(
         [st.features for ex in splits.dev for st in by_id[ex.example_id].steps])
 
@@ -166,10 +166,10 @@ def main():
         print("No relation reaches 0.60. Differences of this size are inside")
         print("the sampling error on 925 test steps, so the result to take is")
         print("that none of them ranks step error -- not which ranks it least")
-        print("badly. The ch. 7 negative is a property of sampling-based step")
+        print("badly. The ch. 8 negative is a property of sampling-based step")
         print("uncertainty on this corpus, not of the clustering function.")
     else:
-        print("A relation clears 0.60, so the ch. 7 number was relation-limited")
+        print("A relation clears 0.60, so the ch. 8 number was relation-limited")
         print("and the chapter needs revisiting.")
 
     args.out.parent.mkdir(parents=True, exist_ok=True)

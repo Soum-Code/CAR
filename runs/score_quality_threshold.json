@@ -12,15 +12,15 @@
   "crossing_no_fa": null,
   "match_rate": 0.191,
   "reference": {
-    "token + semantic (ch. 7)": [
+    "token + semantic (ch. 8)": [
       0.5742,
       0.7912
     ],
-    "probe, layer 25 (sec. 7.6)": [
+    "probe, layer 25 (sec. 8.6)": [
       0.6968,
       0.7802
     ],
-    "oracle, binary (sec. 7.4)": [
+    "oracle, binary (sec. 8.4)": [
       1.0,
       0.978
     ]

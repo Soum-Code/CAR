@@ -1,6 +1,6 @@
 """A score whose AUROC is set by construction, for sweeping score quality.
 
-Chapters 7 and 9 both end on the same open number. The measured signals reach
+Chapters 8 and 10 both end on the same open number. The measured signals reach
 AUROC 0.5742, the probe 0.6968, and at both of those the task PRM is a net
 *loss* -- its 9.87% false-alarm rate breaks more correct steps than its 90.3%
 scope rescues. An oracle score turns the same verifier into a 17.6-point gain.

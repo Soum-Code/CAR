@@ -21,7 +21,7 @@ runs/*
 # 7h40m of Kaggle T4x2. Same rationale: cannot be regenerated on CPU.
 !runs/generated_qwen25_7b.jsonl
 !runs/generated_qwen25_7b_meta.json
-# 6h11m of Kaggle T4x2, 5,752 rollouts. The third generator (ch. 4).
+# 6h11m of Kaggle T4x2, 5,752 rollouts. The third generator (ch. 5).
 !runs/generated_llama31_8b.jsonl
 !runs/generated_llama31_8b_meta.json
 !runs/uncertainty_qwen25_7b.jsonl

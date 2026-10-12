@@ -120,7 +120,7 @@ def test_default_regularisation_spans_orders_of_magnitude():
 
 
 # ---- what a probe should be trained on -------------------------------------
-# Ch. 7.4 measured that two scores of equal AUROC are worth different amounts,
+# Ch. 8.4 measured that two scores of equal AUROC are worth different amounts,
 # because the projection only pays for the FIRST globally-wrong step. These
 # cover the pieces that encode that, since getting them subtly wrong would
 # produce a plausible number rather than a failure.

@@ -1,9 +1,9 @@
 """What should a step-level probe be trained on, and is it starved? [CPU]
 
-Two gaps chapter 7 leaves open, both answerable from the saved hidden states
+Two gaps chapter 8 leaves open, both answerable from the saved hidden states
 without touching a GPU again.
 
-GAP 1 -- IS THE PROBE STARVED? (ch. 7.6)
+GAP 1 -- IS THE PROBE STARVED? (ch. 8.6)
     The probe reaches AUROC 0.6968 on 670 training steps with a learning curve
     that climbs 0.7374 -> 0.8748 and never flattens, so 0.6968 was reported as
     a floor on the signal class rather than a ceiling. Pooling dev with the
@@ -14,9 +14,9 @@ GAP 1 -- IS THE PROBE STARVED? (ch. 7.6)
     The pooled probe is NOT deployable in the gate. It has seen the calibration
     split, and a score selected on the data the conformal threshold is fitted
     to leaks into the guarantee. It is reported as a probe-quality result only,
-    and `--gate-safe` is the variant chapter 7 may quote.
+    and `--gate-safe` is the variant chapter 8 may quote.
 
-GAP 2 -- IS AUROC THE RIGHT TRAINING TARGET? (ch. 7.4)
+GAP 2 -- IS AUROC THE RIGHT TRAINING TARGET? (ch. 8.4)
     7.4 measured that two scores of equal AUROC are worth different amounts,
     because the propagation model only pays for the FIRST globally-wrong step
     in a solution, and the probe's score correlates +0.18 with step position
@@ -58,9 +58,9 @@ from car.uncertainty.probe import DEFAULT_CS, auroc, fit_one, select_and_fit  # 
 STATES = Path("runs/probe_states.npz")
 OUT = Path("runs/probe_variants.json")
 
-# ch. 7 reference points, so every row below is comparable to something.
+# ch. 8 reference points, so every row below is comparable to something.
 REFERENCE = {"token + semantic": 0.5742, "probe as published": 0.6968,
-             "ch.5 task PRM scope": 0.9033}
+             "ch.6 task PRM scope": 0.9033}
 
 
 def first_bad_recall(scores, first_bad, rate):
@@ -207,7 +207,7 @@ def main():
     ap.add_argument("--select-frac", type=float, default=0.3)
     ap.add_argument("--budget-rate", type=float, default=0.191,
                     help="verification rate at which first-bad recall is "
-                         "compared; the probe's measured rate in ch. 7.4")
+                         "compared; the probe's measured rate in ch. 8.4")
     ap.add_argument("--emit-gate-scores", type=Path, default=Path("runs"),
                     help="write per-step scores for the gate-safe probes so "
                          "the section-3 gate table can be reproduced with "
@@ -299,7 +299,7 @@ def main():
     evaluate("A global, dev", {"layer": a_res.layer, "C": a_res.C,
                                "model": a_res.model, "scaler": a_res.scaler,
                                "_X": by_layer[a_res.layer], "_train": train_dev},
-             True, "reproduces ch. 7.6")
+             True, "reproduces ch. 8.6")
 
     # --- B. GAP 1: same everything, more training data. --------------------
     b_res = select_and_fit(by_layer, y, train_pool, sel_dev)
@@ -469,7 +469,7 @@ def main():
                                     "n_configurations": n_layers * 5},
         "gate_safe": {
             "note": "dev-only training, so the calibration split stays clean "
-                    "and ch. 7 may quote these; variants B-E may not.",
+                    "and ch. 8 may quote these; variants B-E may not.",
             **{k: {kk: vv for kk, vv in v.items() if not kk.startswith("_")}
                for k, v in gs.items()},
             "first_bad_recall_diff": gs_diff,

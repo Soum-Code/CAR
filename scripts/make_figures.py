@@ -5,7 +5,7 @@
 Writes PNG + PDF to docs/thesis/figures/.
 
 Figures 6-8 are computed from the committed corpus, so they cannot drift from
-the numbers in Chapter 7. The rest are measured constants, each carrying the
+the numbers in Chapter 8. The rest are measured constants, each carrying the
 script that produced it -- hardcoded rather than recomputed because the sources
 range from a 900-second CPU sweep to a 7h40m GPU run, and a figure script that
 takes an afternoon does not get re-run.
@@ -147,7 +147,7 @@ POSITION = {
     "glob": [0.3077, 0.5159, 0.6475, 0.7250, 0.7963, 0.8569, 0.8730, 0.9124],
 }
 
-# scripts/exp_gate_pipeline.py -- projected, see ch.7 on the repair model
+# scripts/exp_gate_pipeline.py -- projected, see ch.8 on the repair model
 VERIFIER_VALUE = [
     ("arithmetic\nstep-local", 0.0000, 0.0000, 0.8022),
     ("independent\njudge", 0.2283, 0.0200, 0.8022),
@@ -246,7 +246,7 @@ def fig2_reach():
         Line2D([], [], marker="s", ls="", color=S2, label="false alarm — P(flag | correct)"),
     ], loc="upper right", bbox_to_anchor=(1.0, 1.02))
     note(fig, "1,500 arithmetic-blind steps + 750 controls. Only the independent, "
-              "task-trained verifier closes the gap — and ch.7 shows its false-alarm rate undoes it.")
+              "task-trained verifier closes the gap — and ch.8 shows its false-alarm rate undoes it.")
     save(fig, "fig2-verifier-reach")
 
 
@@ -374,7 +374,7 @@ def fig6_roc():
         ax.plot(fpr, tpr, color=c, zorder=3, label=f"{name} — AUROC {auc:.4f}")
 
     # Control: three synthetic features at 1 sigma, combined through the same
-    # scorer -- exactly what `--synthetic-signal 1.0` does in ch. 7. A single
+    # scorer -- exactly what `--synthetic-signal 1.0` does in ch. 8. A single
     # feature gives 0.77 and would disagree with the 0.8668 in the text; the
     # combination is what averages the noise down.
     from car.types import UncertaintyFeatures
@@ -404,7 +404,7 @@ def fig6_roc():
                  pad=10)
     ax.legend(loc="lower right")
     note(fig, "925 held-out steps. The dashed control is the same construction as "
-              "--synthetic-signal 1.0 in ch. 7, which scores 0.8668 on its own draw; "
+              "--synthetic-signal 1.0 in ch. 8, which scores 0.8668 on its own draw; "
               "the harness finds a signal when one is there.")
     save(fig, "fig6-roc")
 
@@ -587,7 +587,7 @@ def fig10_probe_layers():
                 textcoords="offset points", xytext=(-8, -22), ha="right",
                 color=INK, fontsize=8.5)
     ax.axhline(0.5742, color=INK_3, ls=(0, (4, 4)), lw=1.2, zorder=2)
-    ax.text(0.4, 0.585, "ch. 7 best signal, 0.5742", color=INK_2, fontsize=8)
+    ax.text(0.4, 0.585, "ch. 8 best signal, 0.5742", color=INK_2, fontsize=8)
     ax.set_xlabel("hidden layer (0 = embeddings, 28 = final)")
     ax.set_ylabel("AUROC on the selection split")
     ax.set_ylim(0.55, 0.92)

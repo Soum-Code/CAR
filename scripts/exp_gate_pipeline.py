@@ -1,7 +1,7 @@
 """The full CAR gate, end to end on real GSM8K output. [CPU]
 
 Everything upstream of this has measured one piece at a time: the local/global
-gap (ch. 4), verifier reach (ch. 5), allocation shape (ch. 6, in simulation).
+gap (ch. 5), verifier reach (ch. 6), allocation shape (ch. 7, in simulation).
 This runs the actual control loop -- real generator uncertainty, real step
 labels, real conformal calibration, real budget -- and asks the only question
 the assembled system can answer:
@@ -28,7 +28,7 @@ lives:
 
 VERIFIER REACH IS A PARAMETER, NOT A DETAIL
 
-Ch. 5 found scope spanning 0.0000 to 0.9033 across verifier classes. A gate
+Ch. 6 found scope spanning 0.0000 to 0.9033 across verifier classes. A gate
 paired with a low-scope verifier is not merely less useful: a missed detection
 returns SUPPORTED, so the calibrator is fed a "no error here" label for a step
 that has one, and converges on a threshold that is confident about a risk it
@@ -150,7 +150,7 @@ class ProbeScorer:
 class OracleScorer:
     """A perfect uncertainty score. Not deployable; it reads the label.
 
-    Chapter 3 promises this baseline and it is the only way to separate "the
+    Chapter 4 promises this baseline and it is the only way to separate "the
     gate is bad" from "the task is hard at this budget". Every other component
     -- calibration, budget, verifier, the loop itself -- is unchanged, so the
     difference between this row and the real ones is attributable to the score
@@ -395,7 +395,7 @@ def main():
         print()
         print("=" * 92)
         print(f"VERIFIER: {kind}   scope={scope:.4f}  false alarm={fa:.4f}   "
-              f"(measured, ch. 5)")
+              f"(measured, ch. 6)")
         print("=" * 92)
         print(f"  {'condition':<22}{'verify%':>9}{'calls/q':>9}"
               f"{'sel.risk':>10}{'target':>8}{'recall':>9}{'1st-bad':>9}"

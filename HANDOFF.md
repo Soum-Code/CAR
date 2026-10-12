@@ -151,6 +151,20 @@ chapter 3 and shifted everything after it. A script moved ~160 references, but
 the keyword moves, and both ends still resolve, so no checker sees it.
 `check_crossrefs.py` now lists every range for confirmation by hand.
 
+**A renumber must also cover the non-markdown text.** `check_crossrefs.py` reads
+the thesis markdown and nothing else, so the same split left ~100 old chapter
+numbers behind where it cannot look: text drawn onto figures
+(`scripts/make_diagrams.py` and three figures in `scripts/make_figures.py`, so
+the PDF showed "ch. 7" under a box that is now chapter 8), and comments,
+docstrings, `.gitignore` and a few label strings that are also JSON keys read by
+tests (`runs/score_quality_threshold.json`). Fixed 2026-10-13. After any
+renumber, grep `scripts/ src/ tests/` for `(ch\.|[Cc]hapters?|§|sec\.|section) ?[0-9]`,
+then **rerun both figure scripts and look at the PNGs**: a figure is a binary,
+so a stale number in one is invisible to every guard. Two shapes beat a blanket
+`+1`: a reference to text that *moved* rather than shifted (old ch. 2's
+Sherlock citation is now ch. 3), and a name for a past event ("the ch. 1-8
+verification pass" is now cited by date).
+
 **The Math-Shepherd file is sorted into contiguous blocks by label.** Any prefix
 read is close to single-class — the first 80 MB is 100% wrong-answer GSM8K.
 `download_data.py` fetches 48 strided range requests and asserts the class

@@ -1,11 +1,11 @@
 """A trained probe on frozen internal states, as a step-level uncertainty score.
 
-Chapter 7's negative result rests on AUROC 0.5742: neither token-level
+Chapter 8's negative result rests on AUROC 0.5742: neither token-level
 uncertainty nor sampling-based semantic divergence ranks a globally-wrong step.
-Chapter 9 names the obvious untested alternative -- ReProbe (Ni et al.) trains a
+Chapter 10 names the obvious untested alternative -- ReProbe (Ni et al.) trains a
 sub-10M-parameter probe on a frozen model's internal states and matches PRMs up
 to 810x larger -- and makes a falsifiable prediction: on GSM8K, where the
-strongest PRMs reach parity with the probe, it should land near the ch. 5 PRM's
+strongest PRMs reach parity with the probe, it should land near the ch. 6 PRM's
 0.9033 rather than above it.
 
 This is the machinery for testing that.

@@ -97,7 +97,7 @@
   "n_configurations": 145
  },
  "gate_safe": {
-  "note": "dev-only training, so the calibration split stays clean and ch. 7 may quote these; variants B-E may not.",
+  "note": "dev-only training, so the calibration split stays clean and ch. 8 may quote these; variants B-E may not.",
   "global": {
    "layer": 25,
    "C": 0.1,
@@ -124,7 +124,7 @@
  "reference": {
   "token + semantic": 0.5742,
   "probe as published": 0.6968,
-  "ch.5 task PRM scope": 0.9033
+  "ch.6 task PRM scope": 0.9033
  },
  "variants": [
   {
@@ -140,7 +140,7 @@
    "auroc_vs_firstbad": 0.6158757062146892,
    "first_bad_recall": 0.3,
    "gate_safe": true,
-   "note": "reproduces ch. 7.6",
+   "note": "reproduces ch. 8.6",
    "score_position_corr": 0.23271517444575499
   },
   {

@@ -44,7 +44,8 @@ def evaluate(chain: PropagationChain, policy, n=N_TRIALS, seed=0, budget=None):
         r = chain.run(policy, rng, budget=budget)
         # final_correct became a method taking an outcome model when the
         # propagation module grew non-terminal outcomes; this script predates
-        # that and was silently unrunnable until the ch. 1-8 verification pass.
+        # that and was silently unrunnable until the 2026-09-28 verification
+        # pass (a89591b).
         final.append(r.final_correct())
         local_r.append(r.local_selective_risk)
         global_r.append(r.global_selective_risk)
@@ -117,7 +118,7 @@ def _influence(base_rate, mode):
 
     On a chain every step's descendant count is length - 1 - i, so influence
     weighting is a monotone front-loading -- numerically identical to the
-    `front` policy, which is exactly why ch. 6 had to move to DAGs before the
+    `front` policy, which is exactly why ch. 7 had to move to DAGs before the
     two could be told apart. Kept here so the chain result this script reports
     is reproducible; `car.topology.influence_schedule` is the general version.
     """

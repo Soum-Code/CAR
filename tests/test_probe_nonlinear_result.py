@@ -57,7 +57,7 @@ def test_no_identifiable_instrument_effect():
 
 @needs_run
 def test_at_the_published_layer_the_instrument_is_worth_almost_nothing():
-    """Layer 25 is the configuration ch. 7.6 actually reports."""
+    """Layer 25 is the configuration ch. 8.6 actually reports."""
     m = next(m for tag, where, m in matched()
              if tag == "dev" and where == "linear_layer")
     assert m["layer"] == 25

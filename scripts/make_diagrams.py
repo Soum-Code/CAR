@@ -122,7 +122,7 @@ def d1_decomposition():
 
     ax.set_title("A step fails two separable ways", loc="left", x=0.02, y=0.99,
                  fontsize=10.5, color=INK, weight="bold")
-    note(fig, "Rates are Mistral-7B-SFT within wrong-answer solutions (ch. 4). "
+    note(fig, "Rates are Mistral-7B-SFT within wrong-answer solutions (ch. 5). "
               "Verification certifies the horizontal axis; the answer depends on both.",
          y=-0.03)
     save(fig, "diag1-decomposition")
@@ -138,10 +138,10 @@ def d2_loop():
     gap = 0.035
     stages = [
         ("generator\nwrites step $t$", SURFACE, INK_3, ""),
-        ("uncertainty\nscore", "#eaf1fb", S1, "ch. 7: AUROC 0.574"),
-        ("conformal\ncalibrator", "#eaf1fb", S1, "ch. 7: holds coverage,\nnot risk"),
-        ("gate\nverify or not", "#fff4e6", S2, "ch. 6: where to spend"),
-        ("verifier", "#eaf7ee", S3, "ch. 5: scope 0.00-0.90"),
+        ("uncertainty\nscore", "#eaf1fb", S1, "ch. 8: AUROC 0.574"),
+        ("conformal\ncalibrator", "#eaf1fb", S1, "ch. 8: holds coverage,\nnot risk"),
+        ("gate\nverify or not", "#fff4e6", S2, "ch. 7: where to spend"),
+        ("verifier", "#eaf7ee", S3, "ch. 6: scope 0.00-0.90"),
     ]
     xs = []
     for i, (lab, face, edge, _) in enumerate(stages):
@@ -164,13 +164,13 @@ def d2_loop():
             ha="center", fontsize=8, color=INK_2)
 
     ax.text(0.045, y - 0.22,
-            "Chapter 4 measures what the verifier is being asked to catch; "
-            "chapter 8 asks whether the target is attainable at all.",
+            "Chapter 5 measures what the verifier is being asked to catch; "
+            "chapter 9 asks whether the target is attainable at all.",
             fontsize=8.4, color=INK_2)
 
     ax.set_title("The gate, and which chapter measures which part", loc="left",
                  x=0.02, y=1.02, fontsize=10.5, color=INK, weight="bold")
-    note(fig, "Each component was measured separately before chapter 7 ran the "
+    note(fig, "Each component was measured separately before chapter 8 ran the "
               "assembled loop. The assembled result is negative, and locating "
               "which component causes it is what the separate measurements buy.",
          y=-0.06)
@@ -218,7 +218,7 @@ def d3_absorption():
 
     ax.set_title("Corruption is close to absorbing", loc="left", x=0.02, y=0.94,
                  fontsize=10.5, color=INK, weight="bold")
-    note(fig, "Measured, not modelled (ch. 4). Entering corruption does not depend "
+    note(fig, "Measured, not modelled (ch. 5). Entering corruption does not depend "
               "on the verifier; escaping it does -- which is why reach, not budget, "
               "is the controlling variable.", y=-0.06)
     save(fig, "diag3-absorption")

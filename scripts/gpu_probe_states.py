@@ -1,16 +1,16 @@
 """Train a probe on frozen internal states, and see if it ranks step error. [NEEDS GPU]
 
-The one experiment Chapter 9 names as the test of its own negative result.
-Everything in Chapter 7 is gated on AUROC 0.5742 -- neither token-level
+The one experiment Chapter 10 names as the test of its own negative result.
+Everything in Chapter 8 is gated on AUROC 0.5742 -- neither token-level
 uncertainty nor sampling-based semantic divergence ranks a globally-wrong step.
 ReProbe (Ni et al., arXiv:2511.06209) reports that a sub-10M-parameter probe on
 a frozen model's internal states matches PRMs up to 810x larger, which makes
 this the cheapest way to find out whether the AUROC 0.56 result is about *these
 signals* or about step-level uncertainty in general.
 
-Chapter 9 commits to a prediction before the run, which is the point of making
+Chapter 10 commits to a prediction before the run, which is the point of making
 it: ReProbe's margin is largest OUT of domain, and strong PRMs reach parity with
-it on GSM8K. So a probe here should land near the ch. 5 PRM's 0.9033 rather than
+it on GSM8K. So a probe here should land near the ch. 6 PRM's 0.9033 rather than
 above it -- good enough to calibrate on, and leaving 7.4's false-alarm problem
 untouched.
 
@@ -60,7 +60,7 @@ from car.uncertainty.probe import (  # noqa: E402
 TRAIN = Path("data/raw/gsm8k/train.jsonl")
 MODEL = "Qwen/Qwen2.5-7B-Instruct"
 
-# Reported in ch. 7 on the same steps, for the comparison this run exists for.
+# Reported in ch. 8 on the same steps, for the comparison this run exists for.
 BASELINE_AUROC = {"token-level": 0.5589, "semantic": 0.5740, "both": 0.5742}
 PRM_SCOPE = 0.9033
 
@@ -174,7 +174,7 @@ def main():
     if args.limit:
         sols = sols[: args.limit]
 
-    # Same hash splits as ch. 7, so the AUROCs are comparable step for step.
+    # Same hash splits as ch. 8, so the AUROCs are comparable step for step.
     examples = [Example(example_id=f"qwen_{i}", question=s.question, gold_answer="")
                 for i, s in enumerate(sols)]
     splits = make_splits(examples, dev_frac=0.3, cal_frac=0.3, salt="car-v1")
@@ -216,7 +216,7 @@ def main():
     position = np.asarray(position)
     n_in_sol = np.asarray(n_in_sol)
 
-    # The FIRST globally-wrong step of each solution. Ch. 7.4 measured that this
+    # The FIRST globally-wrong step of each solution. Ch. 8.4 measured that this
     # is the only one a repair can rescue -- everything after it inherits
     # corruption a later fix does not undo -- so it is the target a step score
     # should arguably be trained against, and AUROC on `y` is not.
@@ -267,9 +267,9 @@ def main():
     print(f"  AUROC on TEST                  {test_auroc:.4f}", flush=True)
     print("", flush=True)
     for name, v in BASELINE_AUROC.items():
-        print(f"  ch.7 baseline, {name:<14} {v:.4f}", flush=True)
-    print(f"  ch.5 task PRM scope            {PRM_SCOPE:.4f}  "
-          f"(ch. 9 predicted the probe lands near this, not above)", flush=True)
+        print(f"  ch.8 baseline, {name:<14} {v:.4f}", flush=True)
+    print(f"  ch.6 task PRM scope            {PRM_SCOPE:.4f}  "
+          f"(ch. 10 predicted the probe lands near this, not above)", flush=True)
 
     print("\n  per-layer AUROC on the selection split:", flush=True)
     for L in sorted(best.per_layer):
@@ -291,7 +291,7 @@ def main():
         "per_layer_select": {str(k): v for k, v in best.per_layer.items()},
         # NAMED for what it is: scored on the SELECTION split, the same data
         # the layer and C were chosen on. It is therefore biased and is NOT
-        # evidence about training size -- a claim in ch. 7.6 rested on it
+        # evidence about training size -- a claim in ch. 8.6 rested on it
         # until round two caught that. exp_probe_variants.py produces the
         # held-out version.
         "learning_curve_on_selection_split": [[int(n), float(a)] for n, a in curve],

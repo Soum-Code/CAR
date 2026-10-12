@@ -1,6 +1,6 @@
 """A verifier whose reach is a measured parameter.
 
-Chapter 5 measured *scope* -- the probability a verifier detects a step that is
+Chapter 6 measured *scope* -- the probability a verifier detects a step that is
 globally wrong -- for four verifier classes on the arithmetic-blind population:
 
     arithmetic, step-local        0.0000
@@ -8,7 +8,7 @@ globally wrong -- for four verifier classes on the arithmetic-blind population:
     independent judge (Qwen2.5-7B) 0.2283  at 2.0% false alarm
     task PRM (Math-Shepherd-7B)    0.9033  at 9.9% false alarm
 
-Chapter 6 asks what follows for allocation. Connecting them needs scope to be a
+Chapter 7 asks what follows for allocation. Connecting them needs scope to be a
 knob rather than a property of whichever verifier happens to be wired in, which
 is what this class is.
 
@@ -33,7 +33,7 @@ import numpy as np
 from car.types import ReasoningStep, Verdict
 from car.verification.base import VerificationResult
 
-# Measured in ch. 5; see runs/semantic_scope_*.json and README C3.
+# Measured in ch. 6; see runs/semantic_scope_*.json and README C3.
 MEASURED_SCOPE = {
     "arithmetic_local": (0.0000, 0.0000),
     "arithmetic_lookback": (0.1999, 0.0000),

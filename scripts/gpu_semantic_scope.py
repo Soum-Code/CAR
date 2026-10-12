@@ -16,7 +16,7 @@ Three outcomes, all publishable:
   low scope   -> step-level verification cannot close the gap at all, and the
                  intervention has to move to the reasoning structure. This is
                  the most interesting outcome.
-  mid scope   -> a scope estimate per verifier type, which is what ch. 5 needs
+  mid scope   -> a scope estimate per verifier type, which is what ch. 6 needs
                  either way
 
 RUNNING THIS

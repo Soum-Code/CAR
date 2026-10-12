@@ -79,7 +79,7 @@ class EntailmentEquivalence:
 
     Two samples mean the same thing when each entails the other under an NLI
     model. This is the reference relation for semantic entropy, and the reason
-    it is worth running here is that Chapter 7's result depends on the relation:
+    it is worth running here is that Chapter 8's result depends on the relation:
     the same samples give AUROC 0.5488 under `numeric_equivalence` and 0.4904 --
     below chance -- under `exact_match_equivalence`. Measuring a third relation
     is what separates "sampling-based step uncertainty is weak" from "the cheap

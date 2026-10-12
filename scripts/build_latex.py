@@ -169,7 +169,7 @@ def convert_table(rows: list[str]) -> str:
     Narrow tables get a plain `tabular` with `l` columns, which centres well.
     Wide ones get `tabularx` at \\textwidth with the prose-carrying columns as
     wrapping `L`, because `l` columns never break a line: a cell of prose in
-    one runs straight off the page edge, which is how chapter 9's refuted-claim
+    one runs straight off the page edge, which is how chapter 10's refuted-claim
     table ended up 952pt too wide -- more than twice the text block -- in the
     first compiled PDF.
     """
@@ -216,7 +216,7 @@ def _gather(lines: list[str], i: int, first: str) -> tuple[str, int]:
     """Join a paragraph or list item into one string before converting it.
 
     inline() used to run per line, so any span crossing a line break lost its
-    pair: chapter 2's *Reliable and Efficient Agentic Workflow\\nExecution*
+    pair: chapter 3's *Reliable and Efficient Agentic Workflow\\nExecution*
     reached the PDF with literal asterisks, because neither half matched the
     italic pattern on its own. Markdown treats a paragraph as one unit, so the
     converter has to as well.
